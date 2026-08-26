@@ -1,17 +1,21 @@
 using UnityEngine;
+using EternalClash.Character;
 
-public class CombatController : MonoBehaviour
+namespace EternalClash.Combat
 {
-    public CharacterStats attacker;
-    public CharacterStats defender;
-    public HealthSystem targetHealth;
-
-    public void Attack()
+    public class CombatController : MonoBehaviour
     {
-        if (attacker == null || defender == null || targetHealth == null)
-            return;
+        public CharacterStats attacker;
+        public CharacterStats defender;
+        public HealthSystem targetHealth;
 
-        float damage = DamageSystem.CalculateDamage(attacker, defender);
-        targetHealth.TakeDamage(damage);
+        public void Attack()
+        {
+            if (attacker == null || defender == null || targetHealth == null)
+                return;
+
+            float damage = DamageSystem.CalculateDamage(attacker, defender);
+            targetHealth.TakeDamage(Mathf.RoundToInt(damage));
+        }
     }
 }

@@ -1,19 +1,23 @@
 using UnityEngine;
+using EternalClash.Character;
 
-public static class DamageSystem
+namespace EternalClash.Combat
 {
-    public static float CalculateDamage(CharacterStats attacker, CharacterStats defender)
+    public static class DamageSystem
     {
-        float damage = attacker.attack - defender.defense;
-
-        if (damage < 1)
-            damage = 1;
-
-        if (Random.value <= attacker.criticalRate)
+        public static float CalculateDamage(CharacterStats attacker, CharacterStats defender)
         {
-            damage *= 2f;
-        }
+            float damage = attacker.attack - defender.defense;
 
-        return damage;
+            if (damage < 1)
+                damage = 1;
+
+            if (Random.value <= attacker.criticalRate)
+            {
+                damage *= 2f;
+            }
+
+            return damage;
+        }
     }
 }
