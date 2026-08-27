@@ -2,28 +2,19 @@ using UnityEngine;
 
 namespace EternalClash.Enemy
 {
-    public class EnemyController : EnemyBase
+    public class EnemyController : MonoBehaviour
     {
-        public bool moveTowardsPlayer = false;
+        public bool canMove = true;
+        public bool isAttacking = false;
 
-        private Transform player;
-
-        protected override void Awake()
+        public void StopMove()
         {
-            base.Awake();
-            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+            canMove = false;
         }
 
-        private void Update()
+        public void ResumeMove()
         {
-            if (moveTowardsPlayer && player != null)
-            {
-                transform.position = Vector3.MoveTowards(
-                    transform.position,
-                    player.position,
-                    moveSpeed * Time.deltaTime
-                );
-            }
+            canMove = true;
         }
     }
 }

@@ -4,11 +4,32 @@ namespace EternalClash.Enemy
 {
     public class EnemyMover : MonoBehaviour
     {
-        public float moveSpeed = 2.5f;
+        public float stopDistance = 1.2f;
+
+        private EnemyBase enemyBase;
+        private Transform player;
+
+        private void Awake()
+        {
+            enemyBase = GetComponent<EnemyBase>();
+            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        }
 
         private void Update()
         {
-            transform.position += Vector3.left * moveSpeed * Time.deltaTime;
+            if (player == null || enemyBase == null)
+                return;
+
+            float distance = Vector2.Distance(transform.position, player.position);
+
+            if (distance > stopDistance)
+            {
+                transform.position = Vector2.MoveTowards(
+                    transform.position,
+                    player.position,
+                    enemyBase.moveSpeed * Time.deltaTime
+                );
+            }
         }
     }
 }
