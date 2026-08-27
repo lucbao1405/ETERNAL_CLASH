@@ -8,6 +8,12 @@ namespace EternalClash.Enemy
     {
         [SerializeField] private HealthSystem healthSystem;
         [SerializeField] private Image fillImage;
+        [SerializeField] private Image delayedFillImage;
+        [SerializeField] private float delayBeforeDeplete = 0.4f;
+        [SerializeField] private float depleteSpeed = 1.5f;
+
+        private float targetFillAmount = 1f;
+        private float delayTimer;
 
         private void Awake()
         {
@@ -22,6 +28,12 @@ namespace EternalClash.Enemy
                 healthSystem.OnHealthChanged += UpdateHealthBar;
                 UpdateHealthBar(healthSystem.CurrentHealth, healthSystem.MaxHealth);
             }
+
+            if (fillImage != null)
+                fillImage.fillAmount = targetFillAmount;
+
+            if (delayedFillImage != null)
+                delayedFillImage.fillAmount = targetFillAmount;
         }
 
         private void OnDestroy()
@@ -30,12 +42,37 @@ namespace EternalClash.Enemy
                 healthSystem.OnHealthChanged -= UpdateHealthBar;
         }
 
-        private void UpdateHealthBar(int current, int max)
+        private void Update()
         {
-            if (fillImage == null || max <= 0)
+            if (delayedFillImage == null)
                 return;
 
-            fillImage.fillAmount = (float)current / max;
+            if (delayedFillImage.fillAmount <= targetFillAmount)
+                return;
+
+            if (delayTimer > 0f)
+            {
+                delayTimer -= Time.deltaTime;
+                return;
+            }
+
+            delayedFillImage.fillAmount = Mathf.MoveTowards(delayedFillImage.fillAmount, targetFillAmount, depleteSpeed * Time.deltaTime);
+        }
+
+        private void UpdateHealthBar(int current, int max)
+        {
+            if (max <= 0)
+                return;
+
+            targetFillAmount = (float)current / max;
+
+            if (fillImage != null)
+                fillImage.fillAmount = targetFillAmount;
+
+            if (delayedFillImage != null && delayedFillImage.fillAmount < targetFillAmount)
+                delayedFillImage.fillAmount = targetFillAmount;
+
+            delayTimer = delayBeforeDeplete;
         }
     }
 }
