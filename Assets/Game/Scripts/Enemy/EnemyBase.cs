@@ -1,40 +1,33 @@
 using UnityEngine;
-using System;
 using EternalClash.Character;
 
 namespace EternalClash.Enemy
 {
     public class EnemyBase : MonoBehaviour
     {
-        public int maxHP = 20;
         public int attackDamage = 5;
         public float moveSpeed = 1f;
 
-        protected int currentHP;
+        private HealthSystem healthSystem;
         private CharacterStateMachine stateMachine;
-
-        public event Action<int, int> OnHealthChanged;
 
         protected virtual void Awake()
         {
-            currentHP = maxHP;
+            healthSystem = GetComponent<HealthSystem>();
             stateMachine = GetComponent<CharacterStateMachine>();
-            OnHealthChanged?.Invoke(currentHP, maxHP);
         }
 
-        public virtual void TakeDamage(int damage)
+        public virtual void ReceiveDamage(int damage)
         {
-            currentHP -= damage;
+            if (healthSystem == null)
+                return;
 
-            if (currentHP < 0)
-                currentHP = 0;
-
-            OnHealthChanged?.Invoke(currentHP, maxHP);
+            healthSystem.TakeDamage(damage);
 
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Hit);
 
-            if (currentHP <= 0)
+            if (healthSystem.IsDead)
                 Die();
         }
 
@@ -48,7 +41,7 @@ namespace EternalClash.Enemy
 
         public int GetCurrentHP()
         {
-            return currentHP;
+            return healthSystem != null ? healthSystem.CurrentHealth : 0;
         }
     }
 }

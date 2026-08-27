@@ -1,32 +1,33 @@
 using UnityEngine;
 using UnityEngine.UI;
+using EternalClash.Character;
 
 namespace EternalClash.Enemy
 {
     public class EnemyHealthBar : MonoBehaviour
     {
-        [SerializeField] private EnemyBase enemy;
+        [SerializeField] private HealthSystem healthSystem;
         [SerializeField] private Image fillImage;
 
         private void Awake()
         {
-            if (enemy == null)
-                enemy = GetComponentInParent<EnemyBase>();
+            if (healthSystem == null)
+                healthSystem = GetComponentInParent<HealthSystem>();
         }
 
         private void Start()
         {
-            if (enemy != null)
+            if (healthSystem != null)
             {
-                enemy.OnHealthChanged += UpdateHealthBar;
-                UpdateHealthBar(enemy.GetCurrentHP(), enemy.maxHP);
+                healthSystem.OnHealthChanged += UpdateHealthBar;
+                UpdateHealthBar(healthSystem.CurrentHealth, healthSystem.MaxHealth);
             }
         }
 
         private void OnDestroy()
         {
-            if (enemy != null)
-                enemy.OnHealthChanged -= UpdateHealthBar;
+            if (healthSystem != null)
+                healthSystem.OnHealthChanged -= UpdateHealthBar;
         }
 
         private void UpdateHealthBar(int current, int max)

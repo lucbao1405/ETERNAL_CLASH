@@ -3,8 +3,7 @@ using UnityEngine;
 namespace EternalClash.Player
 {
     /// <summary>
-    /// Player movement system for auto-scroller gameplay.
-    /// Player always moves forward automatically.
+    /// Keeps player combat position. World movement is handled by WorldScroller.
     /// </summary>
     public class AutoRunner : MonoBehaviour
     {
@@ -15,9 +14,10 @@ namespace EternalClash.Player
 
         private void Update()
         {
-            if (!isRunning) return;
-
-            transform.position += Vector3.right * (runSpeed * Time.deltaTime);
+            // Player stays in combat position.
+            // The world moves instead.
+            if (!isRunning)
+                return;
         }
 
         public void StopRunning()

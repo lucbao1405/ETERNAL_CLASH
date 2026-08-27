@@ -1,5 +1,4 @@
 using UnityEngine;
-using EternalClash.Character;
 
 namespace EternalClash.Combat
 {
@@ -8,7 +7,7 @@ namespace EternalClash.Combat
         public int damage = 5;
         public float attackInterval = 2f;
         public float attackRange = 1.2f;
-        public float knockbackForce = 5f;
+        public float knockbackForce = 1f;
 
         private float timer;
         private Transform player;
@@ -27,25 +26,20 @@ namespace EternalClash.Combat
 
             timer -= Time.deltaTime;
 
-            float distance = Vector2.Distance(transform.position, player.position);
-
-            if (distance <= attackRange && timer <= 0)
+            if (Vector2.Distance(transform.position, player.position) <= attackRange && timer <= 0)
             {
                 AttackPlayer();
                 timer = attackInterval;
             }
         }
 
-        private void AttackPlayer()
+        public void AttackPlayer()
         {
             Debug.Log("Enemy attack player");
 
-            HealthSystem health = player.GetComponent<HealthSystem>();
-
-            if (health != null)
-            {
-                health.TakeDamage(damage);
-            }
+            DamageReceiver receiver = player.GetComponent<DamageReceiver>();
+            if (receiver != null)
+                receiver.TakeDamage(damage);
 
             KnockbackReceiver knockback = player.GetComponent<KnockbackReceiver>();
             if (knockback != null)

@@ -126,6 +126,8 @@ GameObject:
   - component: {fileID: -2736930427471613890}
   - component: {fileID: 3298068993565431265}
   - component: {fileID: 6307903538845569426}
+  - component: {fileID: -7898629841655982033}
+  - component: {fileID: 294697476149249141}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Enemy
@@ -302,9 +304,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0183c18c7262f3743a3769549d7e60b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHP: 20
   attackDamage: 5
-  moveSpeed: 0
+  moveSpeed: 1
 --- !u!114 &4583977637398802043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,7 +345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemy: {fileID: 4691764416766105895}
+  healthSystem: {fileID: 3298068993565431265}
   fillImage: {fileID: 44428130022157877}
 --- !u!114 &3298068993565431265
 MonoBehaviour:
@@ -371,7 +372,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9da844775e7ab284e836bdce1c5bbee3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recoveryTime: 0.25
+  knockbackDistance: 1
+  knockbackDuration: 0.15
+  recoveryTime: 0.5
+  enemyStunTime: 1
+--- !u!114 &-7898629841655982033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a550b993e4cd9f6409b90dc47092f84d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 5
+  attackInterval: 2
+  attackRange: 1.2
+  knockbackForce: 5
+--- !u!114 &294697476149249141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 000a0e2658667b2439d5410b7792ba21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3967436272979540893
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,4 +630,4 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 1
+  m_Radius: 0.5

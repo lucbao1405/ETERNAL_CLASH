@@ -27,6 +27,11 @@ namespace EternalClash.Combat
             if (target != null && cooldownTimer <= 0)
             {
                 StartAttack();
+
+                // Tam thoi gay damage truc tiep khi chua co Animation Event
+                // Sau nay se chuyen lai cho AnimationDealDamage()
+                DealDamage();
+
                 cooldownTimer = attackCooldown;
             }
         }
@@ -52,7 +57,6 @@ namespace EternalClash.Combat
             DealDamage();
         }
 
-        // Sau nay co the goi bang Animation Event
         public void DealDamage()
         {
             if (target == null)
@@ -64,7 +68,7 @@ namespace EternalClash.Combat
 
             if (enemy != null)
             {
-                enemy.TakeDamage(damage);
+                enemy.ReceiveDamage(damage);
 
                 KnockbackReceiver knockback = target.GetComponent<KnockbackReceiver>();
                 if (knockback != null)
