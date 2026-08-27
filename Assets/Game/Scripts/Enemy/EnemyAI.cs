@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Character;
+using EternalClash.Combat;
 
 namespace EternalClash.Enemy
 {
@@ -37,6 +38,7 @@ namespace EternalClash.Enemy
                 player = obj.transform;
 
             stateMachine = GetComponent<CharacterStateMachine>();
+            enemyAttack = GetComponent<EnemyAttack>();
         }
 
         private void Update()
@@ -57,6 +59,8 @@ namespace EternalClash.Enemy
             }
         }
 
+        private EnemyAttack enemyAttack;
+
         private void AttackState()
         {
             timer += Time.deltaTime;
@@ -68,25 +72,8 @@ namespace EternalClash.Enemy
                 if (stateMachine != null)
                     stateMachine.ChangeState(CharacterState.Attack);
 
-                PerformAttack();
-            }
-        }
-
-        private void PerformAttack()
-        {
-            switch (type)
-            {
-                case EnemyType.Melee:
-                    Debug.Log("Enemy melee attack");
-                    break;
-
-                case EnemyType.Ranged:
-                    Debug.Log("Enemy shoot projectile");
-                    break;
-
-                case EnemyType.Charger:
-                    Debug.Log("Enemy charge attack");
-                    break;
+                if (enemyAttack != null)
+                    enemyAttack.AttackPlayer();
             }
         }
 
