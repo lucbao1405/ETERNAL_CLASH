@@ -8,8 +8,11 @@ namespace EternalClash.Enemy
         public int attackDamage = 5;
         public float moveSpeed = 1f;
 
+        [SerializeField] private GameObject coinPrefab;
+
         private HealthSystem healthSystem;
         private CharacterStateMachine stateMachine;
+        private bool isDead;
 
         protected virtual void Awake()
         {
@@ -19,7 +22,7 @@ namespace EternalClash.Enemy
 
         public virtual void ReceiveDamage(int damage)
         {
-            if (healthSystem == null)
+            if (healthSystem == null || isDead)
                 return;
 
             healthSystem.TakeDamage(damage);
@@ -33,8 +36,13 @@ namespace EternalClash.Enemy
 
         protected virtual void Die()
         {
+            isDead = true;
+
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Dead);
+
+            if (coinPrefab != null)
+                Instantiate(coinPrefab, transform.position, Quaternion.identity);
 
             Destroy(gameObject, 0.5f);
         }
