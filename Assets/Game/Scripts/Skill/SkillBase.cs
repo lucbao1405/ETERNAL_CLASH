@@ -16,6 +16,14 @@ namespace EternalClash.Skill
             timer = 0f;
         }
 
+        public float CooldownRemaining
+        {
+            get
+            {
+                return Mathf.Max(timer, 0);
+            }
+        }
+
         public bool CanUse()
         {
             return timer <= 0;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using EternalClash.Skill;
 
 namespace EternalClash.Combat
 {
@@ -40,6 +41,15 @@ namespace EternalClash.Combat
             DamageReceiver receiver = player.GetComponent<DamageReceiver>();
             if (receiver != null)
                 receiver.TakeDamage(damage);
+
+            ShieldSkill shield = player.GetComponent<ShieldSkill>();
+
+            // Shield dang bat: chan day lui
+            if (shield != null && shield.IsActive())
+            {
+                Debug.Log("Shield active - Ignore knockback");
+                return;
+            }
 
             KnockbackReceiver knockback = player.GetComponent<KnockbackReceiver>();
             if (knockback != null)

@@ -464,9 +464,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Shield
-  cooldown: 4
+  cooldown: 6
   damageReduction: 0.2
-  duration: 3
+  duration: 5
 --- !u!114 &1034668976301621659
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -18,6 +18,21 @@ namespace EternalClash.Skill
             Debug.Log("[SkillManager] Auto bind skills on " + gameObject.name);
         }
 
+        public float GetShieldCooldown()
+        {
+            return shieldSkill != null ? shieldSkill.CooldownRemaining : 0;
+        }
+
+        public float GetPotionCooldown()
+        {
+            return potionSkill != null ? potionSkill.CooldownRemaining : 0;
+        }
+
+        public float GetChargeCooldown()
+        {
+            return chargeSkill != null ? chargeSkill.CooldownRemaining : 0;
+        }
+
         public void UseShield()
         {
             Debug.Log("[UI] Use Shield Button Pressed");

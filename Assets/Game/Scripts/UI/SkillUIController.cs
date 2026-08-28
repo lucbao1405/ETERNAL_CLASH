@@ -1,69 +1,65 @@
 using UnityEngine;
+using UnityEngine.UI;
 using EternalClash.Skill;
+using EternalClash.Character;
 
 namespace EternalClash.UI
 {
     public class SkillUIController : MonoBehaviour
     {
         private SkillManager skillManager;
+        public Button[] skillButtons;
 
         private void Start()
         {
             FindPlayerSkillManager();
         }
 
+        private void Update()
+        {
+            if (HealthSystem.PlayerDead)
+            {
+                DisableButtons();
+            }
+        }
+
+        private void DisableButtons()
+        {
+            foreach (Button button in skillButtons)
+            {
+                if (button != null)
+                    button.interactable = false;
+            }
+        }
+
         private void FindPlayerSkillManager()
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
 
-            if (player == null)
-            {
-                Debug.LogWarning("[UI] Cannot find Player");
-                return;
-            }
+            if (player == null) return;
 
             skillManager = player.GetComponent<SkillManager>();
-
-            if (skillManager == null)
-            {
-                Debug.LogWarning("[UI] Player has no SkillManager");
-                return;
-            }
-
-            Debug.Log("[UI] Runtime Player SkillManager found: " + player.name);
         }
 
         public void UseCharge()
         {
-            Debug.Log("[UI] Use Charge Button Pressed");
-
-            if (skillManager == null)
-                FindPlayerSkillManager();
-
-            if (skillManager != null)
-                skillManager.UseCharge();
+            if (HealthSystem.PlayerDead) return;
+            if (skillManager == null) FindPlayerSkillManager();
+            skillManager?.UseCharge();
         }
 
         public void UseShield()
         {
-            Debug.Log("[UI] Use Shield Button Pressed");
-
-            if (skillManager == null)
-                FindPlayerSkillManager();
-
-            if (skillManager != null)
-                skillManager.UseShield();
+            if (HealthSystem.PlayerDead) return;
+            if (skillManager == null) FindPlayerSkillManager();
+            skillManager?.UseShield();
         }
 
         public void UsePotion()
         {
-            Debug.Log("[UI] Use Potion Button Pressed");
-
-            if (skillManager == null)
-                FindPlayerSkillManager();
-
-            if (skillManager != null)
-                skillManager.UsePotion();
+            if (HealthSystem.PlayerDead) return;
+            if (skillManager == null) FindPlayerSkillManager();
+            skillManager?.UsePotion();
         }
     }
 }
