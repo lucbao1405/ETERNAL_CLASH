@@ -137,6 +137,7 @@ GameObject:
   - component: {fileID: -3915550630186896912}
   - component: {fileID: 2858208867628018155}
   - component: {fileID: 1034668976301621659}
+  - component: {fileID: 2204370209784342832}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -373,7 +374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d52471f4832d125459c75a9fbeeaa537, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 5
+  damage: 20
   attackCooldown: 0.5
   knockbackForce: 2
 --- !u!114 &5776730950409429375
@@ -482,6 +483,19 @@ MonoBehaviour:
   skillName: Potion
   cooldown: 5
   healAmount: 10
+--- !u!114 &2204370209784342832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac5b50fa379ba3479d0763d169264a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coins: 0
 --- !u!1 &3199390587613228680
 GameObject:
   m_ObjectHideFlags: 0

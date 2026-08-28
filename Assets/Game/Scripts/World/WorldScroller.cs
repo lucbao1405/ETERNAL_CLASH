@@ -14,7 +14,10 @@ namespace EternalClash.World
             if (!scrolling)
                 return;
 
-            transform.position += Vector3.left * scrollSpeed * currentMultiplier * Time.deltaTime;
+            transform.Translate(
+                Vector3.left * scrollSpeed * currentMultiplier * Time.deltaTime,
+                Space.World
+            );
         }
 
         public void SetSpeedMultiplier(float multiplier)

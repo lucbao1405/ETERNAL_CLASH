@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 294697476149249141}
   - component: {fileID: -4430521099706183268}
   - component: {fileID: -2502204505426083527}
+  - component: {fileID: 3298068993565431265}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Enemy
@@ -275,6 +276,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackDamage: 5
   moveSpeed: 1
+  coinPrefab: {fileID: 1031351487269426157, guid: 49677c118c96a614885e1ab334831a18, type: 3}
 --- !u!114 &4583977637398802043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,7 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: 0}
+  healthSystem: {fileID: 3298068993565431265}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -385,6 +387,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c5ac1d090f68da74ea6b0ad084b0c3e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 20
+--- !u!114 &3298068993565431265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 50
