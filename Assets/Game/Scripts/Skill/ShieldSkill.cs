@@ -4,27 +4,37 @@ namespace EternalClash.Skill
 {
     public class ShieldSkill : SkillBase
     {
-        public float damageMultiplier = 0.2f;
-        public float duration = 3f;
+        [Header("Shield Stats")]
+        public float damageReduction = 0.5f;
+        public float duration = 5f;
 
-        public bool active { get; private set; }
+        public bool Active { get; private set; }
 
         protected override void Execute()
         {
-            active = true;
-            Debug.Log("Shield activated");
+            Active = true;
+            Debug.Log("[SKILL] Shield USED - Shield ON");
             Invoke(nameof(DisableShield), duration);
         }
 
         private void DisableShield()
         {
-            active = false;
-            Debug.Log("Shield ended");
+            Active = false;
+            Debug.Log("Shield OFF");
         }
 
-        public float ReduceDamage(float damage)
+        public int BlockDamage(int damage)
         {
-            return active ? damage * damageMultiplier : damage;
+            if (!Active)
+                return 0;
+
+            return Mathf.RoundToInt(damage * damageReduction);
+        }
+
+        public void UpgradeShield()
+        {
+            damageReduction = Mathf.Clamp(damageReduction + 0.1f, 0, 0.9f);
+            duration += 1f;
         }
     }
 }

@@ -8,6 +8,7 @@ TagManager:
   - Gound
   - BackGround
   - PlayerDetect
+  - UI
   layers:
   - Default
   - TransparentFX
@@ -44,6 +45,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: UI
+    uniqueID: 456390319
     locked: 0
   - name: BackGround
     uniqueID: 3493580911

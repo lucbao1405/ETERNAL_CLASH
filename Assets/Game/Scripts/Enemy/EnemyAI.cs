@@ -46,11 +46,26 @@ namespace EternalClash.Enemy
             if (currentState == AIState.Dead || player == null)
                 return;
 
+            DamageReceiver playerReceiver = player.GetComponent<DamageReceiver>();
+            if (playerReceiver != null && playerReceiver.IsDead())
+            {
+                currentState = AIState.Dead;
+                return;
+            }
+
             float distance = Vector2.Distance(transform.position, player.position);
 
             if (distance <= attackRange)
             {
                 currentState = AIState.Attack;
+
+                EnemyMover mover = GetComponent<EnemyMover>();
+                if (mover != null)
+                    mover.StopMovement();
+
+                if (EnemyFormationManager.Instance != null)
+                    EnemyFormationManager.Instance.LockFormation();
+
                 AttackState();
             }
             else

@@ -2,6 +2,7 @@ using UnityEngine;
 using EternalClash.Character;
 using EternalClash.Skill;
 using EternalClash.Player;
+using EternalClash.UI;
 
 namespace EternalClash.Combat
 {
@@ -27,14 +28,42 @@ namespace EternalClash.Combat
                 return;
 
             float finalDamage = damage * damageMultiplier;
+            int blockedDamage = 0;
 
             if (shieldSkill != null)
-                finalDamage = shieldSkill.ReduceDamage(finalDamage);
+                blockedDamage = shieldSkill.BlockDamage(Mathf.RoundToInt(finalDamage));
 
-            healthSystem.TakeDamage(Mathf.RoundToInt(finalDamage));
+            if (blockedDamage > 0)
+            {
+                finalDamage -= blockedDamage;
+
+                if (DamagePopupManager.Instance != null)
+                {
+                    DamagePopupManager.Instance.ShowBlock(
+                        transform.position,
+                        blockedDamage);
+                }
+            }
+
+            int dealtDamage = Mathf.RoundToInt(finalDamage);
+
+            healthSystem.TakeDamage(dealtDamage);
+
+            if (DamagePopupManager.Instance != null)
+            {
+                DamagePopupManager.Instance.ShowDamage(
+                    transform.position,
+                    dealtDamage,
+                    GetComponent<PlayerController>() != null);
+            }
 
             if (healthSystem.IsDead)
                 HandleDeath();
+        }
+
+        public bool IsDead()
+        {
+            return isDead;
         }
 
         private void HandleDeath()
@@ -51,6 +80,21 @@ namespace EternalClash.Combat
             BasicAttack basicAttack = GetComponent<BasicAttack>();
             if (basicAttack != null)
                 basicAttack.enabled = false;
+
+            Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+            foreach (Collider2D col in colliders)
+                col.enabled = false;
+
+            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.velocity = Vector2.zero;
+                rb.simulated = false;
+            }
+
+            SpriteRenderer[] sprites = GetComponentsInChildren<SpriteRenderer>();
+            foreach (SpriteRenderer sprite in sprites)
+                sprite.enabled = false;
 
             StageManager.Instance?.FailStage();
         }
