@@ -10,6 +10,11 @@ namespace EternalClash.Skill
 
         public bool Active { get; private set; }
 
+        public bool IsActive()
+        {
+            return Active;
+        }
+
         protected override void Execute()
         {
             Active = true;
