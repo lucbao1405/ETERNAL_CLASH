@@ -19,7 +19,7 @@ namespace EternalClash.Player
 
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                skillManager.UseDash();
+                skillManager.UseCharge();
             }
 
             if (Input.GetKeyDown(KeyCode.W))

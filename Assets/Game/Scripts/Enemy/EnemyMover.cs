@@ -9,7 +9,7 @@ namespace EternalClash.Enemy
         private EnemyBase enemyBase;
         private EnemyController controller;
         private Transform player;
-        private bool isRetreating;
+        private bool isPaused;
 
         private void Awake()
         {
@@ -20,18 +20,17 @@ namespace EternalClash.Enemy
 
         private void Update()
         {
-            if (player == null || enemyBase == null)
+            if (player == null || enemyBase == null || isPaused)
+                return;
+
+            if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked())
                 return;
 
             if (controller != null && !controller.canMove)
                 return;
 
-            if (isRetreating)
-                return;
-
             float distance = Vector2.Distance(transform.position, player.position);
 
-            // Da vao tam danh: dung ap sat
             if (distance <= stopDistance)
                 return;
 
@@ -42,15 +41,20 @@ namespace EternalClash.Enemy
             );
         }
 
-        public void PauseMovement(float duration)
+        public void StopMovement()
         {
-            isRetreating = true;
-            Invoke(nameof(ResumeMovement), duration);
+            isPaused = true;
         }
 
-        private void ResumeMovement()
+        public void ResumeMovement()
         {
-            isRetreating = false;
+            isPaused = false;
+        }
+
+        public void PauseMovement(float duration)
+        {
+            isPaused = true;
+            Invoke(nameof(ResumeMovement), duration);
         }
     }
 }

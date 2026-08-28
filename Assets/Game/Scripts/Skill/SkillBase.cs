@@ -7,7 +7,14 @@ namespace EternalClash.Skill
         public string skillName;
         public float cooldown = 5f;
 
-        protected float timer;
+        // Skill must be ready immediately when the object is created.
+        // Keep the initial value on the field because derived skills override Awake().
+        protected float timer = 0f;
+
+        protected virtual void Awake()
+        {
+            timer = 0f;
+        }
 
         public bool CanUse()
         {
@@ -16,11 +23,19 @@ namespace EternalClash.Skill
 
         public void UseSkill()
         {
-            if (!CanUse())
-                return;
+            Debug.Log("[SkillBase] Try use skill: " + skillName);
 
-            timer = cooldown;
+            if (!CanUse())
+            {
+                Debug.Log("[SkillBase] Cooldown active: " + timer);
+                return;
+            }
+
+            Debug.Log("[SkillBase] Execute skill: " + skillName);
             Execute();
+
+            // Start cooldown only after the skill actually executes
+            timer = cooldown;
         }
 
         protected virtual void Update()
