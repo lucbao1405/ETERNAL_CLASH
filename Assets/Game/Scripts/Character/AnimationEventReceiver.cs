@@ -5,19 +5,19 @@ namespace EternalClash.Character
 {
     public class AnimationEventReceiver : MonoBehaviour
     {
-        private BasicAttack basicAttack;
+        private BasicAttackSystem basicAttackSystem;
 
         private void Awake()
         {
-            basicAttack = GetComponent<BasicAttack>();
+            basicAttackSystem = GetComponent<BasicAttackSystem>();
         }
 
         // Goi tu Animation Event
         public void AttackDamageEvent()
         {
-            if (basicAttack != null)
+            if (basicAttackSystem != null)
             {
-                basicAttack.DealDamage();
+                basicAttackSystem.AnimationDealDamage();
             }
         }
 

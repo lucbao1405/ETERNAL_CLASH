@@ -77,9 +77,9 @@ namespace EternalClash.Combat
             if (inputController != null)
                 inputController.enabled = false;
 
-            BasicAttack basicAttack = GetComponent<BasicAttack>();
-            if (basicAttack != null)
-                basicAttack.enabled = false;
+            BasicAttackSystem basicAttackSystem = GetComponent<BasicAttackSystem>();
+            if (basicAttackSystem != null)
+                basicAttackSystem.enabled = false;
 
             Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
             foreach (Collider2D col in colliders)

@@ -28,6 +28,13 @@ namespace EternalClash.Skill
             Debug.Log("Shield OFF");
         }
 
+        public bool IsPerfectCounterWindow()
+        {
+            // Shield state alone does not determine perfect timing.
+            // CounterSkillResolver checks enemy timing window.
+            return Active;
+        }
+
         public int BlockDamage(int damage)
         {
             if (!Active)

@@ -6,21 +6,20 @@ namespace EternalClash.Enemy
     {
         public float stopDistance = 1.2f;
 
-        private EnemyBase enemyBase;
+        [SerializeField] private float moveSpeed = 1f;
         private EnemyController controller;
         private Transform player;
         private bool isPaused;
 
         private void Awake()
         {
-            enemyBase = GetComponent<EnemyBase>();
             controller = GetComponent<EnemyController>();
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
         }
 
         private void Update()
         {
-            if (player == null || enemyBase == null || isPaused)
+            if (player == null || isPaused)
                 return;
 
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked())
@@ -37,7 +36,7 @@ namespace EternalClash.Enemy
             transform.position = Vector2.MoveTowards(
                 transform.position,
                 player.position,
-                enemyBase.moveSpeed * Time.deltaTime
+                moveSpeed * Time.deltaTime
             );
         }
 

@@ -23,13 +23,13 @@ namespace EternalClash.Enemy
         {
             stunned = true;
 
-            EnemyAI ai = GetComponent<EnemyAI>();
-            if (ai != null)
-                ai.enabled = false;
+            EnemyDecisionController decision = GetComponent<EnemyDecisionController>();
+            if (decision != null)
+                decision.enabled = false;
 
-            EnemyAttack attack = GetComponent<EnemyAttack>();
-            if (attack != null)
-                attack.enabled = false;
+            EnemyAttackTimingController attackTiming = GetComponent<EnemyAttackTimingController>();
+            if (attackTiming != null)
+                attackTiming.enabled = false;
 
             EnemyMover mover = GetComponent<EnemyMover>();
             if (mover != null)
@@ -37,11 +37,11 @@ namespace EternalClash.Enemy
 
             yield return new WaitForSeconds(duration);
 
-            if (attack != null)
-                attack.enabled = true;
+            if (attackTiming != null)
+                attackTiming.enabled = true;
 
-            if (ai != null)
-                ai.enabled = true;
+            if (decision != null)
+                decision.enabled = true;
 
             stunned = false;
         }

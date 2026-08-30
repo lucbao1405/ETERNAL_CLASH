@@ -7,15 +7,29 @@ namespace EternalClash.Combat
     {
         public CharacterStats attacker;
         public CharacterStats defender;
-        public HealthSystem targetHealth;
+        public GameObject target;
 
         public void Attack()
         {
-            if (attacker == null || defender == null || targetHealth == null)
+            PerformAttackHit();
+        }
+
+        // Called by AnimationCombatEvent on the attack hit frame
+        public void PerformAttackHit()
+        {
+            if (attacker == null || defender == null || target == null)
                 return;
 
             float damage = DamageSystem.CalculateDamage(attacker, defender);
-            targetHealth.TakeDamage(Mathf.RoundToInt(damage));
+
+            if (CombatDamageResolver.Instance != null)
+            {
+                CombatDamageResolver.Instance.DealDamage(
+                    target,
+                    Mathf.RoundToInt(damage),
+                    DamageSource.BasicAttack
+                );
+            }
         }
     }
 }

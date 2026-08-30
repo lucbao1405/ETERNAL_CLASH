@@ -4,13 +4,13 @@ namespace EternalClash.Combat
 {
     public class AttackTrigger : MonoBehaviour
     {
-        public BasicAttack basicAttack;
+        public BasicAttackSystem basicAttackSystem;
 
         private void OnTriggerStay2D(Collider2D other)
         {
             if (other.CompareTag("Enemy"))
             {
-                basicAttack.SetTarget(other.gameObject);
+                basicAttackSystem.SetTarget(other.gameObject);
             }
         }
 
@@ -18,7 +18,7 @@ namespace EternalClash.Combat
         {
             if (other.CompareTag("Enemy"))
             {
-                basicAttack.ClearTarget();
+                basicAttackSystem.ClearTarget();
             }
         }
     }

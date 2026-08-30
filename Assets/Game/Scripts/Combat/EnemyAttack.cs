@@ -38,9 +38,11 @@ namespace EternalClash.Combat
         {
             Debug.Log("Enemy attack player");
 
-            DamageReceiver receiver = player.GetComponent<DamageReceiver>();
-            if (receiver != null)
-                receiver.TakeDamage(damage);
+            CombatDamageResolver.Instance?.DealDamage(
+                player.gameObject,
+                damage,
+                DamageSource.EnemyAttack
+            );
 
             ShieldSkill shield = player.GetComponent<ShieldSkill>();
 

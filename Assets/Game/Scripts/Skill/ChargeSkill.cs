@@ -45,15 +45,12 @@ namespace EternalClash.Skill
             if (worldScroller != null)
                 worldScroller.SetSpeedMultiplier(chargeMultiplier);
 
-            Debug.Log("[CHARGE] SPEED UP START");
-
             yield return new WaitForSeconds(chargeDuration);
 
             if (worldScroller != null)
                 worldScroller.ResetSpeed();
 
             charging = false;
-            Debug.Log("[CHARGE] SPEED UP END");
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -65,10 +62,14 @@ namespace EternalClash.Skill
                 return;
 
             hitEnemies.Add(other.gameObject);
-            Debug.Log("[CHARGE] HIT " + other.name);
 
-            other.GetComponent<EternalClash.Combat.DamageReceiver>()?.TakeDamage(damage);
-            other.GetComponent<EternalClash.Combat.KnockbackReceiver>()?.ApplyKnockback(Vector2.left, knockbackForce);
+            CombatDamageResolver.Instance?.DealDamage(
+                other.gameObject,
+                damage,
+                DamageSource.Charge
+            );
+
+            other.GetComponent<KnockbackReceiver>()?.ApplyKnockback(Vector2.left, knockbackForce);
             other.GetComponent<EnemyStatusController>()?.ApplyStun(stunDuration);
         }
     }
