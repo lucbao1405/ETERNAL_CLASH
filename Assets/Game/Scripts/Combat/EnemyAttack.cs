@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Skill;
+using EternalClash.Enemy;
 
 namespace EternalClash.Combat
 {
@@ -9,6 +10,10 @@ namespace EternalClash.Combat
         public float attackInterval = 2f;
         public float attackRange = 1.2f;
         public float knockbackForce = 1f;
+
+        [Header("Ranged (GDD 3.4 Goblin Cung)")]
+        [SerializeField] private GameObject projectilePrefab;
+        [SerializeField] private float projectileSpeed = 5f;
 
         private float timer;
         private Transform player;
@@ -38,9 +43,22 @@ namespace EternalClash.Combat
         {
             Debug.Log("Enemy attack player");
 
-            DamageReceiver receiver = player.GetComponent<DamageReceiver>();
-            if (receiver != null)
-                receiver.TakeDamage(damage);
+            // Ranged enemy (Goblin Cung): spawn a projectile toward the player
+            // instead of melee damage + knockback.
+            if (projectilePrefab != null)
+            {
+                var proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+                var ep = proj.GetComponent<EnemyProjectile>();
+                if (ep != null)
+                    ep.Initialize(damage, projectileSpeed, (player.position - transform.position).normalized);
+                return;
+            }
+
+            CombatDamageResolver.Instance?.DealDamage(
+                player.gameObject,
+                damage,
+                DamageSource.EnemyAttack
+            );
 
             ShieldSkill shield = player.GetComponent<ShieldSkill>();
 

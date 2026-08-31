@@ -1,5 +1,4 @@
 using UnityEngine;
-using EternalClash.Enemy;
 using EternalClash.Character;
 
 namespace EternalClash.Combat
@@ -28,10 +27,8 @@ namespace EternalClash.Combat
             {
                 StartAttack();
 
-                // Tam thoi gay damage truc tiep khi chua co Animation Event
-                // Sau nay se chuyen lai cho AnimationDealDamage()
-                DealDamage();
-
+                // Damage se duoc goi boi Animation Event tai hit frame
+                // Tranh gay damage 2 lan khi AnimationDealDamage() chay
                 cooldownTimer = attackCooldown;
             }
         }
@@ -64,11 +61,15 @@ namespace EternalClash.Combat
 
             Debug.Log("Player attack: " + target.name);
 
-            EnemyBase enemy = target.GetComponent<EnemyBase>();
+            EnemyDamageReceiver enemy = target.GetComponent<EnemyDamageReceiver>();
 
             if (enemy != null)
             {
-                enemy.ReceiveDamage(damage);
+                CombatDamageResolver.Instance?.DealDamage(
+                    target,
+                    damage,
+                    DamageSource.BasicAttack
+                );
 
                 KnockbackReceiver knockback = target.GetComponent<KnockbackReceiver>();
                 if (knockback != null)

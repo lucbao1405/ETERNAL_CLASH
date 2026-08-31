@@ -1,4 +1,5 @@
 using UnityEngine;
+using EternalClash.Wave;
 
 public class StageManager : MonoBehaviour
 {
@@ -35,6 +36,14 @@ public class StageManager : MonoBehaviour
     {
         CurrentState = StageState.Running;
         Debug.Log("Stage Started");
+
+        WaveManager waveManager = GetComponent<WaveManager>();
+        if (waveManager != null)
+        {
+            StopAllCoroutines();
+            waveManager.currentWave = 0;
+            StartCoroutine(waveManager.StartNextWave());
+        }
     }
 
     public void CompleteStage()

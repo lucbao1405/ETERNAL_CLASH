@@ -18,6 +18,15 @@ namespace EternalClash.Enemy
         {
             healthSystem = GetComponent<HealthSystem>();
             stateMachine = GetComponent<CharacterStateMachine>();
+
+            if (healthSystem != null)
+                healthSystem.OnDeath += Die;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (healthSystem != null)
+                healthSystem.OnDeath -= Die;
         }
 
         public virtual void ReceiveDamage(int damage)
@@ -29,14 +38,17 @@ namespace EternalClash.Enemy
 
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Hit);
-
-            if (healthSystem.IsDead)
-                Die();
         }
 
         protected virtual void Die()
         {
+            if (isDead) return;
+
             isDead = true;
+            EnemyDeathEvent.Raise(gameObject);
+
+            if (EnemyManager.Instance != null)
+                EnemyManager.Instance.UnregisterEnemy(gameObject);
 
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Dead);
@@ -44,7 +56,11 @@ namespace EternalClash.Enemy
             if (coinPrefab != null)
                 Instantiate(coinPrefab, transform.position, Quaternion.identity);
 
-            Destroy(gameObject, 0.5f);
+            EnemyDeathHandler deathHandler = GetComponent<EnemyDeathHandler>();
+            if (deathHandler != null)
+                deathHandler.Die();
+            else
+                Destroy(gameObject);
         }
 
         public int GetCurrentHP()

@@ -15,6 +15,7 @@ namespace EternalClash.Character
         public static bool PlayerDead { get; private set; }
 
         public event Action<int, int> OnHealthChanged;
+        public event Action OnDeath;
 
         private void Awake()
         {
@@ -60,6 +61,7 @@ namespace EternalClash.Character
             if (!CompareTag("Player"))
             {
                 Debug.Log(gameObject.name + " died");
+                OnDeath?.Invoke();
                 return;
             }
 
