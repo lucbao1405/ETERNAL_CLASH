@@ -1,34 +1,17 @@
-using UnityEngine;
-
 namespace EternalClash.Village
 {
-    public class GoldSystem : MonoBehaviour
+    public class GoldSystem
     {
-        public static GoldSystem Instance;
+        public static GoldSystem Instance { get; private set; }
 
-        public int gold = 0;
+        public int Gold { get; set; }
+        public int OreMaterial { get; set; }
+        public int LeatherMaterial { get; set; }
 
-        private void Awake()
-        {
-            if (Instance == null)
-                Instance = this;
-            else
-                Destroy(gameObject);
-        }
+        public event System.Action<int> OnGoldChanged;
+        public event System.Action<int, int> OnMaterialsChanged;
 
-        public void AddGold(int amount)
-        {
-            gold += amount;
-            Debug.Log("[GOLD] +" + amount + " Total=" + gold);
-        }
-
-        public bool SpendGold(int amount)
-        {
-            if (gold < amount)
-                return false;
-
-            gold -= amount;
-            return true;
-        }
+        public void AddGold(int amount) {}
+        public void AddMaterials(int ore, int leather) {}
     }
 }

@@ -59,6 +59,10 @@ namespace EternalClash.Combat
             if (enemyMover != null)
                 enemyMover.PauseMovement(enemyStunTime);
 
+            // GDD A.4: when the PLAYER is knocked back, the run takes longer.
+            if (CompareTag("Player") && DistanceProgress.Instance != null)
+                DistanceProgress.Instance.ReduceDistance(knockbackDistance);
+
             targetPosition = originalPosition + direction.normalized * knockbackDistance;
             isKnockback = true;
         }

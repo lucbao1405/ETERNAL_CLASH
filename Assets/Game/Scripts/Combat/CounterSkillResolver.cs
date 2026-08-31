@@ -26,10 +26,12 @@ namespace EternalClash.Combat
             if (enemy.State == EnemyAttackTimingController.AttackState.Warning)
             {
                 Debug.Log("[COUNTER] Perfect Shield Block");
+                PlayCounterFeedback(CounterResult.Perfect, enemy.transform.position);
                 return CounterResult.Perfect;
             }
 
             Debug.Log("[COUNTER] Shield Block");
+            PlayCounterFeedback(CounterResult.Block, enemy.transform.position);
             return CounterResult.Block;
         }
 
@@ -55,6 +57,21 @@ namespace EternalClash.Combat
             timing.ApplyStun(perfectCounterWindow);
 
             Debug.Log("[COUNTER] Perfect Counter - Reflect + Stun");
+        }
+
+        private void PlayCounterFeedback(CounterResult result, Vector3 position)
+        {
+            if (result == CounterResult.Perfect)
+            {
+                HitStopImpactSystem.Instance?.HeavyHit();
+                CombatVFXController.Instance?.PlayHitEffect(position);
+                CombatVFXController.Instance?.Shake(0.12f);
+            }
+            else if (result == CounterResult.Block)
+            {
+                HitStopImpactSystem.Instance?.LightHit();
+                CombatVFXController.Instance?.PlayHitEffect(position);
+            }
         }
     }
 }

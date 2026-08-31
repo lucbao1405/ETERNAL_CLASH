@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EncounterSpawner : MonoBehaviour
 {
+    public static EncounterSpawner Instance { get; private set; }
+
     [System.Serializable]
     public class Encounter
     {
@@ -12,15 +14,25 @@ public class EncounterSpawner : MonoBehaviour
     public Encounter[] encounters;
     private bool[] spawned;
 
+    private void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Instance = this;
+    }
+
     private void Start()
     {
-        spawned = new bool[encounters.Length];
+        if (encounters != null)
+            spawned = new bool[encounters.Length];
     }
 
     private void Update()
     {
         if (StageManager.Instance == null) return;
         if (StageManager.Instance.CurrentState != StageManager.StageState.Running) return;
+        if (encounters == null || spawned == null) return;
 
         for (int i = 0; i < encounters.Length; i++)
         {
@@ -32,6 +44,12 @@ public class EncounterSpawner : MonoBehaviour
                 spawned[i] = true;
             }
         }
+    }
+
+    public void SpawnEncounter(EncounterData encounterData)
+    {
+        if (encounterData == null) return;
+        Debug.Log("[ENCOUNTER] Spawning encounter data");
     }
 
     private void Spawn(Encounter encounter)

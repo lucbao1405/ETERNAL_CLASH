@@ -38,8 +38,6 @@ namespace EternalClash.Enemy
 
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Hit);
-
-
         }
 
         protected virtual void Die()
@@ -58,7 +56,11 @@ namespace EternalClash.Enemy
             if (coinPrefab != null)
                 Instantiate(coinPrefab, transform.position, Quaternion.identity);
 
-            // Destroy is handled by EnemyDeathHandler after death event processing.
+            EnemyDeathHandler deathHandler = GetComponent<EnemyDeathHandler>();
+            if (deathHandler != null)
+                deathHandler.Die();
+            else
+                Destroy(gameObject);
         }
 
         public int GetCurrentHP()

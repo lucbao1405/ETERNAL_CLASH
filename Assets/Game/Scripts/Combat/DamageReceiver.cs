@@ -28,24 +28,21 @@ namespace EternalClash.Combat
                 return;
 
             float finalDamage = damage * damageMultiplier;
-            int blockedDamage = 0;
+            int initialDamage = Mathf.RoundToInt(finalDamage);
+            int dealtDamage = initialDamage;
 
             if (shieldSkill != null)
-                blockedDamage = shieldSkill.BlockDamage(Mathf.RoundToInt(finalDamage));
-
-            if (blockedDamage > 0)
             {
-                finalDamage -= blockedDamage;
+                dealtDamage = shieldSkill.BlockDamage(initialDamage);
 
-                if (DamagePopupManager.Instance != null)
+                int blocked = initialDamage - dealtDamage;
+                if (blocked > 0 && DamagePopupManager.Instance != null)
                 {
                     DamagePopupManager.Instance.ShowBlock(
                         transform.position,
-                        blockedDamage);
+                        blocked);
                 }
             }
-
-            int dealtDamage = Mathf.RoundToInt(finalDamage);
 
             healthSystem.TakeDamage(dealtDamage);
 

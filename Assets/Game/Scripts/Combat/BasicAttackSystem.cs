@@ -44,6 +44,8 @@ namespace EternalClash.Combat
         {
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Attack);
+            else
+                DealDamage();
         }
 
         // Gọi từ Animation Event tại hit frame
@@ -71,9 +73,13 @@ namespace EternalClash.Combat
             if (CombatDamageResolver.Instance == null)
                 return;
 
+            int finalDamage = Village.PlayerStatSystem.Instance != null 
+                ? Village.PlayerStatSystem.Instance.BasicAttackDamage 
+                : damage;
+
             CombatDamageResolver.Instance.DealDamage(
                 target,
-                damage,
+                finalDamage,
                 DamageSource.BasicAttack
             );
 

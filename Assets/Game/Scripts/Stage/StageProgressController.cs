@@ -6,6 +6,8 @@ public class StageProgressController : MonoBehaviour
     private int currentEncounterIndex;
     private bool stageCompleted;
 
+    public bool IsStageCompleted => stageCompleted;
+
     public void StartStage()
     {
         currentEncounterIndex = 0;

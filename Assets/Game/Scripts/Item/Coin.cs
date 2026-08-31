@@ -1,9 +1,10 @@
 using UnityEngine;
+using EternalClash.Village;
 
 public class Coin : MonoBehaviour
 {
-    [SerializeField] private int value = 1;
-    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private int value = 5;
+    [SerializeField] private float moveSpeed = 6f;
 
     private Transform player;
 
@@ -17,7 +18,12 @@ public class Coin : MonoBehaviour
     private void Update()
     {
         if (player == null)
+        {
+            GameObject obj = GameObject.FindGameObjectWithTag("Player");
+            if (obj != null)
+                player = obj.transform;
             return;
+        }
 
         transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
     }
@@ -26,13 +32,13 @@ public class Coin : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // Cộng coin cho player
             PlayerCoin playerCoin = other.GetComponent<PlayerCoin>();
-
             if (playerCoin != null)
             {
                 playerCoin.AddCoin(value);
             }
+
+            GoldSystem.Instance?.AddGold(value);
 
             Destroy(gameObject);
         }

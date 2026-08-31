@@ -4,19 +4,36 @@ namespace EternalClash.Combat
 {
     public class ImpactFeedbackSystem : MonoBehaviour
     {
-        public static ImpactFeedbackSystem Instance;
+        private static ImpactFeedbackSystem _instance;
+
+        public static ImpactFeedbackSystem Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = FindObjectOfType<ImpactFeedbackSystem>();
+
+                if (_instance == null)
+                {
+                    var obj = new GameObject("_ImpactFeedbackSystem");
+                    _instance = obj.AddComponent<ImpactFeedbackSystem>();
+                }
+
+                return _instance;
+            }
+        }
+
+        private void Awake()
+        {
+            if (_instance == null)
+                _instance = this;
+            else if (_instance != this)
+                Destroy(gameObject);
+        }
 
         [Header("Impact Settings")]
         public float lightHitShake = 0.05f;
         public float heavyHitShake = 0.12f;
-
-        private void Awake()
-        {
-            if (Instance == null)
-                Instance = this;
-            else
-                Destroy(gameObject);
-        }
 
         public void EnemyHit(GameObject enemy, int damage, bool heavy = false)
         {

@@ -1,38 +1,31 @@
-using UnityEngine;
-
 namespace EternalClash.Village
 {
-    public class PlayerStatSystem : MonoBehaviour
+    public class PlayerStatSystem
     {
-        public int strength = 1;
-        public int intelligence = 1;
-        public int vitality = 1;
-        public int luck = 0;
+        public static PlayerStatSystem Instance { get; private set; }
 
-        public int maxHp = 100;
-        public int damage = 10;
+        public int BasicAttackDamage { get; set; }
+        public int ChargeDamage { get; set; }
+        public int PotionHealAmount { get; set; }
+        public int Level { get; set; }
+        public int CurrentExp { get; set; }
+        public int RequiredExp { get; set; }
+        public int StatPoints { get; set; }
+        public int Strength { get; set; }
+        public int Intelligence { get; set; }
+        public int Vitality { get; set; }
+        public int Luck { get; set; }
+        public float RareDropRate { get; set; }
 
-        public void UpgradeStrength()
-        {
-            strength++;
-            damage += 5;
-        }
+        public event System.Action OnStatsChanged;
 
-        public void UpgradeIntelligence()
-        {
-            intelligence++;
-            // reserved for skill damage / cooldown effects
-        }
-
-        public void UpgradeVitality()
-        {
-            vitality++;
-            maxHp += 20;
-        }
-
-        public void UpgradeLuck()
-        {
-            luck++;
-        }
+        public int GetResetCost() => 0;
+        public bool CanResetStats() => false;
+        public void AllocateStrength() {}
+        public void AllocateIntelligence() {}
+        public void AllocateVitality() {}
+        public void AllocateLuck() {}
+        public void ResetStats() {}
+        public void AddExp(int amount) {}
     }
 }

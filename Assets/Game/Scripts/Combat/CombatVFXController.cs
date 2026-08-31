@@ -4,8 +4,18 @@ namespace EternalClash.Combat
 {
     public class CombatVFXController : MonoBehaviour
     {
+        public static CombatVFXController Instance { get; private set; }
+
         [SerializeField] private GameObject hitEffectPrefab;
         [SerializeField] private float destroyTime = 0.5f;
+
+        private void Awake()
+        {
+            if (Instance == null)
+                Instance = this;
+            else if (Instance != this)
+                Instance = this;
+        }
 
         public void PlayHitEffect(Vector3 position)
         {

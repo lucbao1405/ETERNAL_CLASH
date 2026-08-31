@@ -28,6 +28,9 @@ namespace EternalClash.Combat
         {
             target = (Vector2)transform.position + direction.normalized * force;
             active = true;
+
+            // Weight/Knockback System: Subtracts from stage progress
+            DistanceProgress.Instance?.ReduceDistance(force);
         }
 
         public void ApplyPlayerHit(Vector2 direction)
@@ -38,7 +41,9 @@ namespace EternalClash.Combat
             target = (Vector2)transform.position + direction.normalized * knockbackDistance;
             active = true;
 
-            Debug.Log("[PLAYER] Hit knockback");
+            // Apply slight progress penalty on hit
+            DistanceProgress.Instance?.ReduceDistance(knockbackDistance);
+            Debug.Log("[PLAYER] Hit knockback applied with progress penalty");
         }
     }
 }

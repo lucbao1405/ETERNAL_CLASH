@@ -26,7 +26,9 @@ namespace EternalClash.Combat
             if (impact != null)
                 impact.EnemyHit(gameObject, damage);
 
-            if (DamagePopup.Instance != null)
+            if (EternalClash.UI.DamagePopupManager.Instance != null)
+                EternalClash.UI.DamagePopupManager.Instance.ShowDamage(transform.position + Vector3.up, damage, false);
+            else if (DamagePopup.Instance != null)
                 DamagePopup.Instance.Show(transform.position + Vector3.up, damage);
         }
     }

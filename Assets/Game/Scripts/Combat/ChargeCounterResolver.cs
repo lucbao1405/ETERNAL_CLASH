@@ -11,22 +11,26 @@ public class ChargeCounterResolver : MonoBehaviour
     {
         if (enemy == null) return false;
 
-        if (enemy.IsPreparingAttack(interruptWindow))
-        {
-            enemy.CancelAttack();
-            enemy.ApplyStun(stunTime);
-
-            if (CombatDamageResolver.Instance != null)
+            if (enemy.IsPreparingAttack(interruptWindow))
             {
-                CombatDamageResolver.Instance.DealDamage(
-                    enemy.gameObject,
-                    damage,
-                    DamageSource.Charge
-                );
-            }
+                enemy.CancelAttack();
+                enemy.ApplyStun(stunTime);
 
-            return true;
-        }
+                if (CombatDamageResolver.Instance != null)
+                {
+                    CombatDamageResolver.Instance.DealDamage(
+                        enemy.gameObject,
+                        damage,
+                        DamageSource.Charge
+                    );
+                }
+
+                HitStopImpactSystem.Instance?.HeavyHit();
+                CombatVFXController.Instance?.PlayHitEffect(enemy.transform.position);
+                CombatVFXController.Instance?.Shake(0.12f);
+
+                return true;
+            }
 
         return false;
     }

@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf835c2c0dd293140838c36d21a13c7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  basicAttack: {fileID: 494609537922014258}
+  basicAttackSystem: {fileID: 2257348081531249153}
 --- !u!1 &2563938135484597944
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,18 +126,19 @@ GameObject:
   - component: {fileID: 576930758043588466}
   - component: {fileID: 2026444551614631906}
   - component: {fileID: 5574136403061118360}
-  - component: {fileID: 7923194606486273735}
   - component: {fileID: 1321778463156831621}
   - component: {fileID: 1421503546424276167}
   - component: {fileID: 494609537922014258}
   - component: {fileID: 5776730950409429375}
   - component: {fileID: 665664439893580382}
   - component: {fileID: 8630415431133626821}
-  - component: {fileID: 4198946707169718132}
   - component: {fileID: -3915550630186896912}
   - component: {fileID: 2858208867628018155}
   - component: {fileID: 1034668976301621659}
   - component: {fileID: 2204370209784342832}
+  - component: {fileID: 2257348081531249153}
+  - component: {fileID: 2578226353506405695}
+  - component: {fileID: 7843203510373075604}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -154,7 +155,7 @@ Transform:
   m_GameObject: {fileID: 3120340383641654317}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: -0.01, z: 0}
+  m_LocalPosition: {x: -0.9, y: 0.02, z: 0}
   m_LocalScale: {x: 0.4658736, y: 0.6161005, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -204,12 +205,12 @@ SpriteRenderer:
   m_SortingLayerID: 1645145209
   m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
-  m_Color: {r: 0.24073645, g: 0.90188676, b: 0.10720536, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 039f9a283cda74242977d07c9c7dc5a3, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.05, y: 1.26}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -278,8 +279,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 2}
-    newSize: {x: 1, y: 1}
+    oldSize: {x: 1.05, y: 1.26}
+    newSize: {x: 1.05, y: 1.26}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -306,24 +307,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3120340383641654317}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc22a39619e14b449b97be0f2806bf72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   runSpeed: 2.5
---- !u!114 &7923194606486273735
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3120340383641654317}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03629288f4dc5d946ad3e6e4e22a3b1b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  maxBackOffset: 1.2
+  maxForwardOffset: 0.8
+  maxVerticalOffset: 0.6
 --- !u!114 &1321778463156831621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -348,7 +340,7 @@ MonoBehaviour:
     attack: 10
     defense: 5
     criticalRate: 0.05
-  targetHealth: {fileID: 0}
+  target: {fileID: 0}
 --- !u!114 &1421503546424276167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -389,7 +381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9da844775e7ab284e836bdce1c5bbee3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  knockbackDistance: 1
+  knockbackDistance: 0.4
   knockbackDuration: 0.15
   recoveryTime: 0.2
   enemyStunTime: 0.5
@@ -420,19 +412,6 @@ MonoBehaviour:
   shieldSkill: {fileID: 5602161812642601492}
   potionSkill: {fileID: 5286794485964633384}
   chargeSkill: {fileID: 5322515552100293526}
---- !u!114 &4198946707169718132
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3120340383641654317}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f652c4efabbf58745b8504492cfbea61, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fillImage: {fileID: 0}
 --- !u!114 &-3915550630186896912
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -449,7 +428,7 @@ MonoBehaviour:
   cooldown: 5
   chargeMultiplier: 2.5
   chargeDuration: 1.5
-  damage: 30
+  baseDamage: 20
   knockbackForce: 2.5
   stunDuration: 1.5
 --- !u!114 &2858208867628018155
@@ -467,7 +446,8 @@ MonoBehaviour:
   skillName: Shield
   cooldown: 6
   damageReduction: 0.2
-  duration: 5
+  shieldDuration: 1
+  reflectDamage: 5
 --- !u!114 &1034668976301621659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -482,7 +462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Potion
   cooldown: 5
-  healAmount: 10
+  baseHealAmount: 50
 --- !u!114 &2204370209784342832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,6 +476,87 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coins: 0
+--- !u!114 &2257348081531249153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db3b6914e58d54b4f9e187e015ca7c49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 5
+  attackCooldown: 1
+  knockbackForce: 5
+--- !u!61 &2578226353506405695
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 3.75, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.05, y: 1.26}
+    newSize: {x: 1.05, y: 1.26}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 7.5, y: 2}
+  m_EdgeRadius: 0
+--- !u!95 &7843203510373075604
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: aed5235e5fca6424e9aa183f17221c14, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3199390587613228680
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,7 +605,7 @@ MonoBehaviour:
   cooldown: 5
   chargeMultiplier: 2.5
   chargeDuration: 1.5
-  damage: 30
+  baseDamage: 20
   knockbackForce: 2.5
   stunDuration: 1.5
 --- !u!1 &3680067286225788542
@@ -593,7 +654,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Potion
   cooldown: 5
-  healAmount: 30
+  baseHealAmount: 50
 --- !u!1 &8467807564603379602
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,4 +736,5 @@ MonoBehaviour:
   skillName: Shield
   cooldown: 5
   damageReduction: 0.5
-  duration: 3
+  shieldDuration: 1
+  reflectDamage: 5
