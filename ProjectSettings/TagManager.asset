@@ -52,15 +52,27 @@ TagManager:
   - name: BackGround
     uniqueID: 3493580911
     locked: 0
+  - name: Sky
+    uniqueID: 1725737437
+    locked: 0
+  - name: Clound
+    uniqueID: 2583041939
+    locked: 0
+  - name: Moutain
+    uniqueID: 1980540393
+    locked: 0
+  - name: Tree
+    uniqueID: 2362123767
+    locked: 0
   - name: Ground
     uniqueID: 640554009
-    locked: 0
-  - name: Enemy
-    uniqueID: 141949279
     locked: 0
   - name: Player
     uniqueID: 1645145209
     locked: 0
   - name: Effect
     uniqueID: 2907239353
+    locked: 0
+  - name: Enemy
+    uniqueID: 141949279
     locked: 0

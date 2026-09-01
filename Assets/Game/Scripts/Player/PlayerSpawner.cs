@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using UnityEngine.Events;
 
 namespace EternalClash.Player
 {
@@ -10,11 +10,15 @@ namespace EternalClash.Player
     {
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private Transform combatPosition;
+        [SerializeField] private Camera targetCamera;
+        [SerializeField] private float outsideScreenOffset = 1f;
 
         [Header("Spawn Movement")]
         [SerializeField] private float moveTargetX = -1f;
         [SerializeField] private float moveSpeed = 5f;
-        [SerializeField] private bool moveAfterSpawn = true;
+        [SerializeField] private bool moveAfterSpawn = false;
+        [SerializeField] private UnityEvent onPlayerReady;
 
         private GameObject currentPlayer;
 
@@ -33,38 +37,40 @@ namespace EternalClash.Player
                 return;
             }
 
+            if (targetCamera == null)
+                targetCamera = Camera.main;
+
+            Vector3 spawnPosition = spawnPoint.position;
+            if (targetCamera != null)
+            {
+                float cameraLeft = targetCamera.transform.position.x - targetCamera.orthographicSize * targetCamera.aspect;
+                spawnPosition.x = cameraLeft - outsideScreenOffset;
+            }
+
             currentPlayer = Instantiate(
                 playerPrefab,
-                spawnPoint.position,
+                spawnPosition,
                 Quaternion.identity
             );
 
-            if (moveAfterSpawn)
-            {
-                StartCoroutine(MovePlayerToPosition());
-            }
+            PlayerIntroController intro = currentPlayer.GetComponent<PlayerIntroController>();
+            if (intro == null)
+                intro = currentPlayer.AddComponent<PlayerIntroController>();
+
+            Vector3 target = combatPosition != null
+                ? combatPosition.position
+                : new Vector3(moveTargetX, spawnPosition.y, spawnPosition.z);
+            intro.BeginIntro(spawnPosition, target, moveSpeed);
+            Debug.Log("[PLAYER INTRO] Spawn: " + spawnPosition + " -> Combat: " + target);
+            StartCoroutine(WaitForPlayerReady(intro));
         }
 
-        private IEnumerator MovePlayerToPosition()
+        private System.Collections.IEnumerator WaitForPlayerReady(PlayerIntroController intro)
         {
-            Vector3 target = new Vector3(
-                moveTargetX,
-                currentPlayer.transform.position.y,
-                currentPlayer.transform.position.z
-            );
-
-            while (Vector3.Distance(currentPlayer.transform.position, target) > 0.05f)
-            {
-                currentPlayer.transform.position = Vector3.MoveTowards(
-                    currentPlayer.transform.position,
-                    target,
-                    moveSpeed * Time.deltaTime
-                );
-
+            while (!intro.combatReady)
                 yield return null;
-            }
 
-            currentPlayer.transform.position = target;
+            onPlayerReady?.Invoke();
         }
     }
 }

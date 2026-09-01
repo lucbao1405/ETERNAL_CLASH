@@ -55,6 +55,13 @@ namespace EternalClash.Character
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
+        public void IncreaseMaxHealth(int amount)
+        {
+            maxHealth += amount;
+            currentHealth += amount;
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        }
+
         protected virtual void Die()
         {
             // Enemy chet chi xu ly chet cua Enemy
