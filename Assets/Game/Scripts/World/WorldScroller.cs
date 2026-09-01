@@ -4,32 +4,105 @@ namespace EternalClash.World
 {
     public class WorldScroller : MonoBehaviour
     {
-        [SerializeField] private float scrollSpeed = 3f;
-        private bool scrolling = true;
+        [Header("Layer Speeds")]
+        [SerializeField] private float cloudSpeed = 0.1f;
+        [SerializeField] private float mountainSpeed = 0.5f;
+        [SerializeField] private float groundSpeed = 2.5f;
+        [SerializeField] private float treeSpeed = 1.5f;
 
+        [Header("Layer References")]
+        [SerializeField] private Transform cloudLayer;
+        [SerializeField] private Transform mountainLayer;
+        [SerializeField] private Transform groundLayer;
+        [SerializeField] private Transform treeLayer;
+
+        [Header("World flow")]
+        [SerializeField] private float scrollDirection = -1f;
+        [SerializeField] private WorldLoopController loopController;
+
+        private bool scrolling = true;
         private float currentMultiplier = 1f;
+
+        private void Awake()
+        {
+            if (loopController == null)
+                loopController = FindObjectOfType<WorldLoopController>();
+        }
+
+        public float WorldVelocityX => scrollDirection * GetGroundVelocity();
+        public float CloudSpeed => cloudSpeed * currentMultiplier;
+        public float MountainSpeed => mountainSpeed * currentMultiplier;
+        public float GroundSpeed => groundSpeed * currentMultiplier;
+        public float TreeSpeed => treeSpeed * currentMultiplier;
 
         private void Update()
         {
+            if (loopController != null)
+                return;
+
             if (!scrolling)
                 return;
 
-            transform.Translate(
-                Vector3.left * scrollSpeed * currentMultiplier * Time.deltaTime,
-                Space.World
+            MoveLayer(cloudLayer, CloudSpeed);
+            MoveLayer(mountainLayer, MountainSpeed);
+            MoveLayer(groundLayer, GroundSpeed);
+            MoveLayer(treeLayer, TreeSpeed);
+        }
+
+        private void MoveLayer(Transform layer, float speed)
+        {
+            if (layer == null)
+                return;
+
+            Vector3 axisLocked = new Vector3(
+                layer.position.x + scrollDirection * speed * Time.deltaTime,
+                layer.position.y,
+                layer.position.z
             );
+
+            layer.position = axisLocked;
+        }
+
+        public float GetGroundVelocity()
+        {
+            return groundSpeed * currentMultiplier;
+        }
+
+        public Vector3 GetWorldVelocity()
+        {
+            return new Vector3(scrollDirection * GetGroundVelocity(), 0f, 0f);
         }
 
         public void SetSpeedMultiplier(float multiplier)
         {
-            currentMultiplier = multiplier;
-            Debug.Log("[WORLD] Speed multiplier x" + multiplier);
+            currentMultiplier = Mathf.Max(1f, multiplier);
+            if (loopController != null)
+                loopController.SetWorldSpeed(currentMultiplier);
+            Debug.Log("[WORLD] Speed multiplier x" + currentMultiplier);
         }
 
         public void ResetSpeed()
         {
             currentMultiplier = 1f;
+            if (loopController != null)
+                loopController.ResetSpeed();
             Debug.Log("[WORLD] Speed reset");
+        }
+
+        public void SetWorldSpeed(float multiplier)
+        {
+            SetSpeedMultiplier(multiplier);
+        }
+
+        public void ReverseDirection()
+        {
+            if (loopController != null)
+            {
+                loopController.ReverseDirection();
+                return;
+            }
+
+            scrollDirection *= -1f;
         }
 
         public void StopScroll()
@@ -40,6 +113,26 @@ namespace EternalClash.World
         public void ResumeScroll()
         {
             scrolling = true;
+        }
+
+        /// <summary>
+        /// Applies knockback recoil to mountain, tree, and ground layers only.
+        /// Cloud layer is NOT affected by knockback.
+        /// </summary>
+        public void ApplyKnockbackShift(Vector3 delta)
+        {
+            if (loopController != null)
+            {
+                loopController.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (mountainLayer != null)
+                mountainLayer.position += delta;
+            if (treeLayer != null)
+                treeLayer.position += delta;
+            if (groundLayer != null)
+                groundLayer.position += delta;
         }
     }
 }

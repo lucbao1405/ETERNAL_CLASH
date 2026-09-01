@@ -15,6 +15,8 @@ public class StageManager : MonoBehaviour
 
     public StageState CurrentState { get; private set; }
 
+    private WaveManager waveManager;
+
     private void Awake()
     {
         if (Instance == null)
@@ -29,20 +31,39 @@ public class StageManager : MonoBehaviour
 
     private void Start()
     {
+        EnsureWaveManager();
         StartStage();
+    }
+
+    private void EnsureWaveManager()
+    {
+        waveManager = GetComponent<WaveManager>();
+        if (waveManager == null)
+            waveManager = FindObjectOfType<WaveManager>();
+
+        if (waveManager == null)
+        {
+            GameObject waveObject = new GameObject("WaveManager");
+            waveManager = waveObject.AddComponent<WaveManager>();
+            Debug.Log("[STAGE] Auto-created WaveManager because none existed in scene.");
+        }
     }
 
     public void StartStage()
     {
+        EnsureWaveManager();
         CurrentState = StageState.Running;
         Debug.Log("Stage Started");
 
-        WaveManager waveManager = GetComponent<WaveManager>();
         if (waveManager != null)
         {
             StopAllCoroutines();
             waveManager.currentWave = 0;
             StartCoroutine(waveManager.StartNextWave());
+        }
+        else
+        {
+            Debug.LogWarning("[STAGE] WaveManager still missing after EnsureWaveManager().");
         }
     }
 

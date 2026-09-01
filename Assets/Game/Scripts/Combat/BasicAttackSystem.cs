@@ -42,6 +42,7 @@ namespace EternalClash.Combat
 
         public void StartAttack()
         {
+            Debug.Log("[ATTACK START] BasicAttackSystem.StartAttack");
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Attack);
             else
@@ -51,6 +52,7 @@ namespace EternalClash.Combat
         // Gọi từ Animation Event tại hit frame
         public void AnimationDealDamage()
         {
+            Debug.Log("[ANIMATION HIT] BasicAttackSystem.AnimationDealDamage called");
             DealDamage();
         }
 
@@ -66,16 +68,27 @@ namespace EternalClash.Combat
         private void DealDamage()
         {
             if (target == null || cooldownTimer > 0)
+            {
+                if (target == null)
+                    Debug.LogWarning("[DAMAGE SKIP] Target is null");
+                if (cooldownTimer > 0)
+                    Debug.LogWarning("[DAMAGE SKIP] Cooldown active: " + cooldownTimer);
                 return;
+            }
 
             cooldownTimer = attackCooldown;
 
             if (CombatDamageResolver.Instance == null)
+            {
+                Debug.LogWarning("[DAMAGE SKIP] CombatDamageResolver.Instance is null");
                 return;
+            }
 
             int finalDamage = Village.PlayerStatSystem.Instance != null 
                 ? Village.PlayerStatSystem.Instance.BasicAttackDamage 
                 : damage;
+
+            Debug.Log("[DAMAGE SENT] Target: " + target.name + " Damage: " + finalDamage);
 
             CombatDamageResolver.Instance.DealDamage(
                 target,

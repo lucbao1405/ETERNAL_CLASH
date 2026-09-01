@@ -11,8 +11,6 @@ namespace EternalClash.Player
         private bool isRunning = true;
 
         [Header("Screen Lock (prevent knockback from leaving the screen)")]
-        [SerializeField] private float maxBackOffset = 1.2f;
-        [SerializeField] private float maxForwardOffset = 0.8f;
         [SerializeField] private float maxVerticalOffset = 0.6f;
 
         private Vector3 homePosition;
@@ -22,15 +20,10 @@ namespace EternalClash.Player
 
         private void Update()
         {
-            // Player stays in combat position.
-            // The world moves instead.
             if (!isRunning)
                 return;
         }
 
-        // Lock the player inside a small box around its spawn point. The world
-        // scrolls, so the player's transform is effectively its screen position;
-        // knockback must never push it off-screen.
         private void LateUpdate()
         {
             if (!homePositionSet)
@@ -40,12 +33,11 @@ namespace EternalClash.Player
                 return;
             }
 
-            float x = Mathf.Clamp(transform.position.x,
-                homePosition.x - maxBackOffset, homePosition.x + maxForwardOffset);
+            float x = homePosition.x;
             float y = Mathf.Clamp(transform.position.y,
                 homePosition.y - maxVerticalOffset, homePosition.y + maxVerticalOffset);
 
-            transform.position = new Vector3(x, y, transform.position.z);
+            transform.position = new Vector3(x, y, homePosition.z);
         }
 
         public void StopRunning()

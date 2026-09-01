@@ -14,6 +14,7 @@ namespace EternalClash.Combat
     {
         [SerializeField] private int shieldReflectDamage = 5;
         [SerializeField] private float perfectCounterWindow = 0.35f;
+        [SerializeField] private AudioClip perfectCounterSfx;
 
         public CounterResult TryShieldCounter(ShieldSkill shield, EnemyAttackTimingController enemy)
         {
@@ -55,6 +56,13 @@ namespace EternalClash.Combat
             ApplyReflect(enemy);
             timing.CancelAttack();
             timing.ApplyStun(perfectCounterWindow);
+
+            HitStopImpactSystem.Instance?.HeavyHit();
+            CombatVFXController.Instance?.PlayHitEffect(enemy.transform.position);
+            CombatVFXController.Instance?.Shake(0.15f);
+
+            if (perfectCounterSfx != null)
+                AudioSource.PlayClipAtPoint(perfectCounterSfx, enemy.transform.position);
 
             Debug.Log("[COUNTER] Perfect Counter - Reflect + Stun");
         }

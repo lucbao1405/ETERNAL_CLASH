@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using EternalClash.Village;
 using EternalClash.Character;
 
 namespace EternalClash.Core

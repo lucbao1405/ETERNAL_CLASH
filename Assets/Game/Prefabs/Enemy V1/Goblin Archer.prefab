@@ -93,11 +93,11 @@ GameObject:
   - component: {fileID: -2736930427471613890}
   - component: {fileID: 6307903538845569426}
   - component: {fileID: -7898629841655982033}
-  - component: {fileID: 294697476149249141}
   - component: {fileID: -4430521099706183268}
   - component: {fileID: -2502204505426083527}
   - component: {fileID: 3298068993565431265}
   - component: {fileID: 6191962608210178184}
+  - component: {fileID: 7911894070260089669}
   m_Layer: 6
   m_Name: Goblin Archer
   m_TagString: Enemy
@@ -161,7 +161,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 141949279
-  m_SortingLayer: 4
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 9c2ec81d951140a4093ac405982eae11, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -245,7 +245,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 4
+  m_Constraints: 6
 --- !u!114 &4691764416766105895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -288,6 +288,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stopDistance: 1.2
+  archerStopDistance: 4.5
+  isArcher: 1
   moveSpeed: 0.6
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
@@ -340,18 +342,6 @@ MonoBehaviour:
   knockbackForce: 5
   projectilePrefab: {fileID: 1190294507443897956, guid: b035958e50e59704f8a47e0cf6dd8b0e, type: 3}
   projectileSpeed: 5
---- !u!114 &294697476149249141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333380701695965858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 000a0e2658667b2439d5410b7792ba21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &-4430521099706183268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -411,6 +401,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7911894070260089669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d6275c42886e95479ebaa3a4c0b9fa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3967436272979540893
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,6 +669,6 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -1.0551286, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 1.5551285

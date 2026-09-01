@@ -26,10 +26,10 @@ namespace EternalClash.Combat
 
         public void ApplyKnockback(Vector2 direction, float force)
         {
-            target = (Vector2)transform.position + direction.normalized * force;
-            active = true;
+            var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            if (scroller != null)
+                scroller.transform.position += new Vector3(-direction.x * force, 0f, 0f);
 
-            // Weight/Knockback System: Subtracts from stage progress
             DistanceProgress.Instance?.ReduceDistance(force);
         }
 

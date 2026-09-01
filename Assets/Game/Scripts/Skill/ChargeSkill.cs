@@ -5,13 +5,15 @@ using EternalClash.World;
 using EternalClash.Combat;
 using EternalClash.Enemy;
 using EternalClash.Village;
+using EternalClash.Player;
 
 namespace EternalClash.Skill
 {
     public class ChargeSkill : SkillBase
     {
-        public float chargeMultiplier = 3.0f;
-        public float chargeDuration = 0.67f;
+        public float chargeMultiplier = 4.0f;
+        [Header("Charge Timing")]
+        [SerializeField] private float chargeDuration = 0.5f;
 
         public int baseDamage = 20;
         public float knockbackForce = 3.0f;
@@ -21,8 +23,10 @@ namespace EternalClash.Skill
         private bool charging;
         private HashSet<GameObject> hitEnemies = new HashSet<GameObject>();
 
-        // Forward charge hitbox collider (added on the Player prefab). Disabled
-        // outside of a charge so it only detects enemies during the lunge.
+        private DamageReceiver playerDamageReceiver;
+        private KnockbackReceiver playerKnockbackReceiver;
+        private PlayerChargeController playerChargeController;
+
         private Collider2D chargeHitbox;
 
         public bool IsCharging => charging;
@@ -39,7 +43,9 @@ namespace EternalClash.Skill
 
             // Locate the dedicated forward charge hitbox (a trigger BoxCollider2D
             // with a large X size, added via the prefab). Keep it off by default.
-            foreach (var c in GetComponentsInChildren<BoxCollider2D>())
+            // Search from root transform to find ChargeHitbox sibling
+            var root = transform.root;
+            foreach (var c in root.GetComponentsInChildren<BoxCollider2D>())
             {
                 if (c.isTrigger && c.size.x > 2f)
                 {
@@ -48,12 +54,23 @@ namespace EternalClash.Skill
                 }
             }
             if (chargeHitbox != null)
+            {
                 chargeHitbox.enabled = false;
+                Debug.Log("[CHARGE] Found chargeHitbox: " + chargeHitbox.name);
+            }
+            else
+            {
+                Debug.LogWarning("[CHARGE] No chargeHitbox found! Need BoxCollider2D with isTrigger=true and size.x>2f");
+            }
+
+            playerDamageReceiver = GetComponent<DamageReceiver>();
+            playerKnockbackReceiver = GetComponent<KnockbackReceiver>();
+            playerChargeController = GetComponentInParent<PlayerChargeController>();
         }
 
         protected override void Execute()
         {
-            Debug.Log("[SKILL] Charge Execute START");
+            Debug.Log("[CHARGE START] ChargeSkill.Execute START");
 
             if (!charging)
                 StartCoroutine(ChargeRoutine());
@@ -64,48 +81,111 @@ namespace EternalClash.Skill
             charging = true;
             hitEnemies.Clear();
 
+            playerChargeController?.StartCharge();
+
             if (chargeHitbox != null)
+            {
                 chargeHitbox.enabled = true;
+                Debug.Log("[CHARGE] ChargeHitbox enabled: " + chargeHitbox.name);
+            }
+            else
+            {
+                Debug.LogWarning("[CHARGE] chargeHitbox is NULL - no collider found!");
+            }
+
+            var chargeHitboxObj = transform.root.GetComponentInChildren<PlayerChargeHitbox>();
+            chargeHitboxObj?.ClearHitEnemies();
+
+            if (playerDamageReceiver != null)
+                playerDamageReceiver.SetDamageMultiplier(0f);
+            if (playerKnockbackReceiver != null)
+                playerKnockbackReceiver.enabled = false;
 
             if (worldScroller == null)
                 worldScroller = FindObjectOfType<WorldScroller>();
 
             if (worldScroller != null)
+            {
                 worldScroller.SetSpeedMultiplier(chargeMultiplier);
+                Debug.Log("[CHARGE] WorldScroller speed multiplied x" + chargeMultiplier);
+            }
 
-            yield return new WaitForSeconds(chargeDuration);
+            ApplyChargeWorldEffect();
+            FreezeEnemiesInPlayerRange();
+
+            yield return new WaitForSeconds(GetChargeDuration());
 
             if (worldScroller != null)
                 worldScroller.ResetSpeed();
 
+            foreach (var enemyMover in FindObjectsOfType<EnemyMover>())
+            {
+                enemyMover.DisableChargePull();
+            }
+
             if (chargeHitbox != null)
+            {
                 chargeHitbox.enabled = false;
+                Debug.Log("[CHARGE] ChargeHitbox disabled");
+            }
+
+            if (playerDamageReceiver != null)
+                playerDamageReceiver.ResetDamageMultiplier();
+            if (playerKnockbackReceiver != null)
+                playerKnockbackReceiver.enabled = true;
+
+            playerChargeController?.EndCharge();
 
             charging = false;
+            Debug.Log("[CHARGE END] Charge routine finished");
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        public float GetChargeDuration()
         {
-            if (!charging || !other.CompareTag("Enemy"))
-                return;
+            if (playerChargeController != null)
+                return playerChargeController.ChargeDuration;
 
-            if (hitEnemies.Contains(other.gameObject))
-                return;
+            return chargeDuration;
+        }
 
-            hitEnemies.Add(other.gameObject);
+        private void ApplyChargeWorldEffect()
+        {
+            // Charge no longer moves the player. The player stays fixed while
+            // the world/enemy flow speed increases.
+            if (worldScroller != null)
+            {
+                worldScroller.SetSpeedMultiplier(chargeMultiplier);
+            }
 
-            int finalDamage = PlayerStatSystem.Instance != null 
-                ? PlayerStatSystem.Instance.ChargeDamage 
-                : baseDamage;
+            foreach (var enemyMover in FindObjectsOfType<EnemyMover>())
+            {
+                if (enemyMover == null)
+                    continue;
 
-            CombatDamageResolver.Instance?.DealDamage(
-                other.gameObject,
-                finalDamage,
-                DamageSource.Charge
-            );
+                float chargeSpeed = Mathf.Max(chargeMultiplier * 2f, 4f);
+                enemyMover.EnableChargePull(chargeSpeed);
+            }
+        }
 
-            other.GetComponent<KnockbackReceiver>()?.ApplyKnockback(Vector2.left, knockbackForce);
-            other.GetComponent<EnemyStatusController>()?.ApplyStun(stunDuration);
+        private void FreezeEnemiesInPlayerRange()
+        {
+            var playerPosition = transform.root.position;
+            foreach (var enemy in FindObjectsOfType<EnemyStatusController>())
+            {
+                if (enemy == null)
+                    continue;
+
+                var enemyMover = enemy.GetComponent<EnemyMover>();
+                if (enemyMover == null)
+                    continue;
+
+                float attackRange = enemyMover.IsArcher ? enemyMover.ArcherStopDistance : 1.2f;
+                if (Vector2.Distance(enemy.transform.position, playerPosition) <= attackRange)
+                {
+                    enemy.ApplyStun(1.0f);
+                    enemyMover.PauseMovement(1.0f);
+                }
+            }
         }
     }
 }
