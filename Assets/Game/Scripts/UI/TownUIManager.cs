@@ -172,7 +172,8 @@ namespace EternalClash.UI
 
         public void OnClick_StartBattle()
         {
-            SceneLoader.LoadBattle();
-        }
+            
     }
+}
+
 }
