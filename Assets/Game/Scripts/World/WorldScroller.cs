@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace EternalClash.World
@@ -21,26 +22,27 @@ namespace EternalClash.World
         [SerializeField] private WorldLoopController loopController;
         [SerializeField] private WorldLoopSpawner chunkSpawner;
 
+        [Header("Knockback recoil")]
+        [SerializeField] private float recoilDuration = 0.12f;
+
         private bool scrolling = true;
         private float currentMultiplier = 1f;
+        private Coroutine recoilRoutine;
 
         private void Awake()
         {
             if (loopController == null)
                 loopController = FindObjectOfType<WorldLoopController>();
-
             if (chunkSpawner == null)
                 chunkSpawner = FindObjectOfType<WorldLoopSpawner>();
         }
 
         public bool IsScrolling => scrolling;
-
         public float WorldVelocityX => scrollDirection * GetGroundVelocity();
         public float CloudSpeed => cloudSpeed * currentMultiplier;
         public float MountainSpeed => mountainSpeed * currentMultiplier;
         public float GroundSpeed => groundSpeed * currentMultiplier;
         public float TreeSpeed => treeSpeed * currentMultiplier;
-
         public float CloudVelocityX => scrollDirection * CloudSpeed;
         public float MountainVelocityX => scrollDirection * MountainSpeed;
         public float GroundVelocityX => scrollDirection * GroundSpeed;
@@ -48,15 +50,7 @@ namespace EternalClash.World
 
         private void Update()
         {
-            if (loopController != null)
-                return;
-
-            // WorldLoopSpawner owns per-chunk movement for every layer when present,
-            // so it reads the velocities above instead of this script moving a single Transform.
-            if (chunkSpawner != null)
-                return;
-
-            if (!scrolling)
+            if (loopController != null || chunkSpawner != null || !scrolling)
                 return;
 
             MoveLayer(cloudLayer, CloudSpeed);
@@ -67,27 +61,16 @@ namespace EternalClash.World
 
         private void MoveLayer(Transform layer, float speed)
         {
-            if (layer == null)
-                return;
-
-            Vector3 axisLocked = new Vector3(
+            if (layer == null) return;
+            layer.position = new Vector3(
                 layer.position.x + scrollDirection * speed * Time.deltaTime,
                 layer.position.y,
-                layer.position.z
-            );
-
-            layer.position = axisLocked;
+                layer.position.z);
         }
 
-        public float GetGroundVelocity()
-        {
-            return groundSpeed * currentMultiplier;
-        }
+        public float GetGroundVelocity() => groundSpeed * currentMultiplier;
 
-        public Vector3 GetWorldVelocity()
-        {
-            return new Vector3(scrollDirection * GetGroundVelocity(), 0f, 0f);
-        }
+        public Vector3 GetWorldVelocity() => new Vector3(scrollDirection * GetGroundVelocity(), 0f, 0f);
 
         public void SetSpeedMultiplier(float multiplier)
         {
@@ -105,10 +88,7 @@ namespace EternalClash.World
             Debug.Log("[WORLD] Speed reset");
         }
 
-        public void SetWorldSpeed(float multiplier)
-        {
-            SetSpeedMultiplier(multiplier);
-        }
+        public void SetWorldSpeed(float multiplier) => SetSpeedMultiplier(multiplier);
 
         public void ReverseDirection()
         {
@@ -117,19 +97,42 @@ namespace EternalClash.World
                 loopController.ReverseDirection();
                 return;
             }
-
             scrollDirection *= -1f;
         }
 
-        public void StopScroll()
+        public void StopScroll() => scrolling = false;
+        public void ResumeScroll() => scrolling = true;
+
+        public void ApplyKnockbackShift(Vector3 delta)
         {
-            scrolling = false;
+            delta.y = 0f;
+            if (Mathf.Abs(delta.x) < 0.0001f) return;
+
+            if (recoilRoutine != null)
+                StopCoroutine(recoilRoutine);
+            recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
         }
 
-        public void ResumeScroll()
+        private IEnumerator SmoothWorldRecoil(Vector3 delta)
         {
-            scrolling = true;
-        }
+            Transform target = transform;
+            Vector3 start = target.position;
+            Vector3 end = start + new Vector3(delta.x, 0f, 0f);
+            float duration = Mathf.Max(0.01f, recoilDuration);
+            float elapsed = 0f;
 
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = Mathf.SmoothStep(0f, 1f, t);
+                Vector3 p = Vector3.Lerp(start, end, eased);
+                target.position = new Vector3(p.x, start.y, start.z);
+                yield return null;
+            }
+
+            target.position = new Vector3(end.x, start.y, start.z);
+            recoilRoutine = null;
+        }
     }
 }
