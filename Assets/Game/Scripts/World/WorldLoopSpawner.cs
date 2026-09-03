@@ -14,6 +14,7 @@ namespace EternalClash.World
         [Header("Settings")]
         [SerializeField] private int chunkCount = 3;
         [SerializeField] private Camera targetCamera;
+        [SerializeField] private WorldScroller worldScroller;
 
         private LayerChunkManager groundManager;
         private LayerChunkManager treeManager;
@@ -25,6 +26,9 @@ namespace EternalClash.World
             if (targetCamera == null)
                 targetCamera = Camera.main;
 
+            if (worldScroller == null)
+                worldScroller = FindObjectOfType<WorldScroller>();
+
             // Initialize each layer's chunk manager
             groundManager = new LayerChunkManager(groundTemplate, chunkCount, "Ground", this.transform);
             treeManager = new LayerChunkManager(treeTemplate, chunkCount, "Tree", this.transform);
@@ -34,16 +38,28 @@ namespace EternalClash.World
 
         private void Update()
         {
-            if (targetCamera == null)
+            if (targetCamera == null || worldScroller == null)
                 return;
 
             float cameraLeftEdge = targetCamera.transform.position.x - targetCamera.orthographicSize * targetCamera.aspect;
+            float dt = worldScroller.IsScrolling ? Time.deltaTime : 0f;
 
-            // Update each layer independently
-            groundManager?.UpdateLoop(cameraLeftEdge);
-            treeManager?.UpdateLoop(cameraLeftEdge);
-            mountainManager?.UpdateLoop(cameraLeftEdge);
-            cloudManager?.UpdateLoop(cameraLeftEdge);
+            // Each layer moves ALL of its own chunks every frame, then checks recycling
+            groundManager?.UpdateLoop(cameraLeftEdge, worldScroller.GroundVelocityX * dt);
+            treeManager?.UpdateLoop(cameraLeftEdge, worldScroller.TreeVelocityX * dt);
+            mountainManager?.UpdateLoop(cameraLeftEdge, worldScroller.MountainVelocityX * dt);
+            cloudManager?.UpdateLoop(cameraLeftEdge, worldScroller.CloudVelocityX * dt);
+        }
+
+        /// <summary>
+        /// Forwards a knockback shift to every chunk of the tree/mountain/ground layers.
+        /// Cloud layer is intentionally excluded, matching WorldScroller's original behavior.
+        /// </summary>
+        public void ApplyKnockbackShift(Vector3 delta)
+        {
+            treeManager?.Shift(delta.x);
+            mountainManager?.Shift(delta.x);
+            groundManager?.Shift(delta.x);
         }
 
         private static Bounds GetCombinedBounds(GameObject go)
@@ -126,20 +142,20 @@ namespace EternalClash.World
             Debug.Log($"[WorldLoopSpawner] {name} layer initialized with {chunks.Count} chunks");
         }
 
-        public void UpdateLoop(float cameraLeftEdge)
+        public void UpdateLoop(float cameraLeftEdge, float deltaX)
         {
             if (chunks.Count == 0 || template == null)
                 return;
 
+            if (deltaX != 0f)
+                Shift(deltaX);
+
             Transform front = chunks[0];
             Bounds frontBounds = GetCombinedBounds(front.gameObject);
-            
-            // Calculate 80% threshold: when 80% of the chunk has scrolled off-screen
-            float chunkWidth = frontBounds.size.x;
-            float threshold80Percent = frontBounds.max.x - (0.2f * chunkWidth);
 
-            // If front chunk is 80% off-screen on the left, recycle it to the back
-            if (threshold80Percent < cameraLeftEdge)
+            // Only recycle once the chunk has FULLY exited past the camera's left edge,
+            // otherwise part of it is still visible (or still under the player) when it gets moved.
+            if (frontBounds.max.x < cameraLeftEdge)
             {
                 // Move front chunk to the back
                 Transform frontChunk = chunks[0];
@@ -153,15 +169,28 @@ namespace EternalClash.World
             }
         }
 
+        public void Shift(float deltaX)
+        {
+            foreach (Transform chunk in chunks)
+            {
+                Vector3 pos = chunk.position;
+                pos.x += deltaX;
+                chunk.position = pos;
+            }
+        }
+
         private static void PlaceRightAfter(Transform mover, Transform anchor)
         {
             Bounds anchorBounds = GetCombinedBounds(anchor.gameObject);
-            Bounds moverBounds = GetCombinedBounds(mover.gameObject);
+            float chunkWidth = anchorBounds.size.x;
 
-            float leftOffsetFromPivot = moverBounds.min.x - mover.position.x;
-
+            // X: nối sát ngay bên phải anchor theo đúng chiều rộng thực tế của nó.
+            // Y/Z: khoá cứng theo anchor, không lấy từ mover — tránh chunk bị trôi cao độ
+            // nếu nó từng được Instantiate lệch Y do khác không gian toạ độ cha.
             Vector3 pos = mover.position;
-            pos.x = anchorBounds.max.x - leftOffsetFromPivot;
+            pos.x = anchor.position.x + chunkWidth;
+            pos.y = anchor.position.y;
+            pos.z = anchor.position.z;
             mover.position = pos;
         }
 
