@@ -87,11 +87,6 @@ namespace EternalClash.World
             scrolling = true;
         }
 
-        public void ApplyKnockbackShift(Vector3 delta)
-        {
-            transform.position += new Vector3(delta.x, 0f, 0f);
-        }
-
         private void AddLayer(string name, GameObject template, float speed)
         {
             if (template == null)

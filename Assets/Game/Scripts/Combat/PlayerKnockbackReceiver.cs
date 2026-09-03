@@ -26,10 +26,14 @@ namespace EternalClash.Combat
 
         public void ApplyKnockback(Vector2 direction, float force)
         {
-            var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
-            if (scroller != null)
-                scroller.transform.position += new Vector3(-direction.x * force, 0f, 0f);
+            if (direction != Vector2.zero)
+            {
+                Vector2 horizontal = new Vector2(Mathf.Sign(direction.x), 0f);
+                target = (Vector2)transform.position + horizontal * Mathf.Max(0f, force);
+                active = force > 0f;
+            }
 
+            // Progress penalty only; do not move the world.
             DistanceProgress.Instance?.ReduceDistance(force);
         }
 
