@@ -18,7 +18,7 @@ namespace EternalClash.Skill
         protected override void Awake()
         {
             skillName = "Shield";
-            cooldown = 5.0f;
+            cooldown = 6.0f;
             base.Awake();
             playerController = GetComponentInParent<PlayerController>();
         }

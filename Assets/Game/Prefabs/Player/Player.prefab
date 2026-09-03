@@ -425,7 +425,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Charge
-  cooldown: 5
+  cooldown: 3
   chargeMultiplier: 2.5
   chargeDuration: 1.5
   baseDamage: 20
@@ -447,7 +447,7 @@ MonoBehaviour:
   cooldown: 6
   damageReduction: 0.2
   shieldDuration: 1
-  reflectDamage: 5
+  reflectDamage: 3
 --- !u!114 &1034668976301621659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,6 +491,7 @@ MonoBehaviour:
   damage: 5
   attackCooldown: 1
   knockbackForce: 5
+  attackRange: 2.2
 --- !u!61 &2578226353506405695
 BoxCollider2D:
   m_ObjectHideFlags: 0

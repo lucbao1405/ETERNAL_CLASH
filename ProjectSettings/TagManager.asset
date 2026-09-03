@@ -76,3 +76,6 @@ TagManager:
   - name: Enemy
     uniqueID: 141949279
     locked: 0
+  - name: Popupdmg
+    uniqueID: 1254822279
+    locked: 0
