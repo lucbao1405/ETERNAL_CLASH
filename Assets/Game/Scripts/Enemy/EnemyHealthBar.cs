@@ -1,12 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
-using EternalClash.Character;
 
 namespace EternalClash.Enemy
 {
     public class EnemyHealthBar : MonoBehaviour
     {
-        [SerializeField] private HealthSystem healthSystem;
+        [SerializeField] private EnemyHealthSystem healthSystem;
         [SerializeField] private Image fillImage;
         [SerializeField] private Image delayedFillImage;
         [SerializeField] private float delayBeforeDeplete = 0.4f;
@@ -18,7 +17,7 @@ namespace EternalClash.Enemy
         private void Awake()
         {
             if (healthSystem == null)
-                healthSystem = GetComponentInParent<HealthSystem>();
+                healthSystem = GetComponentInParent<EnemyHealthSystem>();
         }
 
         private void Start()

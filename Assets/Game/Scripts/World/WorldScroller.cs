@@ -131,5 +131,30 @@ namespace EternalClash.World
             scrolling = true;
         }
 
+        /// <summary>
+        /// Applies knockback recoil to mountain, tree, and ground layers only.
+        /// Cloud layer is NOT affected by knockback.
+        /// </summary>
+        public void ApplyKnockbackShift(Vector3 delta)
+        {
+            if (loopController != null)
+            {
+                loopController.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (chunkSpawner != null)
+            {
+                chunkSpawner.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (mountainLayer != null)
+                mountainLayer.position += delta;
+            if (treeLayer != null)
+                treeLayer.position += delta;
+            if (groundLayer != null)
+                groundLayer.position += delta;
+        }
     }
 }

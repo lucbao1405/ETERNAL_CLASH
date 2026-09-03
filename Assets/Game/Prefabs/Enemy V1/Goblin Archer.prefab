@@ -95,7 +95,6 @@ GameObject:
   - component: {fileID: -7898629841655982033}
   - component: {fileID: -4430521099706183268}
   - component: {fileID: -2502204505426083527}
-  - component: {fileID: 3298068993565431265}
   - component: {fileID: 6191962608210178184}
   - component: {fileID: 7911894070260089669}
   m_Layer: 6
@@ -303,7 +302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: 3298068993565431265}
+  healthSystem: {fileID: -2502204505426083527}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -367,19 +366,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 15
---- !u!114 &3298068993565431265
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333380701695965858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 50
 --- !u!95 &6191962608210178184
 Animator:
   serializedVersion: 5

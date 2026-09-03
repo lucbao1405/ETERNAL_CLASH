@@ -11,6 +11,8 @@ namespace EternalClash.Enemy
         private EnemyController controller;
         private Rigidbody2D rb;
         private Transform player;
+        private EternalClash.World.WorldScroller worldScroller;
+        private Camera mainCamera;
         private bool isPaused;
         private bool isChargePulling;
         private float chargePullSpeed;
@@ -20,6 +22,8 @@ namespace EternalClash.Enemy
             controller = GetComponent<EnemyController>();
             rb = GetComponent<Rigidbody2D>();
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
+            worldScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            mainCamera = Camera.main;
             if (rb != null)
             {
                 rb.gravityScale = 0f;
@@ -34,11 +38,13 @@ namespace EternalClash.Enemy
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked()) return;
             if (controller != null && !controller.canMove) return;
 
-            var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
-            float worldVelocityX = scroller != null ? scroller.GetWorldVelocity().x : 0f;
+            float currentX = rb != null ? rb.position.x : transform.position.x;
+            float side = currentX >= player.position.x ? 1f : -1f;
+
+            float worldVelocityX = worldScroller != null ? worldScroller.GetWorldVelocity().x : 0f;
             float finalVelocity = worldVelocityX;
-            float distance = Mathf.Abs(player.position.x - transform.position.x);
-            float effectiveStop = isArcher ? archerStopDistance : stopDistance;
+            float distance = Mathf.Abs(player.position.x - currentX);
+            float effectiveStop = isArcher ? GetArcherStopDistance(side) : stopDistance;
 
             if (isChargePulling)
             {
@@ -46,32 +52,48 @@ namespace EternalClash.Enemy
             }
             else if (distance > effectiveStop && !isArcher)
             {
-                float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
+                float directionToPlayer = Mathf.Sign(player.position.x - currentX);
                 finalVelocity += directionToPlayer * moveSpeed;
             }
 
-            float currentX = rb != null ? rb.position.x : transform.position.x;
             float nextX = currentX + finalVelocity * Time.fixedDeltaTime;
-            float horizontalDistance = player.position.x - currentX;
 
-            // Clamp only when the movement would cross the intended stop point.
-            // The old code used the wrong side of the player and teleported enemies through him.
-            if (horizontalDistance > effectiveStop)
-            {
-                float stopX = player.position.x - effectiveStop;
-                // Enemy is left of player: it may approach up to player - stopDistance.
-                nextX = Mathf.Min(nextX, stopX);
-            }
-            else if (horizontalDistance < -effectiveStop)
-            {
-                float stopX = player.position.x + effectiveStop;
-                // Enemy is right of player: it may approach up to player + stopDistance.
+            // Luon kep theo PHIA HIEN TAI cua quai so voi Player, bat ke |khoang cach|
+            // dang lon hay nho hon effectiveStop. Truoc day chi kep khi khoang cach da
+            // VUOT QUA effectiveStop, nen trong "vung chet" [-effectiveStop, effectiveStop]
+            // hoan toan khong kep gi - neu bi keo voi van toc lon (vd Charge keo lui ca
+            // dan quai), quai co the xuyen thang qua Player sang phia ben kia trong vai
+            // physics step, tao cam giac "nhay qua sau lung Player" du chua chet.
+            float stopX = player.position.x + side * effectiveStop;
+
+            if (side > 0f)
                 nextX = Mathf.Max(nextX, stopX);
-            }
+            else
+                nextX = Mathf.Min(nextX, stopX);
 
             Vector2 nextPosition = new Vector2(nextX, rb != null ? rb.position.y : transform.position.y);
             if (rb != null) rb.MovePosition(nextPosition);
             else transform.position = new Vector3(nextX, transform.position.y, transform.position.z);
+        }
+
+        // Quai cung dung yen bang khoang cach co dinh (archerStopDistance), nhung gia tri
+        // do duoc thiet ke cho 1 ty le man hinh cu the. Neu man hinh thuc te hep hon (vd
+        // portrait tren mobile) thi diem dung se roi ra ngoai vung camera nhin thay. Ham
+        // nay rut ngan khoang dung lai cho vua trong khung hinh thuc te, giu nguyen
+        // archerStopDistance lam gioi han toi da khi man hinh du rong.
+        private float GetArcherStopDistance(float side)
+        {
+            if (mainCamera == null)
+                mainCamera = Camera.main;
+
+            if (mainCamera == null || player == null)
+                return archerStopDistance;
+
+            float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+            float cameraEdgeX = mainCamera.transform.position.x + side * halfWidth;
+            float maxVisibleDistance = Mathf.Abs(cameraEdgeX - player.position.x) * 0.85f;
+
+            return Mathf.Min(archerStopDistance, Mathf.Max(maxVisibleDistance, 0.5f));
         }
 
         public void StopMovement() => isPaused = true;

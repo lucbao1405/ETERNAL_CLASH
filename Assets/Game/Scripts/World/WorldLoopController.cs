@@ -87,6 +87,17 @@ namespace EternalClash.World
             scrolling = true;
         }
 
+        public void ApplyKnockbackShift(Vector3 delta)
+        {
+            foreach (LayerSettings layer in layers)
+            {
+                if (layer.name == "Cloud")
+                    continue;
+
+                layer.loop?.Shift(delta.x);
+            }
+        }
+
         private void AddLayer(string name, GameObject template, float speed)
         {
             if (template == null)
@@ -119,6 +130,12 @@ namespace EternalClash.World
                 PlaceAfter(clone.transform, tiles[tiles.Count - 1]);
                 tiles.Add(clone.transform);
             }
+        }
+
+        public void Shift(float deltaX)
+        {
+            foreach (Transform tile in tiles)
+                tile.position = new Vector3(tile.position.x + deltaX, tile.position.y, tile.position.z);
         }
 
         public void Move(float deltaX)

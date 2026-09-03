@@ -10,13 +10,13 @@ namespace EternalClash.Enemy
 
         [SerializeField] private GameObject coinPrefab;
 
-        private HealthSystem healthSystem;
+        private EnemyHealthSystem healthSystem;
         private CharacterStateMachine stateMachine;
         private bool isDead;
 
         protected virtual void Awake()
         {
-            healthSystem = GetComponent<HealthSystem>();
+            healthSystem = GetComponent<EnemyHealthSystem>();
             stateMachine = GetComponent<CharacterStateMachine>();
 
             if (healthSystem != null)
