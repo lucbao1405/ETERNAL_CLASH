@@ -9,6 +9,11 @@ TagManager:
   - BackGround
   - PlayerDetect
   - UI
+  - Icon
+  - Text
+  - Panel
+  - Button
+  - Image
   layers:
   - Default
   - TransparentFX
