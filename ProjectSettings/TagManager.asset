@@ -8,6 +8,11 @@ TagManager:
   - Gound
   - BackGround
   - PlayerDetect
+  - Icon
+  - Text
+  - Panel
+  - Button
+  - Image
   layers:
   - Default
   - TransparentFX
