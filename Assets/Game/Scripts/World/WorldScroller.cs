@@ -19,6 +19,7 @@ namespace EternalClash.World
         [Header("World flow")]
         [SerializeField] private float scrollDirection = -1f;
         [SerializeField] private WorldLoopController loopController;
+        [SerializeField] private WorldLoopSpawner chunkSpawner;
 
         private bool scrolling = true;
         private float currentMultiplier = 1f;
@@ -27,7 +28,12 @@ namespace EternalClash.World
         {
             if (loopController == null)
                 loopController = FindObjectOfType<WorldLoopController>();
+
+            if (chunkSpawner == null)
+                chunkSpawner = FindObjectOfType<WorldLoopSpawner>();
         }
+
+        public bool IsScrolling => scrolling;
 
         public float WorldVelocityX => scrollDirection * GetGroundVelocity();
         public float CloudSpeed => cloudSpeed * currentMultiplier;
@@ -35,9 +41,19 @@ namespace EternalClash.World
         public float GroundSpeed => groundSpeed * currentMultiplier;
         public float TreeSpeed => treeSpeed * currentMultiplier;
 
+        public float CloudVelocityX => scrollDirection * CloudSpeed;
+        public float MountainVelocityX => scrollDirection * MountainSpeed;
+        public float GroundVelocityX => scrollDirection * GroundSpeed;
+        public float TreeVelocityX => scrollDirection * TreeSpeed;
+
         private void Update()
         {
             if (loopController != null)
+                return;
+
+            // WorldLoopSpawner owns per-chunk movement for every layer when present,
+            // so it reads the velocities above instead of this script moving a single Transform.
+            if (chunkSpawner != null)
                 return;
 
             if (!scrolling)
@@ -124,6 +140,12 @@ namespace EternalClash.World
             if (loopController != null)
             {
                 loopController.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (chunkSpawner != null)
+            {
+                chunkSpawner.ApplyKnockbackShift(delta);
                 return;
             }
 
