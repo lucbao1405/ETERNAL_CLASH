@@ -1,0 +1,69 @@
+
+spine.png
+size: 2580,3873
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+back headwear
+  rotate: false
+  xy: 2, 1541
+  size: 1971, 1028
+  orig: 1971, 1028
+  offset: 0, 0
+  index: -1
+body est
+  rotate: true
+  xy: 1518, 382
+  size: 1157, 1054
+  orig: 1157, 1054
+  offset: 0, 0
+  index: -1
+face
+  rotate: true
+  xy: 2, 2
+  size: 1537, 1514
+  orig: 1537, 1514
+  offset: 0, 0
+  index: -1
+features
+  rotate: false
+  xy: 1975, 1776
+  size: 448, 288
+  orig: 448, 288
+  offset: 0, 0
+  index: -1
+headwear
+  rotate: false
+  xy: 2, 2571
+  size: 2360, 1300
+  orig: 2360, 1300
+  offset: 0, 0
+  index: -1
+left foot est
+  rotate: true
+  xy: 1975, 2066
+  size: 233, 506
+  orig: 233, 506
+  offset: 0, 0
+  index: -1
+left hand eat
+  rotate: true
+  xy: 1975, 2301
+  size: 268, 522
+  orig: 268, 522
+  offset: 0, 0
+  index: -1
+right foot est
+  rotate: false
+  xy: 2364, 3404
+  size: 214, 467
+  orig: 214, 467
+  offset: 0, 0
+  index: -1
+right hand est
+  rotate: false
+  xy: 2364, 2966
+  size: 127, 436
+  orig: 127, 436
+  offset: 0, 0
+  index: -1

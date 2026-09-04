@@ -16,6 +16,7 @@ namespace EternalClash.Enemy
         private bool isPaused;
         private bool isChargePulling;
         private float chargePullSpeed;
+        private float lockedY;
 
         private void Awake()
         {
@@ -28,6 +29,7 @@ namespace EternalClash.Enemy
             {
                 rb.gravityScale = 0f;
                 rb.constraints |= RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
+                rb.position = new Vector2(rb.position.x, lockedY);
             }
         }
 
@@ -71,9 +73,18 @@ namespace EternalClash.Enemy
             else
                 nextX = Mathf.Min(nextX, stopX);
 
-            Vector2 nextPosition = new Vector2(nextX, rb != null ? rb.position.y : transform.position.y);
-            if (rb != null) rb.MovePosition(nextPosition);
-            else transform.position = new Vector3(nextX, transform.position.y, transform.position.z);
+            // Enemy is permanently constrained to its original Y.
+            if (rb != null)
+            {
+                Vector2 current = rb.position;
+                if (!Mathf.Approximately(current.y, lockedY))
+                    rb.position = new Vector2(current.x, lockedY);
+                rb.MovePosition(new Vector2(nextX, lockedY));
+            }
+            else
+            {
+                transform.position = new Vector3(nextX, lockedY, transform.position.z);
+            }
         }
 
         // Quai cung dung yen bang khoang cach co dinh (archerStopDistance), nhung gia tri

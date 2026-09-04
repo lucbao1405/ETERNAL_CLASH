@@ -10,6 +10,7 @@ namespace EternalClash.Combat
 
         private Vector2 target;
         private bool knocked;
+        private float lockedY;
         private EnemyMover mover;
 
         private void Awake()
@@ -19,31 +20,32 @@ namespace EternalClash.Combat
 
         private void Update()
         {
-            if (!knocked)
-                return;
+            if (!knocked) return;
 
-            transform.position = Vector2.MoveTowards(
-                transform.position,
-                target,
-                knockbackSpeed * Time.deltaTime
-            );
+            Vector3 current = transform.position;
+            Vector2 next = Vector2.MoveTowards(new Vector2(current.x, lockedY), target, knockbackSpeed * Time.deltaTime);
+            transform.position = new Vector3(next.x, lockedY, current.z);
 
-            if (Vector2.Distance(transform.position, target) < 0.05f)
+            if (Mathf.Abs(transform.position.x - target.x) < 0.05f)
+            {
+                transform.position = new Vector3(target.x, lockedY, current.z);
                 knocked = false;
+            }
         }
 
         public void ApplyEnemyKnockback(Vector2 direction)
         {
-            if (direction == Vector2.zero)
-                return;
+            lockedY = transform.position.y;
 
-            target = (Vector2)transform.position + direction.normalized * knockbackDistance;
+            float xDirection = Mathf.Sign(direction.x);
+            if (Mathf.Abs(xDirection) < 0.01f)
+                xDirection = 1f;
+
+            target = new Vector2(transform.position.x + xDirection * knockbackDistance, lockedY);
             knocked = true;
 
             if (mover != null)
                 mover.PauseMovement(0.5f);
-
-            Debug.Log("[ENEMY] Knockback applied");
         }
     }
 }
