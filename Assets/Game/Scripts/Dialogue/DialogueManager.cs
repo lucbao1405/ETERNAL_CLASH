@@ -14,15 +14,30 @@ public class DialogueManager : MonoBehaviour
 
     void Start()
     {
+        if (dialoguePanel == null)
+        {
+            Debug.LogWarning("[DialogueManager] dialoguePanel chua duoc gan trong Inspector - dialogue se khong hien thi.");
+            return;
+        }
+
         dialoguePanel.SetActive(false);
     }
 
     public void OpenDialogue(string characterName, Sprite avatar, string[] newLines)
     {
+        if (dialoguePanel == null)
+        {
+            Debug.LogWarning("[DialogueManager] dialoguePanel chua duoc gan trong Inspector - khong the mo dialogue.");
+            return;
+        }
+
         dialoguePanel.SetActive(true);
 
-        characterNameText.text = characterName;
-        avatarImage.sprite = avatar;
+        if (characterNameText != null)
+            characterNameText.text = characterName;
+
+        if (avatarImage != null)
+            avatarImage.sprite = avatar;
 
         lines = newLines;
         currentLine = 0;
@@ -44,12 +59,13 @@ public class DialogueManager : MonoBehaviour
 
     private void ShowCurrentLine()
     {
-        if (lines != null && lines.Length > 0)
+        if (dialogueText != null && lines != null && lines.Length > 0)
             dialogueText.text = lines[currentLine];
     }
 
     public void CloseDialogue()
     {
-        dialoguePanel.SetActive(false);
+        if (dialoguePanel != null)
+            dialoguePanel.SetActive(false);
     }
 }

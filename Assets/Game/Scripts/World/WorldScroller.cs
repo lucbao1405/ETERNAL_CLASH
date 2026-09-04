@@ -22,12 +22,8 @@ namespace EternalClash.World
         [SerializeField] private WorldLoopController loopController;
         [SerializeField] private WorldLoopSpawner chunkSpawner;
 
-        [Header("Knockback recoil")]
-        [SerializeField] private float recoilDuration = 0.12f;
-
         private bool scrolling = true;
         private float currentMultiplier = 1f;
-        private Coroutine recoilRoutine;
 
         private void Awake()
         {
@@ -102,24 +98,6 @@ namespace EternalClash.World
 
         public void StopScroll() => scrolling = false;
         public void ResumeScroll() => scrolling = true;
-
-        public void ApplyKnockbackShift(Vector3 delta)
-        {
-            delta.y = 0f;
-            if (Mathf.Abs(delta.x) < 0.0001f) return;
-
-            if (recoilRoutine != null)
-                StopCoroutine(recoilRoutine);
-            recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
-        }
-
-        private IEnumerator SmoothWorldRecoil(Vector3 delta)
-        {
-            Transform target = transform;
-            Vector3 start = target.position;
-            Vector3 end = start + new Vector3(delta.x, 0f, 0f);
-            float duration = Mathf.Max(0.01f, recoilDuration);
-            float elapsed = 0f;
 
         /// <summary>
         /// Applies knockback recoil to mountain, tree, and ground layers only.
