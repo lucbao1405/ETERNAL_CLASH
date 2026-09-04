@@ -22,12 +22,8 @@ namespace EternalClash.World
         [SerializeField] private WorldLoopController loopController;
         [SerializeField] private WorldLoopSpawner chunkSpawner;
 
-        [Header("Knockback recoil")]
-        [SerializeField] private float recoilDuration = 0.12f;
-
         private bool scrolling = true;
         private float currentMultiplier = 1f;
-        private Coroutine recoilRoutine;
 
         private void Awake()
         {
@@ -103,36 +99,30 @@ namespace EternalClash.World
         public void StopScroll() => scrolling = false;
         public void ResumeScroll() => scrolling = true;
 
+        /// <summary>
+        /// Applies knockback recoil to mountain, tree, and ground layers only.
+        /// Cloud layer is NOT affected by knockback.
+        /// </summary>
         public void ApplyKnockbackShift(Vector3 delta)
         {
-            delta.y = 0f;
-            if (Mathf.Abs(delta.x) < 0.0001f) return;
-
-            if (recoilRoutine != null)
-                StopCoroutine(recoilRoutine);
-            recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
-        }
-
-        private IEnumerator SmoothWorldRecoil(Vector3 delta)
-        {
-            Transform target = transform;
-            Vector3 start = target.position;
-            Vector3 end = start + new Vector3(delta.x, 0f, 0f);
-            float duration = Mathf.Max(0.01f, recoilDuration);
-            float elapsed = 0f;
-
-            while (elapsed < duration)
+            if (loopController != null)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                float eased = Mathf.SmoothStep(0f, 1f, t);
-                Vector3 p = Vector3.Lerp(start, end, eased);
-                target.position = new Vector3(p.x, start.y, start.z);
-                yield return null;
+                loopController.ApplyKnockbackShift(delta);
+                return;
             }
 
-            target.position = new Vector3(end.x, start.y, start.z);
-            recoilRoutine = null;
+            if (chunkSpawner != null)
+            {
+                chunkSpawner.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (mountainLayer != null)
+                mountainLayer.position += delta;
+            if (treeLayer != null)
+                treeLayer.position += delta;
+            if (groundLayer != null)
+                groundLayer.position += delta;
         }
     }
 }

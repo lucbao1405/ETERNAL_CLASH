@@ -481,7 +481,6 @@ MonoBehaviour:
   scrollDirection: -0.8
   loopController: {fileID: 0}
   chunkSpawner: {fileID: 0}
-  recoilDuration: 0.12
 --- !u!114 &117276756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2730,12 +2729,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2092ac6b349e8bf4b86a71d571000d42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentWave: 0
-  delayBetweenWaves: 5
-  spawnRadius: 0
-  slimePrefab: {fileID: 1333380701695965858, guid: 55d676268f3c046478075082bb3a42c7, type: 3}
-  archerPrefab: {fileID: 1333380701695965858, guid: 039ffd4d4a16e2e4289060f13f69d87c, type: 3}
-  wolfPrefab: {fileID: 1333380701695965858, guid: affaa9f4e8e253140a3d0122e7d8fe71, type: 3}
+  stageData: {fileID: 11400000, guid: e5f6071829a3b4c5d6e7f8091a2b3c4d, type: 2}
+  firstWaveDelay: 1
 --- !u!1 &1581845659
 GameObject:
   m_ObjectHideFlags: 0

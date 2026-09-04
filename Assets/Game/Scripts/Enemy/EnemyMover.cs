@@ -11,6 +11,7 @@ namespace EternalClash.Enemy
         private EnemyController controller;
         private Rigidbody2D rb;
         private Transform player;
+        private EternalClash.World.WorldScroller worldScroller;
         private bool isPaused;
         private bool isChargePulling;
         private float chargePullSpeed;
@@ -21,12 +22,16 @@ namespace EternalClash.Enemy
             controller = GetComponent<EnemyController>();
             rb = GetComponent<Rigidbody2D>();
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
-            lockedY = transform.position.y;
+            worldScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
             if (rb != null)
             {
+                lockedY = rb.position.y;
                 rb.gravityScale = 0f;
                 rb.constraints |= RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
-                rb.position = new Vector2(rb.position.x, lockedY);
+            }
+            else
+            {
+                lockedY = transform.position.y;
             }
         }
 
@@ -37,38 +42,56 @@ namespace EternalClash.Enemy
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked()) return;
             if (controller != null && !controller.canMove) return;
 
-            var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
-            float worldVelocityX = scroller != null ? scroller.GetWorldVelocity().x : 0f;
+            float currentX = rb != null ? rb.position.x : transform.position.x;
+            float worldVelocityX = worldScroller != null ? worldScroller.GetWorldVelocity().x : 0f;
+
+            if (isArcher)
+            {
+                // Archer chi tha troi theo dung toc do cuon cua map (giong nen/background),
+                // KHONG tu dung lai o mot khoang co dinh nua - de no tiep tuc troi qua vi
+                // tri Player, cho phep Player tien vao danh giap la duoc thay vi bi chan
+                // vinh vien o xa. Van con ban ten binh thuong trong luc troi qua neu nam
+                // trong EnemyAttack.attackRange.
+                float driftX = currentX + worldVelocityX * Time.fixedDeltaTime;
+                MoveTo(driftX);
+                return;
+            }
+
+            float side = currentX >= player.position.x ? 1f : -1f;
             float finalVelocity = worldVelocityX;
-            float distance = Mathf.Abs(player.position.x - transform.position.x);
-            float effectiveStop = isArcher ? archerStopDistance : stopDistance;
+            float distance = Mathf.Abs(player.position.x - currentX);
 
             if (isChargePulling)
             {
-                if (!isArcher) finalVelocity -= chargePullSpeed;
+                finalVelocity -= chargePullSpeed;
             }
-            else if (distance > effectiveStop && !isArcher)
+            else if (distance > stopDistance)
             {
-                float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
+                float directionToPlayer = Mathf.Sign(player.position.x - currentX);
                 finalVelocity += directionToPlayer * moveSpeed;
             }
 
-            float currentX = rb != null ? rb.position.x : transform.position.x;
             float nextX = currentX + finalVelocity * Time.fixedDeltaTime;
-            float horizontalDistance = player.position.x - currentX;
 
-            if (horizontalDistance > effectiveStop)
-            {
-                float stopX = player.position.x - effectiveStop;
-                nextX = Mathf.Min(nextX, stopX);
-            }
-            else if (horizontalDistance < -effectiveStop)
-            {
-                float stopX = player.position.x + effectiveStop;
+            // Luon kep theo PHIA HIEN TAI cua quai so voi Player, bat ke |khoang cach|
+            // dang lon hay nho hon stopDistance. Truoc day chi kep khi khoang cach da
+            // VUOT QUA stopDistance, nen trong "vung chet" [-stopDistance, stopDistance]
+            // hoan toan khong kep gi - neu bi keo voi van toc lon (vd Charge keo lui ca
+            // dan quai), quai co the xuyen thang qua Player sang phia ben kia trong vai
+            // physics step, tao cam giac "nhay qua sau lung Player" du chua chet.
+            float stopX = player.position.x + side * stopDistance;
+
+            if (side > 0f)
                 nextX = Mathf.Max(nextX, stopX);
-            }
+            else
+                nextX = Mathf.Min(nextX, stopX);
 
-            // Enemy is permanently constrained to its original Y.
+            MoveTo(nextX);
+        }
+
+        // Enemy is permanently constrained to its original Y.
+        private void MoveTo(float nextX)
+        {
             if (rb != null)
             {
                 Vector2 current = rb.position;

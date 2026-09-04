@@ -32,7 +32,7 @@ namespace EternalClash.Combat
 
             timer -= Time.deltaTime;
 
-            if (Vector2.Distance(transform.position, player.position) <= attackRange && timer <= 0)
+            if (Mathf.Abs(transform.position.x - player.position.x) <= attackRange && timer <= 0)
             {
                 AttackPlayer();
                 timer = attackInterval;

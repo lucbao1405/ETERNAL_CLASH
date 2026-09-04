@@ -57,9 +57,9 @@ public class StageManager : MonoBehaviour
 
         if (waveManager != null)
         {
-            StopAllCoroutines();
-            waveManager.currentWave = 0;
-            StartCoroutine(waveManager.StartNextWave());
+            // WaveManager tu quan ly coroutine cua chinh no (BeginStage tu StopCoroutine
+            // ban cu neu co) - khong StartCoroutine ho tu ben ngoai de tranh chay trung.
+            waveManager.BeginStage();
         }
         else
         {

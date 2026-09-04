@@ -1,16 +1,16 @@
 using UnityEngine;
-using EternalClash.Character;
+using EternalClash.Enemy;
 
 namespace EternalClash.Combat
 {
     public class EnemyDamageReceiver : MonoBehaviour
     {
-        private HealthSystem health;
+        private EnemyHealthSystem health;
         private ImpactFeedbackSystem impact;
 
         private void Awake()
         {
-            health = GetComponent<HealthSystem>();
+            health = GetComponent<EnemyHealthSystem>();
             impact = ImpactFeedbackSystem.Instance;
         }
 

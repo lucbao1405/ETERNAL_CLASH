@@ -95,9 +95,9 @@ GameObject:
   - component: {fileID: -7898629841655982033}
   - component: {fileID: -4430521099706183268}
   - component: {fileID: -2502204505426083527}
-  - component: {fileID: 3298068993565431265}
   - component: {fileID: 4844668143910967245}
   - component: {fileID: 2706739250985784720}
+  - component: {fileID: -1996886119652693797}
   m_Layer: 6
   m_Name: Wolf
   m_TagString: Enemy
@@ -161,7 +161,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 141949279
-  m_SortingLayer: 9
+  m_SortingLayer: 10
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 76a37e56fbfc8364a855188d5f4d85e7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -260,7 +260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackDamage: 5
   moveSpeed: 1
-  coinPrefab: {fileID: 1031351487269426157, guid: 49677c118c96a614885e1ab334831a18, type: 3}
+  coinPrefab: {fileID: 0}
 --- !u!114 &4583977637398802043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,7 +303,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: 3298068993565431265}
+  healthSystem: {fileID: -2502204505426083527}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -367,19 +367,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 30
---- !u!114 &3298068993565431265
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333380701695965858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 50
 --- !u!95 &4844668143910967245
 Animator:
   serializedVersion: 5
@@ -413,6 +400,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6275c42886e95479ebaa3a4c0b9fa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-1996886119652693797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f8e7d6c5b4a3928170f6e5d4c3b2a19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lootTable:
+  - itemName: Coin
+    prefab: {fileID: 1031351487269426157, guid: 49677c118c96a614885e1ab334831a18, type: 3}
+    dropChance: 65
+  itemSortingLayer: Item
 --- !u!1 &3967436272979540893
 GameObject:
   m_ObjectHideFlags: 0

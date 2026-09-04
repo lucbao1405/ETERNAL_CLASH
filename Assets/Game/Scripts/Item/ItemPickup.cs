@@ -63,7 +63,8 @@ namespace EternalClash.Item
                     break;
 
                 case ItemType.Gold:
-                    Debug.Log("[ITEM] Gold +" + amount);
+                    playerObject.GetComponent<PlayerCoin>()?.AddCoin(amount);
+                    EternalClash.Village.GoldSystem.Instance?.AddGold(amount);
                     break;
 
                 case ItemType.Exp:
