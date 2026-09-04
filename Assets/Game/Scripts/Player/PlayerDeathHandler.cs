@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Combat;
+using EternalClash.Game;
 
 namespace EternalClash.Player
 {
@@ -32,6 +33,10 @@ namespace EternalClash.Player
         {
             handled = true;
             Debug.Log("Player death handled");
+
+            GameOverUIController gameOverUI = FindObjectOfType<GameOverUIController>();
+            if (gameOverUI != null)
+                gameOverUI.ShowGameOver();
         }
     }
 }

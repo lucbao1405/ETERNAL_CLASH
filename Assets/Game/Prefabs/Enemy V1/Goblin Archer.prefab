@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: -7898629841655982033}
   - component: {fileID: -4430521099706183268}
   - component: {fileID: -2502204505426083527}
-  - component: {fileID: 7261548039271605815}
+  - component: {fileID: 3298068993565431265}
   - component: {fileID: 6191962608210178184}
   - component: {fileID: 7911894070260089669}
   m_Layer: 6
@@ -260,7 +260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackDamage: 5
   moveSpeed: 1
-  coinPrefab: {fileID: 0}
+  coinPrefab: {fileID: 1031351487269426157, guid: 49677c118c96a614885e1ab334831a18, type: 3}
 --- !u!114 &4583977637398802043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -287,10 +287,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46db5555c657d7d408575a94705f3902, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stopDistance: 1.2
   archerStopDistance: 4.5
   isArcher: 1
-  moveSpeed: 0.6
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: -2502204505426083527}
+  healthSystem: {fileID: 3298068993565431265}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -338,7 +336,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 12
   attackInterval: 2
-  attackRange: 5
+  attackRange: 4
   knockbackForce: 5
   projectilePrefab: {fileID: 1190294507443897956, guid: b035958e50e59704f8a47e0cf6dd8b0e, type: 3}
   projectileSpeed: 5
@@ -367,7 +365,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 15
---- !u!114 &7261548039271605815
+--- !u!114 &3298068993565431265
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -376,14 +374,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1333380701695965858}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f8e7d6c5b4a3928170f6e5d4c3b2a19, type: 3}
+  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lootTable:
-  - itemName: Coin
-    prefab: {fileID: 1031351487269426157, guid: 49677c118c96a614885e1ab334831a18, type: 3}
-    dropChance: 85
-  itemSortingLayer: Item
+  maxHealth: 50
 --- !u!95 &6191962608210178184
 Animator:
   serializedVersion: 5
@@ -673,6 +667,6 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -1.0551286, y: 0}
+  m_Offset: {x: -2.4488, y: 0}
   serializedVersion: 2
-  m_Radius: 1.5551285
+  m_Radius: 2.9487908

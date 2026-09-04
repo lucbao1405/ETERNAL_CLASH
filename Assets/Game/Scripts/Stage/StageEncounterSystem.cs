@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class StageEncounterSystem : MonoBehaviour
 {
+    [SerializeField] private Transform enemyContainer;
+
     [System.Serializable]
     public class Encounter
     {
@@ -32,13 +34,16 @@ public class StageEncounterSystem : MonoBehaviour
         Encounter encounter = encounters[currentEncounter];
         encounter.completed = false;
 
+        if (enemyContainer == null)
+            enemyContainer = GameObject.Find("EnemyContainer")?.transform;
+
         for (int i = 0; i < encounter.amount; i++)
         {
             if (encounter.enemyPrefabs.Count == 0)
                 continue;
 
             int index = Random.Range(0, encounter.enemyPrefabs.Count);
-            Instantiate(encounter.enemyPrefabs[index]);
+            Instantiate(encounter.enemyPrefabs[index], enemyContainer);
         }
     }
 

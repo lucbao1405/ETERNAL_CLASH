@@ -72,6 +72,12 @@ public class StageManager : MonoBehaviour
         if (CurrentState != StageState.Running) return;
 
         CurrentState = StageState.Victory;
+            EternalClash.Stage.StageCompleteController.Instance?.BeginPostStageFlow();
+            if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
+            {
+                SaveManager.Instance.Data.stageLevel = Mathf.Min(5, SaveManager.Instance.Data.stageLevel + 1);
+                SaveManager.Instance.Save();
+            }
         Debug.Log("Stage Victory");
     }
 

@@ -8,7 +8,7 @@ namespace EternalClash.Combat
         [SerializeField] private int damage = 5;
         [SerializeField] private float attackCooldown = 1f;
         [SerializeField] private float knockbackForce = 5f;
-        [SerializeField] private float attackRange = 2.2f;
+        [SerializeField] private float attackRange = 0.85f;
         private float cooldownTimer;
         private GameObject target;
         private CharacterStateMachine stateMachine;

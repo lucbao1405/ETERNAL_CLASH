@@ -16,14 +16,19 @@ namespace EternalClash.World
         [SerializeField] private Transform mountainLayer;
         [SerializeField] private Transform groundLayer;
         [SerializeField] private Transform treeLayer;
+        [SerializeField] private Transform skyLayer;
 
         [Header("World flow")]
         [SerializeField] private float scrollDirection = -1f;
         [SerializeField] private WorldLoopController loopController;
         [SerializeField] private WorldLoopSpawner chunkSpawner;
 
+        [Header("Knockback recoil")]
+        [SerializeField] private float recoilDuration = 0.12f;
+
         private bool scrolling = true;
         private float currentMultiplier = 1f;
+        private Coroutine recoilRoutine;
 
         private void Awake()
         {
@@ -31,6 +36,8 @@ namespace EternalClash.World
                 loopController = FindObjectOfType<WorldLoopController>();
             if (chunkSpawner == null)
                 chunkSpawner = FindObjectOfType<WorldLoopSpawner>();
+            if (skyLayer == null)
+                skyLayer = FindChildByName(transform, "Sky");
         }
 
         public bool IsScrolling => scrolling;
@@ -99,30 +106,65 @@ namespace EternalClash.World
         public void StopScroll() => scrolling = false;
         public void ResumeScroll() => scrolling = true;
 
-        /// <summary>
-        /// Applies knockback recoil to mountain, tree, and ground layers only.
-        /// Cloud layer is NOT affected by knockback.
-        /// </summary>
         public void ApplyKnockbackShift(Vector3 delta)
         {
-            if (loopController != null)
+            delta.y = 0f;
+            if (Mathf.Abs(delta.x) < 0.0001f) return;
+
+            if (recoilRoutine != null)
+                StopCoroutine(recoilRoutine);
+            recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
+        }
+
+        private IEnumerator SmoothWorldRecoil(Vector3 delta)
+        {
+            Vector3 cloudLockedPosition = cloudLayer != null ? cloudLayer.position : Vector3.zero;
+            Vector3 skyLockedPosition = skyLayer != null ? skyLayer.position : Vector3.zero;
+            Transform target = transform;
+            Vector3 start = target.position;
+            Vector3 end = start + new Vector3(delta.x, 0f, 0f);
+            float duration = Mathf.Max(0.01f, recoilDuration);
+            float elapsed = 0f;
+
+            while (elapsed < duration)
             {
-                loopController.ApplyKnockbackShift(delta);
-                return;
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = Mathf.SmoothStep(0f, 1f, t);
+                Vector3 p = Vector3.Lerp(start, end, eased);
+                target.position = new Vector3(p.x, start.y, start.z);
+
+                if (cloudLayer != null)
+                    cloudLayer.position = cloudLockedPosition;
+                if (skyLayer != null)
+                    skyLayer.position = skyLockedPosition;
+
+                yield return null;
             }
 
-            if (chunkSpawner != null)
+            target.position = new Vector3(end.x, start.y, start.z);
+
+            if (cloudLayer != null)
+                cloudLayer.position = cloudLockedPosition;
+            if (skyLayer != null)
+                skyLayer.position = skyLockedPosition;
+
+            recoilRoutine = null;
+        }
+
+        private static Transform FindChildByName(Transform parent, string childName)
+        {
+            foreach (Transform child in parent)
             {
-                chunkSpawner.ApplyKnockbackShift(delta);
-                return;
+                if (string.Equals(child.name, childName, System.StringComparison.OrdinalIgnoreCase))
+                    return child;
+
+                Transform match = FindChildByName(child, childName);
+                if (match != null)
+                    return match;
             }
 
-            if (mountainLayer != null)
-                mountainLayer.position += delta;
-            if (treeLayer != null)
-                treeLayer.position += delta;
-            if (groundLayer != null)
-                groundLayer.position += delta;
+            return null;
         }
     }
 }
