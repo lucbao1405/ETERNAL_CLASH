@@ -23,7 +23,11 @@ namespace EternalClash.Player
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (!other.CompareTag("Enemy"))
+            if (other == null)
+                return;
+
+            GameObject enemyObject = ResolveEnemyRoot(other.gameObject);
+            if (enemyObject == null)
                 return;
 
             bool isCharging = false;
@@ -35,24 +39,43 @@ namespace EternalClash.Player
             if (!isCharging)
                 return;
 
-            if (hitEnemies.Contains(other.gameObject))
+            if (hitEnemies.Contains(enemyObject))
                 return;
 
-            hitEnemies.Add(other.gameObject);
+            hitEnemies.Add(enemyObject);
 
             int finalDamage = PlayerStatSystem.Instance != null
                 ? PlayerStatSystem.Instance.ChargeDamage
                 : 20;
 
             CombatDamageResolver.Instance?.DealDamage(
-                other.gameObject,
+                enemyObject,
                 finalDamage,
                 DamageSource.Charge
             );
 
             // Pull enemy just inside the hitbox edge so it stands within attack range
             // of the player rather than on top of them.
-            StartCoroutine(PullIntoRange(other.gameObject));
+            StartCoroutine(PullIntoRange(enemyObject));
+        }
+
+        private static GameObject ResolveEnemyRoot(GameObject obj)
+        {
+            if (obj == null)
+                return null;
+
+            if (obj.CompareTag("Enemy"))
+                return obj;
+
+            Transform parent = obj.transform.parent;
+            while (parent != null)
+            {
+                if (parent.CompareTag("Enemy"))
+                    return parent.gameObject;
+                parent = parent.parent;
+            }
+
+            return null;
         }
 
         private IEnumerator PullIntoRange(GameObject enemy)

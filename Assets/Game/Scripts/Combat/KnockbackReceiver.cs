@@ -28,6 +28,8 @@ namespace EternalClash.Combat
             enemyMover = GetComponent<EnemyMover>();
         }
 
+        private bool isPlayerHitActive;
+
         private void Update()
         {
             if (!isKnockback) return;
@@ -52,6 +54,7 @@ namespace EternalClash.Combat
         public void ApplyKnockback(Vector2 direction, float force)
         {
             if (isKnockback) return;
+            if (CompareTag("Player") && isPlayerHitActive) return;
 
             originalPosition = transform.position;
             knockbackElapsed = 0f;
@@ -67,16 +70,15 @@ namespace EternalClash.Combat
                 if (Mathf.Abs(horizontalDirection) < 0.01f)
                     horizontalDirection = 1f;
 
-                targetPosition = new Vector2(
-                    originalPosition.x + horizontalDirection * knockbackDistance,
-                    originalPosition.y);
-                isKnockback = true;
+                isPlayerHitActive = true;
 
                 WorldPullbackApplier.ShiftWorldAndEnemies(
                     new Vector3(-horizontalDirection * Mathf.Min(knockbackDistance, 0.35f), 0f, 0f));
 
                 if (DistanceProgress.Instance != null)
                     DistanceProgress.Instance.ReduceDistance(knockbackDistance);
+
+                Invoke(nameof(RecoverFromHit), recoveryTime);
                 return;
             }
 
@@ -88,6 +90,9 @@ namespace EternalClash.Combat
 
         private void RecoverFromHit()
         {
+            if (CompareTag("Player"))
+                isPlayerHitActive = false;
+
             if (stateMachine != null && !isKnockback)
                 stateMachine.ChangeState(CharacterState.Idle);
         }

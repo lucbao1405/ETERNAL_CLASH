@@ -6,6 +6,7 @@ namespace EternalClash.Enemy
     {
         public GameObject enemyPrefab;
         public Transform spawnPoint;
+        [SerializeField] private Transform enemyContainer;
         public float spawnInterval = 5f;
 
         private float timer;
@@ -26,7 +27,10 @@ namespace EternalClash.Enemy
             if (enemyPrefab == null || spawnPoint == null)
                 return;
 
-            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+            if (enemyContainer == null)
+                enemyContainer = GameObject.Find("EnemyContainer")?.transform;
+
+            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity, enemyContainer);
         }
     }
 }

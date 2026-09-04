@@ -1,45 +1,62 @@
 using UnityEngine;
 
-public class StageProgressController : MonoBehaviour
+namespace EternalClash.Stage
 {
-    public StageData currentStage;
-    private int currentEncounterIndex;
-    private bool stageCompleted;
-
-    public bool IsStageCompleted => stageCompleted;
-
-    public void StartStage()
+    public class StageProgressController : MonoBehaviour
     {
-        currentEncounterIndex = 0;
-        stageCompleted = false;
-        StartNextEncounter();
-    }
+        public StageData currentStage;
+        private int currentEncounterIndex;
+        private bool stageCompleted;
 
-    public void StartNextEncounter()
-    {
-        if (currentStage == null) return;
+        public bool IsStageCompleted => stageCompleted;
 
-        if (currentEncounterIndex >= currentStage.encounters.Count)
+        public event System.Action OnStageCompleted;
+
+        private float stageStartTime;
+
+        public void StartStage()
         {
-            CompleteStage();
-            return;
+            currentEncounterIndex = 0;
+            stageCompleted = false;
+            stageStartTime = Time.time;
+            StartNextEncounter();
         }
 
-        var encounter = currentStage.encounters[currentEncounterIndex];
-        currentEncounterIndex++;
+        public float GetStageTime()
+        {
+            return Time.time - stageStartTime;
+        }
 
-        EncounterSpawner.Instance.SpawnEncounter(encounter);
-    }
+        public void StartNextEncounter()
+        {
+            if (currentStage == null) return;
 
-    public void OnEncounterCleared()
-    {
-        StartNextEncounter();
-    }
+            if (currentEncounterIndex >= currentStage.encounters.Count)
+            {
+                CompleteStage();
+                return;
+            }
 
-    private void CompleteStage()
-    {
-        stageCompleted = true;
+            var encounter = currentStage.encounters[currentEncounterIndex];
+            currentEncounterIndex++;
 
-        ChestSpawnFlow.Instance.SpawnChest();
+            EncounterSpawner.Instance.SpawnEncounter(encounter);
+        }
+
+        public void OnEncounterCleared()
+        {
+            StartNextEncounter();
+        }
+
+        private void CompleteStage()
+        {
+            if (stageCompleted) return;
+            stageCompleted = true;
+
+            if (StageManager.Instance != null)
+                StageManager.Instance.CompleteStage();
+
+            OnStageCompleted?.Invoke();
+        }
     }
 }
