@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Character;
+using EternalClash.Core.Save;
 
 namespace EternalClash.Village
 {

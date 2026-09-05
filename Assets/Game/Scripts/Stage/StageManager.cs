@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Wave;
+using EternalClash.Core.Save;
 
 public class StageManager : MonoBehaviour
 {
@@ -87,5 +88,7 @@ public class StageManager : MonoBehaviour
 
         CurrentState = StageState.Defeat;
         Debug.Log("Stage Defeat");
+
+        EternalClash.Stage.StageCompleteController.Instance?.BeginDefeatFlow();
     }
 }

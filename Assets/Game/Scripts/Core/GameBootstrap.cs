@@ -1,38 +1,234 @@
 using UnityEngine;
 
+using EternalClash.Core.Services;
+using EternalClash.Village;
+using EternalClash.Core.Save;
+
+
 namespace EternalClash.Core
 {
-    [DefaultExecutionOrder(-100)]
+
+    /// <summary>
+    /// Composition Root của game.
+    /// Chịu trách nhiệm khởi tạo các hệ thống nền.
+    /// </summary>
     public class GameBootstrap : MonoBehaviour
     {
+
+
+        private static GameBootstrap instance;
+
+
+
+        [Header("Core References")]
+
+
+        [SerializeField]
+        private PlayerStatSystem playerStatSystem;
+
+
+
+        [SerializeField]
+        private EquipmentSystem equipmentSystem;
+
+
+
+        [SerializeField]
+        private GoldSystem goldSystem;
+
+
+
+        [SerializeField]
+        private SaveManager saveManager;
+
+
+
+
         private void Awake()
         {
-            DontDestroyOnLoad(gameObject);
-            EnsureSystem<EternalClash.Village.GoldSystem>();
-            EnsureSystem<EternalClash.Village.PlayerStatSystem>();
-            EnsureSystem<EternalClash.Village.BlacksmithCraftingSystem>();
-            EnsureSystem<EternalClash.Village.AffinityManager>();
-            EnsureSystem<EternalClash.Village.EquipmentSystem>();
-        }
 
-        private void Start()
-        {
-            var saveData = SaveManager.Instance?.Data;
-            if (saveData == null) return;
-
-            EternalClash.Village.GoldSystem.Instance?.LoadFromSave(saveData);
-            EternalClash.Village.PlayerStatSystem.Instance?.LoadFromSave(saveData);
-            EternalClash.Village.BlacksmithCraftingSystem.Instance?.LoadFromSave(saveData);
-            EternalClash.Village.AffinityManager.Instance?.LoadFromSave(saveData);
-            EternalClash.Village.EquipmentSystem.Instance?.RefreshFromSave();
-        }
-
-        private void EnsureSystem<T>() where T : Component
-        {
-            if (FindObjectOfType<T>() == null)
+            if(instance != null)
             {
-                new GameObject(typeof(T).Name).AddComponent<T>();
+                Destroy(gameObject);
+                return;
             }
+
+
+            instance = this;
+
+
+            DontDestroyOnLoad(gameObject);
+
+
+
+            InitializeCore();
+
         }
+
+
+
+
+        private void InitializeCore()
+        {
+
+            RegisterPlayerStats();
+
+
+            RegisterEquipment();
+
+
+            RegisterGold();
+
+
+            RegisterSave();
+
+
+
+            Debug.Log(
+                "Core Services Initialized"
+            );
+
+        }
+
+
+
+
+
+        private void RegisterPlayerStats()
+        {
+
+            if(playerStatSystem == null)
+            {
+                playerStatSystem =
+                    FindObjectOfType<PlayerStatSystem>();
+            }
+
+
+            if(playerStatSystem == null)
+            {
+                Debug.LogError(
+                    "Missing PlayerStatSystem"
+                );
+
+                return;
+            }
+
+
+
+            if(!ServiceRegistry.Has<PlayerStatSystem>())
+            {
+                ServiceRegistry.Register(
+                    playerStatSystem
+                );
+            }
+
+        }
+
+
+
+
+
+        private void RegisterEquipment()
+        {
+
+            if(equipmentSystem == null)
+            {
+                equipmentSystem =
+                    FindObjectOfType<EquipmentSystem>();
+            }
+
+
+
+            if(equipmentSystem == null)
+            {
+                Debug.LogError(
+                    "Missing EquipmentSystem"
+                );
+
+                return;
+            }
+
+
+
+            if(!ServiceRegistry.Has<EquipmentSystem>())
+            {
+                ServiceRegistry.Register(
+                    equipmentSystem
+                );
+            }
+
+        }
+
+
+
+
+
+        private void RegisterGold()
+        {
+
+            if(goldSystem == null)
+            {
+                goldSystem =
+                    FindObjectOfType<GoldSystem>();
+            }
+
+
+
+            if(goldSystem == null)
+            {
+                Debug.LogError(
+                    "Missing GoldSystem"
+                );
+
+                return;
+            }
+
+
+
+            if(!ServiceRegistry.Has<GoldSystem>())
+            {
+                ServiceRegistry.Register(
+                    goldSystem
+                );
+            }
+
+        }
+
+
+
+
+
+        private void RegisterSave()
+        {
+
+            if(saveManager == null)
+            {
+                saveManager =
+                    FindObjectOfType<SaveManager>();
+            }
+
+
+
+            if(saveManager == null)
+            {
+                Debug.LogError(
+                    "Missing SaveManager"
+                );
+
+                return;
+            }
+
+
+
+            if(!ServiceRegistry.Has<ISaveService>())
+            {
+                ServiceRegistry.Register<ISaveService>(
+                    saveManager
+                );
+            }
+
+        }
+
     }
+
 }

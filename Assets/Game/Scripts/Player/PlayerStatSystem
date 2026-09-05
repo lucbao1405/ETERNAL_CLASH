@@ -1,0 +1,170 @@
+using UnityEngine;
+using EternalClash.Core.Services;
+
+
+namespace EternalClash.Gameplay.Player
+{
+
+    /// <summary>
+    /// Quản lý toàn bộ chỉ số Player.
+    /// Được truy cập thông qua IPlayerStatService.
+    /// </summary>
+    public class PlayerStatSystem :
+        MonoBehaviour,
+        IPlayerStatService
+    {
+
+
+        [Header("Level")]
+
+        [SerializeField]
+        private int level = 1;
+
+
+        [SerializeField]
+        private int experience = 0;
+
+
+
+        [Header("Base Stats")]
+
+        [SerializeField]
+        private int strength = 5;
+
+
+        [SerializeField]
+        private int intelligence = 5;
+
+
+        [SerializeField]
+        private int vitality = 5;
+
+
+        [SerializeField]
+        private int luck = 5;
+
+
+
+        public int Level => level;
+
+
+        public int Experience => experience;
+
+
+
+        public int Strength => strength;
+
+
+        public int Intelligence => intelligence;
+
+
+        public int Vitality => vitality;
+
+
+        public int Luck => luck;
+
+
+
+        public int AttackDamage
+        {
+            get
+            {
+                return strength * 2;
+            }
+        }
+
+
+
+        public int HealAmount
+        {
+            get
+            {
+                return intelligence * 3;
+            }
+        }
+
+
+
+        private void Awake()
+        {
+            RegisterService();
+        }
+
+
+
+        private void RegisterService()
+        {
+            if(ServiceRegistry.Has<IPlayerStatService>())
+            {
+                Debug.LogWarning(
+                    "PlayerStatService đã tồn tại."
+                );
+
+                return;
+            }
+
+
+            ServiceRegistry.Register<IPlayerStatService>(this);
+        }
+
+
+
+        public void AddExperience(int amount)
+        {
+            experience += amount;
+
+
+            CheckLevelUp();
+        }
+
+
+
+        private void CheckLevelUp()
+        {
+            int requiredExp = level * 100;
+
+
+            if(experience >= requiredExp)
+            {
+                experience -= requiredExp;
+
+
+                level++;
+
+
+                Debug.Log(
+                    $"Player Level Up: {level}"
+                );
+            }
+        }
+
+
+
+        public void AddStrength()
+        {
+            strength++;
+        }
+
+
+
+        public void AddIntelligence()
+        {
+            intelligence++;
+        }
+
+
+
+        public void AddVitality()
+        {
+            vitality++;
+        }
+
+
+
+        public void AddLuck()
+        {
+            luck++;
+        }
+
+    }
+}

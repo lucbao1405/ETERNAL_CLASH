@@ -77,6 +77,7 @@ namespace EternalClash.Character
             Debug.Log("[GAME] Player died - stop battle");
 
             Time.timeScale = 0f;
+            OnDeath?.Invoke();
         }
     }
 }

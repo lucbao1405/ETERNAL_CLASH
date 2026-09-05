@@ -1,5 +1,6 @@
 using UnityEngine;
 using EternalClash.Village;
+using EternalClash.Item;
 
 public class EnemyLootDropController : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class EnemyLootDropController : MonoBehaviour
 
     [Header("Rewards granted on death (per GDD 3.1 / 3.5)")]
     [SerializeField] private int expReward = 10;
+    [SerializeField] private GameObject expPickupPrefab;
     [SerializeField] private int oreReward = 1;
     [SerializeField] private int leatherReward = 0;
 
@@ -19,13 +21,29 @@ public class EnemyLootDropController : MonoBehaviour
                 Instantiate(dropPrefabs[index], transform.position, Quaternion.identity);
         }
 
-        GrantRewards();
+        SpawnExpLoot();
+        GrantMaterialRewards();
     }
 
-    private void GrantRewards()
+    private void SpawnExpLoot()
     {
-        PlayerStatSystem.Instance?.AddExp(expReward);
+        if (expReward <= 0) return;
 
+        if (expPickupPrefab != null)
+        {
+            GameObject orb = Instantiate(expPickupPrefab, transform.position, Quaternion.identity);
+            ItemPickup pickup = orb.GetComponent<ItemPickup>();
+            if (pickup != null)
+                pickup.amount = expReward;
+        }
+        else
+        {
+            PlayerStatSystem.Instance?.AddExp(expReward);
+        }
+    }
+
+    private void GrantMaterialRewards()
+    {
         if (GoldSystem.Instance == null) return;
 
         int ore = oreReward;

@@ -98,6 +98,8 @@ GameObject:
   - component: {fileID: 3298068993565431265}
   - component: {fileID: 2803442733816119138}
   - component: {fileID: 7638053209992559033}
+  - component: {fileID: 2541700184655324434}
+  - component: {fileID: 9081691796644040037}
   m_Layer: 6
   m_Name: Slime
   m_TagString: Enemy
@@ -289,6 +291,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   archerStopDistance: 4.5
   isArcher: 0
+  playerStopDistance: 0.75
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301,7 +304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: 3298068993565431265}
+  healthSystem: {fileID: 0}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -411,6 +414,36 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2541700184655324434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 049da3b2adb6513458dc6a4064c7bc21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dropPrefabs: []
+  expReward: 5
+  expPickupPrefab: {fileID: 6455461337433564593, guid: 7ea2456fa51da7a4cb9e83c1d498874d, type: 3}
+  oreReward: 1
+  leatherReward: 0
+--- !u!114 &9081691796644040037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67eda5f4ecb6848882d344992dfeb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lootDrop: {fileID: 2541700184655324434}
 --- !u!1 &3967436272979540893
 GameObject:
   m_ObjectHideFlags: 0

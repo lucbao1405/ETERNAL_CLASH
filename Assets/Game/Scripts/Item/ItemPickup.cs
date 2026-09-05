@@ -68,6 +68,7 @@ namespace EternalClash.Item
                     break;
 
                 case ItemType.Exp:
+                    EternalClash.Village.PlayerStatSystem.Instance?.AddExp(amount);
                     Debug.Log("[ITEM] EXP +" + amount);
                     break;
             }
