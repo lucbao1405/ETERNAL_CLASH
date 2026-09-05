@@ -98,6 +98,8 @@ GameObject:
   - component: {fileID: 3298068993565431265}
   - component: {fileID: 4844668143910967245}
   - component: {fileID: 2706739250985784720}
+  - component: {fileID: 6946870334868720940}
+  - component: {fileID: -6734242378752506702}
   m_Layer: 6
   m_Name: Wolf
   m_TagString: Enemy
@@ -289,6 +291,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   archerStopDistance: 4.5
   isArcher: 0
+  playerStopDistance: 0.75
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301,7 +304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f6e980d360c08429c0300a6f9b5d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthSystem: {fileID: 3298068993565431265}
+  healthSystem: {fileID: 0}
   fillImage: {fileID: 44428130022157877}
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.4
@@ -411,6 +414,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6275c42886e95479ebaa3a4c0b9fa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6946870334868720940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 049da3b2adb6513458dc6a4064c7bc21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dropPrefabs: []
+  expReward: 10
+  expPickupPrefab: {fileID: 6455461337433564593, guid: 7ea2456fa51da7a4cb9e83c1d498874d, type: 3}
+  oreReward: 1
+  leatherReward: 0
+--- !u!114 &-6734242378752506702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1333380701695965858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67eda5f4ecb6848882d344992dfeb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lootDrop: {fileID: 6946870334868720940}
 --- !u!1 &3967436272979540893
 GameObject:
   m_ObjectHideFlags: 0

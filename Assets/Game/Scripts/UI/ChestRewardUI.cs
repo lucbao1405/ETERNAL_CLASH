@@ -3,9 +3,20 @@ using UnityEngine.UI;
 using TMPro;
 using EternalClash.Stage;
 using EternalClash.Data;
+using EternalClash.Chest;
 
 namespace EternalClash.UI
 {
+    /// <summary>
+    /// Chest open / reward panel.
+    ///
+    /// Phase 1 (open prompt): the player is asked to click OPEN ("Open Chest").
+    /// Phase 2 (reward): after the chest opening effect finishes, the reward
+    /// summary (Gold / Materials / Items) is shown together with the Continue button.
+    ///
+    /// Reward granting is NOT done here - Continue keeps using the existing
+    /// StageCompleteController flow.
+    /// </summary>
     public class ChestRewardUI : MonoBehaviour
     {
         [Header("Chest")]
@@ -13,79 +24,200 @@ namespace EternalClash.UI
         [SerializeField] private Button openChestButton;
         [SerializeField] private Button continueButton;
 
+        [Header("Open Prompt")]
+        [SerializeField] private TMP_Text openPromptText;
+
         [Header("Reward Display")]
-        [SerializeField] private TMP_Text rewardTitleText;
-        [SerializeField] private TMP_Text rewardDescText;
-        [SerializeField] private Image rewardIcon;
-        [SerializeField] private GameObject equipmentRoot;
+        [SerializeField] private GameObject rewardContentRoot;
+        [SerializeField] private TMP_Text rewardGoldText;
+        [SerializeField] private TMP_Text rewardMaterialText;
+        [SerializeField] private TMP_Text rewardItemText;
 
         private bool chestOpened;
+        private bool subscribed;
+        private bool openButtonBound;
+        private bool continueButtonBound;
+        private ChestController worldChest;
 
-        private void Start()
+        private void Awake()
         {
-            if (openChestButton != null)
-                openChestButton.onClick.AddListener(OpenChest);
-            if (continueButton != null)
+            BindButtons();
+        }
+
+        /// <summary>
+        /// Binds the runtime button listeners exactly once per instance, so re-shown
+        /// (or re-created) panels never accumulate duplicate OPEN/Continue handlers.
+        /// OPEN -> OnOpenClicked -> ChestController.OpenChest().
+        /// </summary>
+        private void BindButtons()
+        {
+            if (!openButtonBound && openChestButton != null)
+            {
+                openChestButton.onClick.AddListener(OnOpenClicked);
+                openButtonBound = true;
+            }
+
+            if (!continueButtonBound && continueButton != null)
+            {
                 continueButton.onClick.AddListener(OnContinueClicked);
+                continueButtonBound = true;
+            }
         }
 
         private void OnEnable()
         {
             chestOpened = false;
+            ResolveChest();
+            BindChestEvents();
+            ShowOpenPhase();
+        }
+
+        private void OnDisable()
+        {
+            UnbindChestEvents();
+        }
+
+        private void ResolveChest()
+        {
+            worldChest = null;
+
             if (chestObject != null)
-                chestObject.SetActive(true);
-            if (equipmentRoot != null)
-                equipmentRoot.SetActive(false);
+                worldChest = chestObject.GetComponent<ChestController>();
+
+            if (worldChest == null && ChestSpawnFlow.Instance != null)
+                worldChest = ChestSpawnFlow.Instance.LastSpawnedChest;
+        }
+
+        private void BindChestEvents()
+        {
+            if (subscribed) return;
+            if (worldChest == null) return;
+
+            worldChest.OnOpened += OnChestOpened;
+            subscribed = true;
+        }
+
+        private void UnbindChestEvents()
+        {
+            if (!subscribed) return;
+            if (worldChest == null) return;
+
+            worldChest.OnOpened -= OnChestOpened;
+            subscribed = false;
+        }
+
+        private void ShowOpenPhase()
+        {
+            if (openPromptText != null)
+            {
+                openPromptText.text = "Open Chest";
+                openPromptText.gameObject.SetActive(true);
+            }
+
+            if (openChestButton != null)
+                openChestButton.gameObject.SetActive(true);
+
+            if (rewardContentRoot != null)
+                rewardContentRoot.SetActive(false);
+
             if (continueButton != null)
                 continueButton.gameObject.SetActive(false);
         }
 
-        private void OpenChest()
+        private void OnOpenClicked()
         {
             if (chestOpened) return;
             chestOpened = true;
 
-            if (chestObject != null)
-                chestObject.SetActive(false);
+            if (openPromptText != null)
+                openPromptText.gameObject.SetActive(false);
+            if (openChestButton != null)
+                openChestButton.gameObject.SetActive(false);
 
-            var controller = StageCompleteController.Instance;
-            if (controller == null) return;
+            if (worldChest != null)
+                worldChest.OpenChest();
+            else
+                ShowRewardPhase();
+        }
 
-            RewardData reward = controller.CurrentReward;
-            if (reward == null) return;
+        private void OnChestOpened()
+        {
+            ShowRewardPhase();
+        }
 
-            DisplayReward(reward);
+        private void ShowRewardPhase()
+        {
+            chestOpened = true;
+
+            if (openPromptText != null)
+                openPromptText.gameObject.SetActive(false);
+            if (openChestButton != null)
+                openChestButton.gameObject.SetActive(false);
+
+            BuildRewardSummary();
+
+            if (rewardContentRoot != null)
+                rewardContentRoot.SetActive(true);
+
             if (continueButton != null)
                 continueButton.gameObject.SetActive(true);
         }
 
-        private void DisplayReward(RewardData reward)
+        private void BuildRewardSummary()
         {
-            if (equipmentRoot != null)
-                equipmentRoot.SetActive(true);
-
-            if (reward.type == RewardType.Equipment && reward.item != null)
+            var controller = StageCompleteController.Instance;
+            if (controller == null)
             {
-                if (rewardTitleText != null)
-                    rewardTitleText.text = reward.item.itemName;
-
-                if (rewardDescText != null)
-                    rewardDescText.text = $"{reward.item.rarity}\n{reward.item.description}";
-
-                if (rewardIcon != null)
-                    rewardIcon.sprite = null;
+                HideRow(rewardGoldText);
+                HideRow(rewardMaterialText);
+                HideRow(rewardItemText);
+                return;
             }
-            else
+
+            int gold = 0;
+            int material = 0;
+            string itemLine = null;
+
+            if (controller.StageResult != null)
+                gold = controller.StageResult.earnedGold;
+
+            RewardData reward = controller.CurrentReward;
+            if (reward != null)
             {
-                if (rewardTitleText != null)
-                    rewardTitleText.text = $"+{reward.amount} {reward.type}";
-
-                if (rewardDescText != null)
-                    rewardDescText.text = "";
-
-                if (rewardIcon != null)
-                    rewardIcon.sprite = null;
+                switch (reward.type)
+                {
+                    case RewardType.Gold:
+                        gold += reward.amount;
+                        break;
+                    case RewardType.Material:
+                        material = reward.amount;
+                        break;
+                    case RewardType.Gem:
+                        itemLine = $"+{reward.amount} Gems";
+                        break;
+                    case RewardType.Equipment:
+                        if (reward.item != null)
+                            itemLine = reward.item.itemName;
+                        break;
+                }
             }
+
+            ShowRow(rewardGoldText, gold > 0, $"+{gold} Gold");
+            ShowRow(rewardMaterialText, material > 0, $"+{material} Materials");
+            ShowRow(rewardItemText, !string.IsNullOrEmpty(itemLine), itemLine);
+        }
+
+        private static void ShowRow(TMP_Text text, bool visible, string value)
+        {
+            if (text == null) return;
+            text.text = value ?? string.Empty;
+            text.gameObject.SetActive(visible);
+        }
+
+        private static void HideRow(TMP_Text text)
+        {
+            if (text == null) return;
+            text.gameObject.SetActive(false);
         }
 
         public void OnContinueClicked()

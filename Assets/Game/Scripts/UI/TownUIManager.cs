@@ -38,6 +38,12 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text affinityPointsText;
         [SerializeField] private TMP_Text lettersListText;
 
+        [Header("Battle Gate")]
+        [SerializeField] private Button startBattleButton;
+        [SerializeField] private TMP_Text battleButtonLabel;
+        [SerializeField] private GameObject injuredNoticeRoot;
+        [SerializeField] private TMP_Text injuredNoticeText;
+
         private void Start()
         {
             ShowMainHall();
@@ -54,12 +60,30 @@ namespace EternalClash.UI
 
             if (AffinityManager.Instance != null)
                 AffinityManager.Instance.OnAffinityPointsChanged += _ => RefreshAllUI();
+
+            var condition = PlayerConditionSystem.Instance;
+            if (condition != null)
+            {
+                condition.OnConditionChanged += _ => RefreshBattleGate();
+                condition.OnRecoveredHpChanged += (_, _) => RefreshBattleGate();
+                condition.OnRecoveryCompleted += RefreshBattleGate;
+                condition.BeginRecoveryIfNeeded();
+                RefreshBattleGate();
+            }
         }
 
         private void OnDestroy()
         {
             if (PlayerStatSystem.Instance != null)
                 PlayerStatSystem.Instance.OnStatsChanged -= RefreshAllUI;
+
+            var condition = PlayerConditionSystem.Instance;
+            if (condition != null)
+            {
+                condition.OnConditionChanged -= _ => RefreshBattleGate();
+                condition.OnRecoveredHpChanged -= (_, _) => RefreshBattleGate();
+                condition.OnRecoveryCompleted -= RefreshBattleGate;
+            }
         }
 
         public void ShowMainHall()
@@ -172,8 +196,43 @@ namespace EternalClash.UI
 
         public void OnClick_StartBattle()
         {
-            
-    }
+            var condition = PlayerConditionSystem.Instance;
+            if (condition != null && !condition.CanStartBattle())
+            {
+                Debug.LogWarning(condition.GetInjuredBlockReason());
+                return;
+            }
+
+            EternalClash.Core.SceneLoader.LoadBattle();
+        }
+
+        public void RefreshBattleGate()
+        {
+            var condition = PlayerConditionSystem.Instance;
+
+            if (startBattleButton != null)
+            {
+                bool canBattle = condition == null || condition.CanStartBattle();
+                startBattleButton.interactable = canBattle;
+            }
+
+            if (battleButtonLabel != null)
+            {
+                bool injured = condition != null && condition.IsInjured && !condition.CanStartBattle();
+                battleButtonLabel.text = injured ? "Recovering..." : "Start Battle";
+            }
+
+            if (injuredNoticeRoot != null)
+            {
+                bool show = condition != null && condition.IsInjured && !condition.CanStartBattle();
+                injuredNoticeRoot.SetActive(show);
+            }
+
+            if (injuredNoticeText != null && condition != null && condition.IsInjured)
+            {
+                injuredNoticeText.text = condition.GetInjuredBlockReason();
+            }
+        }
 }
 
 }

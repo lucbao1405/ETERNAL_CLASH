@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using EternalClash.Character;
+using EternalClash.Core.Save;
 
 namespace EternalClash.Core
 {

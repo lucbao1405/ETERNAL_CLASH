@@ -35,4 +35,12 @@ public class SaveData
     // Monetization
     public bool hasRemovedAds = false;
     public bool isVipActive = false;
+
+    // Player Condition (Injured recovery system)
+    public int playerCondition = 0; // 0 = Normal, 1 = Injured
+    public int currentHp = 0;
+    public int maxHp = 0;
+    public long recoveryStartUnixTime = 0;
+    public float recoveryRatePerSecond = 5f;
+    public int recoveryTargetPercent = 80;
 }

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 namespace EternalClash.Game
@@ -9,7 +8,6 @@ namespace EternalClash.Game
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private GameObject collectedItemsPanel;
         [SerializeField] private TMP_Text collectedItemsText;
-        [SerializeField] private GameObject levelUpPanel;
 
         private void Awake()
         {
@@ -18,33 +16,15 @@ namespace EternalClash.Game
 
             if (collectedItemsPanel != null)
                 collectedItemsPanel.SetActive(false);
-
-            if (levelUpPanel != null)
-                levelUpPanel.SetActive(false);
         }
 
-        public void ShowGameOver()
+        public void ShowCollectedItems(int weaponTier, int armorTier)
         {
-            Time.timeScale = 1f;
-
-            if (gameOverPanel != null)
-                gameOverPanel.SetActive(true);
-
             if (collectedItemsPanel != null)
                 collectedItemsPanel.SetActive(true);
 
             if (collectedItemsText != null)
-            {
-                SaveData data = SaveManager.Instance != null ? SaveManager.Instance.Data : null;
-                collectedItemsText.text = data == null
-                    ? "Collected items"
-                    : $"Collected items\nWeapon Tier: {data.weaponTier}\nArmor Tier: {data.armorTier}";
-            }
-
-            if (levelUpPanel != null)
-                levelUpPanel.SetActive(true);
-
-            Debug.Log("[GAME OVER UI] Show");
+                collectedItemsText.text = $"Collected items\nWeapon Tier: {weaponTier}\nArmor Tier: {armorTier}";
         }
     }
 }

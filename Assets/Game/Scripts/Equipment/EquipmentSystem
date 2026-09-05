@@ -1,0 +1,171 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+using EternalClash.Core.Services;
+
+
+namespace EternalClash.Gameplay.Equipment
+{
+
+    /// <summary>
+    /// Quản lý trang bị Player.
+    /// Được truy cập qua IEquipmentService.
+    /// </summary>
+    public class EquipmentSystem :
+        MonoBehaviour,
+        IEquipmentService
+    {
+
+
+        [Header("Current Equipment")]
+
+        [SerializeField]
+        private string currentWeaponId;
+
+
+        [SerializeField]
+        private string currentArmorId;
+
+
+        [SerializeField]
+        private string currentAccessoryId;
+
+
+
+        private readonly HashSet<string> ownedEquipment =
+            new HashSet<string>();
+
+
+
+        public string CurrentWeaponId =>
+            currentWeaponId;
+
+
+
+        public string CurrentArmorId =>
+            currentArmorId;
+
+
+
+        public string CurrentAccessoryId =>
+            currentAccessoryId;
+
+
+
+        private void Awake()
+        {
+            RegisterService();
+        }
+
+
+
+        private void RegisterService()
+        {
+
+            if(ServiceRegistry.Has<IEquipmentService>())
+            {
+                Debug.LogWarning(
+                    "EquipmentService đã tồn tại."
+                );
+
+                return;
+            }
+
+
+            ServiceRegistry.Register<IEquipmentService>(
+                this
+            );
+        }
+
+
+
+        public bool EquipWeapon(string itemId)
+        {
+
+            if(!HasEquipment(itemId))
+            {
+                ownedEquipment.Add(itemId);
+            }
+
+
+            currentWeaponId = itemId;
+
+
+            return true;
+        }
+
+
+
+        public bool EquipArmor(string itemId)
+        {
+
+            if(!HasEquipment(itemId))
+            {
+                ownedEquipment.Add(itemId);
+            }
+
+
+            currentArmorId = itemId;
+
+
+            return true;
+        }
+
+
+
+        public bool EquipAccessory(string itemId)
+        {
+
+            if(!HasEquipment(itemId))
+            {
+                ownedEquipment.Add(itemId);
+            }
+
+
+            currentAccessoryId = itemId;
+
+
+            return true;
+        }
+
+
+
+        public bool RemoveEquipment(string slot)
+        {
+
+            switch(slot)
+            {
+
+                case "Weapon":
+
+                    currentWeaponId = null;
+                    return true;
+
+
+                case "Armor":
+
+                    currentArmorId = null;
+                    return true;
+
+
+                case "Accessory":
+
+                    currentAccessoryId = null;
+                    return true;
+
+            }
+
+
+            return false;
+        }
+
+
+
+        public bool HasEquipment(string itemId)
+        {
+            return ownedEquipment.Contains(itemId);
+        }
+
+    }
+
+}
