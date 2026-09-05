@@ -1,204 +1,157 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using EternalClash.Enemy;
 
 namespace EternalClash.Wave
 {
+    /// <summary>
+    /// Gan script nay vao GameObject dat tai vi tri Spawn Point duy nhat tren map -
+    /// moi quai o moi Wave deu Instantiate tai transform.position cua chinh GameObject nay.
+    /// </summary>
     public class WaveManager : MonoBehaviour
     {
-        public static WaveManager Instance;
+        public static WaveManager Instance { get; private set; }
 
-        public int currentWave = 0;
-        public float delayBetweenWaves = 2f;
+        [Header("Stage Data (Data-Driven)")]
+        [SerializeField] private StageData stageData;
 
-        [Header("Spawn Settings")]
-        public float spawnRadius = 0f;
+        [Header("Timing")]
+        [Tooltip("Do tre truoc khi Wave dau tien cua man bat dau")]
+        [SerializeField] private float firstWaveDelay = 1f;
 
-        [Header("Enemy Prefabs")]
-        public GameObject slimePrefab;
-        public GameObject archerPrefab;
-        public GameObject wolfPrefab;
+        private readonly HashSet<GameObject> aliveEnemies = new HashSet<GameObject>();
+        private int currentWaveIndex = -1;
+        private int groupsStillSpawning;
+        private Coroutine stageRoutine;
 
-        private int aliveEnemies;
-        private WaveData currentWaveData;
-        private int spawnedCount;
-        private int totalToSpawn;
-        private bool isSpawning;
+        public int CurrentWaveNumber => currentWaveIndex + 1;
+        public bool IsSpawning => groupsStillSpawning > 0;
+        public int AliveCount => aliveEnemies.Count;
 
         public event System.Action<int> OnWaveComplete;
+        public event System.Action OnStageComplete;
 
         private void Awake()
         {
-            if (Instance == null)
-                Instance = this;
-            else
+            if (Instance != null && Instance != this)
+            {
                 Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
         }
 
         private void OnEnable()
         {
-            EternalClash.Enemy.EnemyDeathEvent.OnEnemyKilled += OnEnemyKilled;
+            EnemyDeathEvent.OnEnemyKilled += HandleEnemyKilled;
         }
 
         private void OnDisable()
         {
-            EternalClash.Enemy.EnemyDeathEvent.OnEnemyKilled -= OnEnemyKilled;
+            EnemyDeathEvent.OnEnemyKilled -= HandleEnemyKilled;
         }
 
-        private void Start()
+        /// <summary>
+        /// Goi ham nay tu StageManager de bat dau man. WaveManager tu quan ly coroutine
+        /// cua chinh no (StopCoroutine ban cu neu co) de tranh chay trung 2 lan.
+        /// </summary>
+        public void BeginStage()
         {
-            StartCoroutine(StartNextWave());
+            if (stageRoutine != null)
+                StopCoroutine(stageRoutine);
+
+            aliveEnemies.Clear();
+            currentWaveIndex = -1;
+            stageRoutine = StartCoroutine(RunStage());
         }
 
-        public IEnumerator StartNextWave()
+        private IEnumerator RunStage()
         {
-            yield return new WaitForSeconds(delayBetweenWaves);
-
-            currentWave++;
-
-            WaveData wave = BuildWave(currentWave);
-            if (wave == null)
-                yield break;
-
-            Debug.Log($"[WAVE] Start Wave {currentWave} TotalEnemy={wave.TotalEnemies}");
-
-            currentWaveData = wave;
-            spawnedCount = 0;
-            totalToSpawn = wave.TotalEnemies;
-            isSpawning = true;
-
-            yield return StartCoroutine(SpawnRoutine());
-
-            aliveEnemies = wave.TotalEnemies;
-        }
-
-        public void RegisterEnemy()
-        {
-            aliveEnemies++;
-        }
-
-        public void EnemyKilled()
-        {
-            aliveEnemies--;
-
-            if (aliveEnemies <= 0 && !isSpawning)
+            if (stageData == null || stageData.waves == null || stageData.waves.Length == 0)
             {
-                Debug.Log($"[WAVE] Wave {currentWave} Complete");
-                OnWaveComplete?.Invoke(currentWave);
-                StartCoroutine(StartNextWave());
-            }
-        }
-
-        private IEnumerator SpawnRoutine()
-        {
-            if (currentWaveData == null)
+                Debug.LogWarning("[WAVE] StageData chua duoc gan hoac khong co Wave nao.");
                 yield break;
-
-            yield return new WaitForSeconds(currentWaveData.preWaveDelay);
-
-            while (spawnedCount < totalToSpawn)
-            {
-                SpawnNextEnemy();
-                spawnedCount++;
-
-                if (spawnedCount < totalToSpawn)
-                {
-                    float interval = currentWaveData.spawnInterval;
-                    yield return new WaitForSeconds(interval);
-                }
             }
 
-            isSpawning = false;
+            yield return new WaitForSeconds(firstWaveDelay);
+
+            for (currentWaveIndex = 0; currentWaveIndex < stageData.waves.Length; currentWaveIndex++)
+            {
+                WaveData wave = stageData.waves[currentWaveIndex];
+                if (wave == null)
+                    continue;
+
+                yield return StartCoroutine(RunWave(wave));
+
+                OnWaveComplete?.Invoke(CurrentWaveNumber);
+
+                yield return new WaitForSeconds(wave.delayAfterClear);
+            }
+
+            Debug.Log("[WAVE] Stage cleared - Win Stage");
+            OnStageComplete?.Invoke();
+            StageManager.Instance?.CompleteStage();
         }
 
-        private void SpawnNextEnemy()
+        private IEnumerator RunWave(WaveData wave)
         {
-            if (currentWaveData == null || currentWaveData.enemies.Count == 0)
-                return;
+            Debug.Log($"[WAVE] Start Wave {wave.waveNumber} TotalEnemy={wave.TotalEnemies}");
 
-            GameObject prefab = PickEnemyPrefab();
+            groupsStillSpawning = wave.groups.Count;
+
+            foreach (EnemySpawnGroup group in wave.groups)
+                StartCoroutine(SpawnGroup(group));
+
+            // Cho den khi: spawn xong TAT CA nhom VA khong con quai nao song.
+            // Phai cho ca 2 dieu kien - tranh truong hop 1 nhom con dang cho
+            // initialDelay trong khi nhom khac da chet het, tuong nham la Wave xong.
+            while (groupsStillSpawning > 0 || aliveEnemies.Count > 0)
+            {
+                // Luoi don dep phong ve: neu 1 quai bi Destroy boi nguyen nhan khac
+                // ngoai luong EnemyHealth -> EnemyDeathEvent (vd huy scene giua chung),
+                // no van duoc don khoi danh sach thay vi ket Wave mai mai.
+                aliveEnemies.RemoveWhere(enemy => enemy == null);
+                yield return null;
+            }
+
+            Debug.Log($"[WAVE] Wave {wave.waveNumber} Complete");
+        }
+
+        private IEnumerator SpawnGroup(EnemySpawnGroup group)
+        {
+            if (group.initialDelay > 0f)
+                yield return new WaitForSeconds(group.initialDelay);
+
+            for (int i = 0; i < group.count; i++)
+            {
+                SpawnEnemy(group.enemyPrefab);
+
+                if (i < group.count - 1 && group.spawnInterval > 0f)
+                    yield return new WaitForSeconds(group.spawnInterval);
+            }
+
+            groupsStillSpawning--;
+        }
+
+        private void SpawnEnemy(GameObject prefab)
+        {
             if (prefab == null)
                 return;
 
-            Vector3 spawnPos = transform.position;
-            if (spawnRadius > 0f)
-            {
-                spawnPos += new Vector3(
-                    Random.Range(-spawnRadius, spawnRadius),
-                    Random.Range(-spawnRadius, spawnRadius),
-                    0f
-                );
-            }
+            // Diem spawn duy nhat = vi tri cua chinh GameObject dang gan WaveManager nay.
+            GameObject enemy = Instantiate(prefab, transform.position, Quaternion.identity);
 
-            GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
-            if (EnemyManager.Instance != null)
-                EnemyManager.Instance.RegisterEnemy(enemy);
+            aliveEnemies.Add(enemy);
         }
 
-        private void OnEnemyKilled(GameObject enemy)
+        // Nhan bao chet tu EnemyDeathEvent (xem huong dan phan 2 ben duoi).
+        // Dung HashSet.Remove: enemy khong con trong tap (da bi go boi luoi don dep,
+        // hoac bao trung) thi don gian khong lam gi - khong bao gio bi am so luong.
+        private void HandleEnemyKilled(GameObject enemy)
         {
-            EnemyKilled();
+            aliveEnemies.Remove(enemy);
         }
-
-        private GameObject PickEnemyPrefab()
-        {
-            if (currentWaveData.enemies.Count == 0)
-                return null;
-
-            if (currentWaveData.enemies.Count == 1)
-                return currentWaveData.enemies[0].enemyPrefab;
-
-            int totalWeight = 0;
-            foreach (var entry in currentWaveData.enemies)
-                totalWeight += entry.spawnWeight;
-
-            int roll = Random.Range(0, totalWeight);
-            int cumulative = 0;
-
-            foreach (var entry in currentWaveData.enemies)
-            {
-                cumulative += entry.spawnWeight;
-                if (roll < cumulative)
-                    return entry.enemyPrefab;
-            }
-
-            return currentWaveData.enemies[0].enemyPrefab;
-        }
-
-        private WaveData BuildWave(int wave)
-        {
-            WaveData data = ScriptableObject.CreateInstance<WaveData>();
-            data.waveNumber = wave;
-
-            data.spawnInterval = 1f;
-            data.preWaveDelay = 1.5f;
-
-            switch (wave)
-            {
-                case 1:
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = slimePrefab, count = 1, spawnWeight = 1 });
-                    break;
-
-                case 2:
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = slimePrefab, count = 1, spawnWeight = 1 });
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = wolfPrefab, count = 1, spawnWeight = 1 });
-                    break;
-
-                case 3:
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = slimePrefab, count = 1, spawnWeight = 1 });
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = archerPrefab, count = 1, spawnWeight = 1 });
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = wolfPrefab, count = 1, spawnWeight = 1 });
-                    break;
-
-                default:
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = wolfPrefab, count = 2, spawnWeight = 2 });
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = slimePrefab, count = 2, spawnWeight = 2 });
-                    data.enemies.Add(new WaveEnemyEntry { enemyPrefab = archerPrefab, count = 1, spawnWeight = 1 });
-                    break;
-            }
-
-            return data;
-        }
-
-        public bool IsSpawning => isSpawning;
     }
 }

@@ -10,13 +10,13 @@ namespace EternalClash.Enemy
 
         [SerializeField] private GameObject coinPrefab;
 
-        private HealthSystem healthSystem;
+        private EnemyHealthSystem healthSystem;
         private CharacterStateMachine stateMachine;
         private bool isDead;
 
         protected virtual void Awake()
         {
-            healthSystem = GetComponent<HealthSystem>();
+            healthSystem = GetComponent<EnemyHealthSystem>();
             stateMachine = GetComponent<CharacterStateMachine>();
 
             if (healthSystem != null)
@@ -55,6 +55,12 @@ namespace EternalClash.Enemy
 
             if (coinPrefab != null)
                 Instantiate(coinPrefab, transform.position, Quaternion.identity);
+
+            // Kich hoat roi do theo bang loot (neu Enemy co gan EnemyLootDropper).
+            // Kiem tra null an toan - Enemy nao chua gan component nay se don gian bo qua.
+            EnemyLootDropper lootDropper = GetComponent<EnemyLootDropper>();
+            if (lootDropper != null)
+                lootDropper.DropLoot();
 
             EnemyDeathHandler deathHandler = GetComponent<EnemyDeathHandler>();
             if (deathHandler != null)

@@ -110,18 +110,12 @@ namespace EternalClash.Skill
                 Debug.Log("[CHARGE] WorldScroller speed multiplied x" + chargeMultiplier);
             }
 
-            ApplyChargeWorldEffect();
             FreezeEnemiesInPlayerRange();
 
             yield return new WaitForSeconds(GetChargeDuration());
 
             if (worldScroller != null)
                 worldScroller.ResetSpeed();
-
-            foreach (var enemyMover in FindObjectsOfType<EnemyMover>())
-            {
-                enemyMover.DisableChargePull();
-            }
 
             if (chargeHitbox != null)
             {
@@ -146,25 +140,6 @@ namespace EternalClash.Skill
                 return playerChargeController.ChargeDuration;
 
             return chargeDuration;
-        }
-
-        private void ApplyChargeWorldEffect()
-        {
-            // Charge no longer moves the player. The player stays fixed while
-            // the world/enemy flow speed increases.
-            if (worldScroller != null)
-            {
-                worldScroller.SetSpeedMultiplier(chargeMultiplier);
-            }
-
-            foreach (var enemyMover in FindObjectsOfType<EnemyMover>())
-            {
-                if (enemyMover == null)
-                    continue;
-
-                float chargeSpeed = Mathf.Max(chargeMultiplier * 2f, 4f);
-                enemyMover.EnableChargePull(chargeSpeed);
-            }
         }
 
         private void FreezeEnemiesInPlayerRange()

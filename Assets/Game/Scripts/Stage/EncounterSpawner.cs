@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class EncounterSpawner : MonoBehaviour
 {
+    [SerializeField] private Transform enemyContainer;
     public static EncounterSpawner Instance { get; private set; }
 
     [System.Serializable]
@@ -59,7 +60,8 @@ public class EncounterSpawner : MonoBehaviour
         Instantiate(
             encounter.enemyPrefab,
             transform.position,
-            Quaternion.identity
+            Quaternion.identity,
+            enemyContainer
         );
     }
 }

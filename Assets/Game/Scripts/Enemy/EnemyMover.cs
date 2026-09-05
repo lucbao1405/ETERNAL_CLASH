@@ -4,23 +4,21 @@ namespace EternalClash.Enemy
 {
     public class EnemyMover : MonoBehaviour
     {
-        public float stopDistance = 1.2f;
         [SerializeField] private float archerStopDistance = 4.5f;
         [SerializeField] private bool isArcher = false;
-        [SerializeField] private float moveSpeed = 1f;
+        [SerializeField] private float playerStopDistance = 0.75f;
         private EnemyController controller;
         private Rigidbody2D rb;
         private Transform player;
         private bool isPaused;
-        private bool isChargePulling;
-        private float chargePullSpeed;
         private float lockedY;
 
         private void Awake()
         {
             controller = GetComponent<EnemyController>();
             rb = GetComponent<Rigidbody2D>();
-            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+            player = playerObject != null ? playerObject.transform : null;
             lockedY = transform.position.y;
             if (rb != null)
             {
@@ -32,43 +30,18 @@ namespace EternalClash.Enemy
 
         private void FixedUpdate()
         {
-            if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
-            if (player == null || isPaused) return;
+            if (isPaused) return;
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked()) return;
             if (controller != null && !controller.canMove) return;
 
             var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
             float worldVelocityX = scroller != null ? scroller.GetWorldVelocity().x : 0f;
             float finalVelocity = worldVelocityX;
-            float distance = Mathf.Abs(player.position.x - transform.position.x);
-            float effectiveStop = isArcher ? archerStopDistance : stopDistance;
 
-            if (isChargePulling)
-            {
-                if (!isArcher) finalVelocity -= chargePullSpeed;
-            }
-            else if (distance > effectiveStop && !isArcher)
-            {
-                float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
-                finalVelocity += directionToPlayer * moveSpeed;
-            }
+            float nextX = rb != null ? rb.position.x : transform.position.x;
+            nextX += finalVelocity * Time.fixedDeltaTime;
+            nextX = ClampBeforePlayer(nextX);
 
-            float currentX = rb != null ? rb.position.x : transform.position.x;
-            float nextX = currentX + finalVelocity * Time.fixedDeltaTime;
-            float horizontalDistance = player.position.x - currentX;
-
-            if (horizontalDistance > effectiveStop)
-            {
-                float stopX = player.position.x - effectiveStop;
-                nextX = Mathf.Min(nextX, stopX);
-            }
-            else if (horizontalDistance < -effectiveStop)
-            {
-                float stopX = player.position.x + effectiveStop;
-                nextX = Mathf.Max(nextX, stopX);
-            }
-
-            // Enemy is permanently constrained to its original Y.
             if (rb != null)
             {
                 Vector2 current = rb.position;
@@ -82,13 +55,31 @@ namespace EternalClash.Enemy
             }
         }
 
+        private float ClampBeforePlayer(float nextX)
+        {
+            if (player == null)
+            {
+                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+                player = playerObject != null ? playerObject.transform : null;
+            }
+
+            if (player == null)
+                return nextX;
+
+            float currentX = rb != null ? rb.position.x : transform.position.x;
+            float side = Mathf.Sign(currentX - player.position.x);
+            if (Mathf.Abs(side) < 0.01f)
+                side = Mathf.Sign(nextX - player.position.x);
+            if (Mathf.Abs(side) < 0.01f)
+                side = -1f;
+
+            float stopX = player.position.x + side * playerStopDistance;
+            return side > 0f ? Mathf.Max(nextX, stopX) : Mathf.Min(nextX, stopX);
+        }
+
         public void StopMovement() => isPaused = true;
         public void ResumeMovement() => isPaused = false;
         public void PauseMovement(float duration){isPaused=true;Invoke(nameof(ResumeMovement),duration);}
-        public void EnableChargePull(float speed){isChargePulling=true;chargePullSpeed=speed;}
-        public void DisableChargePull(){isChargePulling=false;chargePullSpeed=0f;}
-        public bool IsChargePulling=>isChargePulling;
-        public float MoveSpeed=>moveSpeed;
         public bool IsArcher=>isArcher;
         public float ArcherStopDistance=>archerStopDistance;
     }

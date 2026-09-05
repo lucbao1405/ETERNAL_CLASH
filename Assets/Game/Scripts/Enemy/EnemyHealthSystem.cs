@@ -9,13 +9,16 @@ namespace EternalClash.Enemy
         private int currentHealth;
 
         public int CurrentHealth => currentHealth;
+        public int MaxHealth => maxHealth;
         public bool IsDead => currentHealth <= 0;
 
-        public event Action OnEnemyDead;
+        public event Action<int, int> OnHealthChanged;
+        public event Action OnDeath;
 
         private void Awake()
         {
             currentHealth = maxHealth;
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
         public void TakeDamage(int damage)
@@ -24,21 +27,21 @@ namespace EternalClash.Enemy
 
             currentHealth -= damage;
 
-            if (currentHealth <= 0)
-            {
+            if (currentHealth < 0)
                 currentHealth = 0;
+
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            if (currentHealth <= 0)
                 Die();
-            }
         }
 
         private void Die()
         {
             Debug.Log("[ENEMY] " + gameObject.name + " died");
 
-            // Cho he thong vat pham nhan event roi do vat
-            OnEnemyDead?.Invoke();
-
-            Destroy(gameObject, 0.5f);
+            // Viec destroy GameObject do EnemyBase.Die() quyet dinh (qua EnemyDeathHandler neu co)
+            OnDeath?.Invoke();
         }
     }
 }

@@ -31,7 +31,6 @@ public class DistanceProgress : MonoBehaviour
         if (currentDistance >= stageDistance)
         {
             currentDistance = stageDistance;
-            StageManager.Instance?.CompleteStage();
         }
     }
 

@@ -212,7 +212,7 @@ MonoBehaviour:
   horizontalRandom: 0.25
   lifeTime: 0.8
   scalePunch: 1.4
-  enemyDamageColor: {r: 1, g: 0, b: 0, a: 1}
+  enemyDamageColor: {r: 0.9924528, g: 0.9924528, b: 0.9924528, a: 1}
   playerDamageColor: {r: 0.98490566, g: 0.9718975, b: 0.9718975, a: 1}
   healColor: {r: 0, g: 1, b: 0, a: 1}
   blockColor: {r: 0, g: 1, b: 1, a: 1}

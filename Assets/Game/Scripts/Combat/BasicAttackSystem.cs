@@ -8,7 +8,7 @@ namespace EternalClash.Combat
         [SerializeField] private int damage = 5;
         [SerializeField] private float attackCooldown = 1f;
         [SerializeField] private float knockbackForce = 5f;
-        [SerializeField] private float attackRange = 2.2f;
+        [SerializeField] private float attackRange = 0.85f;
         private float cooldownTimer;
         private GameObject target;
         private CharacterStateMachine stateMachine;
@@ -26,14 +26,20 @@ namespace EternalClash.Combat
         public void TryAttack(GameObject enemy){SetTarget(enemy);StartAttack();}
         private void DealDamage()
         {
-            if(target==null||cooldownTimer>0f||!IsValidTarget(target))return;
+            // Chup vao bien cuc bo: DealDamage() ben duoi co the khien enemy chet va
+            // AttackTrigger.OnTriggerExit2D goi ClearTarget() (dat field target=null)
+            // ngay trong luc dang chay ham nay. Neu cu doc lai field "target" sau do se
+            // NullReferenceException - dung ban local nay thi khong bi anh huong.
+            GameObject currentTarget = target;
+            if(currentTarget==null||cooldownTimer>0f||!IsValidTarget(currentTarget))return;
             if(CombatDamageResolver.Instance==null)return;
             cooldownTimer=attackCooldown;
             int finalDamage=Village.PlayerStatSystem.Instance!=null?Village.PlayerStatSystem.Instance.BasicAttackDamage:damage;
-            Debug.Log("[DAMAGE SENT] "+target.name+" Damage: "+finalDamage);
-            CombatDamageResolver.Instance.DealDamage(target,finalDamage,DamageSource.BasicAttack);
-            KnockbackReceiver knockback=target.GetComponent<KnockbackReceiver>();
-            if(knockback!=null){Vector2 direction=(target.transform.position-transform.position).normalized;knockback.ApplyKnockback(direction,knockbackForce);}
+            Debug.Log("[DAMAGE SENT] "+currentTarget.name+" Damage: "+finalDamage);
+            CombatDamageResolver.Instance.DealDamage(currentTarget,finalDamage,DamageSource.BasicAttack);
+            if(currentTarget==null)return;
+            KnockbackReceiver knockback=currentTarget.GetComponent<KnockbackReceiver>();
+            if(knockback!=null){Vector2 direction=(currentTarget.transform.position-transform.position).normalized;knockback.ApplyKnockback(direction,knockbackForce);}
         }
         private GameObject FindNearestEnemy(){GameObject[] enemies=GameObject.FindGameObjectsWithTag("Enemy");GameObject nearest=null;float nearestDistance=attackRange;foreach(GameObject enemy in enemies){if(!IsValidTarget(enemy))continue;float distance=Vector2.Distance(transform.position,enemy.transform.position);if(distance<=nearestDistance){nearestDistance=distance;nearest=enemy;}}return nearest;}
         private bool IsTargetInRange(GameObject enemy)=>enemy!=null&&Vector2.Distance(transform.position,enemy.transform.position)<=attackRange;

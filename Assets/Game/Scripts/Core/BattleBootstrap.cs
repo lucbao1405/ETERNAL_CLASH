@@ -1,4 +1,5 @@
 using UnityEngine;
+using EternalClash.Stage;
 
 /// <summary>
 /// Runtime wiring helper for Battle scene.
@@ -8,6 +9,7 @@ public class BattleBootstrap : MonoBehaviour
 {
     private StageProgressController stageProgress;
     private EnemyManager enemyManager;
+    private StageCompleteController stageCompleteController;
 
     private bool initialized;
 
@@ -33,6 +35,7 @@ public class BattleBootstrap : MonoBehaviour
     {
         enemyManager = FindObjectOfType<EnemyManager>();
         stageProgress = FindObjectOfType<StageProgressController>();
+        stageCompleteController = FindObjectOfType<StageCompleteController>();
 
         if (enemyManager == null)
         {
@@ -43,6 +46,11 @@ public class BattleBootstrap : MonoBehaviour
         if (stageProgress == null)
         {
             Debug.LogWarning("[BattleBootstrap] Missing StageProgressController. Please add StageProgressController to Battle scene.");
+        }
+
+        if (stageCompleteController == null)
+        {
+            Debug.LogWarning("[BattleBootstrap] Missing StageCompleteController. Please add StageCompleteController to Battle scene.");
         }
     }
 
@@ -56,6 +64,11 @@ public class BattleBootstrap : MonoBehaviour
             enemyManager.OnAllEnemiesCleared += stageProgress.OnEncounterCleared;
             initialized = true;
         }
+
+        if (stageProgress != null && stageCompleteController != null)
+        {
+            stageProgress.OnStageCompleted += stageCompleteController.BeginPostStageFlow;
+        }
     }
 
     private void OnDestroy()
@@ -63,6 +76,11 @@ public class BattleBootstrap : MonoBehaviour
         if (enemyManager != null && stageProgress != null)
         {
             enemyManager.OnAllEnemiesCleared -= stageProgress.OnEncounterCleared;
+        }
+
+        if (stageProgress != null && stageCompleteController != null)
+        {
+            stageProgress.OnStageCompleted -= stageCompleteController.BeginPostStageFlow;
         }
     }
 }

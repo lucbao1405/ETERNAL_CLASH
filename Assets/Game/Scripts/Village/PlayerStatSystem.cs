@@ -164,6 +164,14 @@ namespace EternalClash.Village
             OnStatsChanged?.Invoke();
         }
 
+        public void AddStrength(int amount)
+        {
+            Strength += amount;
+            RecalculateDerivedStats();
+            SyncToSave();
+            OnStatsChanged?.Invoke();
+        }
+
         public void AddVitality(int amount)
         {
             Vitality += amount;
