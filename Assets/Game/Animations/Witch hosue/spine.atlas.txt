@@ -1,0 +1,83 @@
+
+spine.png
+size: 2738,1937
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Layer 2
+  rotate: true
+  xy: 2, 2
+  size: 1933, 2188
+  orig: 1933, 2188
+  offset: 0, 0
+  index: -1
+Layer 3
+  rotate: false
+  xy: 2192, 902
+  size: 253, 384
+  orig: 253, 384
+  offset: 0, 0
+  index: -1
+Layer 3 copy
+  rotate: false
+  xy: 2192, 516
+  size: 253, 384
+  orig: 253, 384
+  offset: 0, 0
+  index: -1
+Layer 4
+  rotate: true
+  xy: 2192, 1288
+  size: 647, 544
+  orig: 647, 544
+  offset: 0, 0
+  index: -1
+Layer 5
+  rotate: false
+  xy: 2269, 480
+  size: 41, 34
+  orig: 41, 34
+  offset: 0, 0
+  index: -1
+Layer 5 copy
+  rotate: false
+  xy: 2447, 1211
+  size: 75, 75
+  orig: 75, 75
+  offset: 0, 0
+  index: -1
+Layer 5 copy 2
+  rotate: false
+  xy: 2447, 1115
+  size: 22, 18
+  orig: 22, 18
+  offset: 0, 0
+  index: -1
+Layer 5 copy 3
+  rotate: false
+  xy: 2192, 439
+  size: 75, 75
+  orig: 75, 75
+  offset: 0, 0
+  index: -1
+Layer 5 copy 4
+  rotate: false
+  xy: 2524, 1212
+  size: 74, 74
+  orig: 74, 74
+  offset: 0, 0
+  index: -1
+Layer 5 copy 5
+  rotate: false
+  xy: 2447, 1135
+  size: 75, 74
+  orig: 75, 74
+  offset: 0, 0
+  index: -1
+Layer 6
+  rotate: false
+  xy: 2192, 379
+  size: 58, 58
+  orig: 58, 58
+  offset: 0, 0
+  index: -1
