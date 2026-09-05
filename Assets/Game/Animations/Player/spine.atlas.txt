@@ -1,0 +1,125 @@
+
+spine.png
+size: 1861,4125
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+aochoang
+  rotate: true
+  xy: 2, 2015
+  size: 934, 1036
+  orig: 934, 1036
+  offset: 0, 0
+  index: -1
+baotay1
+  rotate: false
+  xy: 670, 887
+  size: 330, 371
+  orig: 7207, 1925
+  offset: 0, 0
+  index: -1
+chan1
+  rotate: true
+  xy: 990, 592
+  size: 276, 462
+  orig: 276, 462
+  offset: 0, 0
+  index: -1
+chan2
+  rotate: true
+  xy: 1454, 629
+  size: 239, 400
+  orig: 239, 400
+  offset: 0, 0
+  index: -1
+dai
+  rotate: true
+  xy: 1229, 2619
+  size: 825, 597
+  orig: 825, 597
+  offset: 0, 0
+  index: -1
+dau
+  rotate: true
+  xy: 2, 2951
+  size: 1172, 1225
+  orig: 1172, 1225
+  offset: 0, 0
+  index: -1
+giay1
+  rotate: true
+  xy: 670, 1260
+  size: 318, 347
+  orig: 318, 347
+  offset: 0, 0
+  index: -1
+giay2
+  rotate: true
+  xy: 670, 591
+  size: 294, 318
+  orig: 294, 318
+  offset: 0, 0
+  index: -1
+khansau
+  rotate: false
+  xy: 1019, 870
+  size: 714, 434
+  orig: 714, 434
+  offset: 0, 0
+  index: -1
+khantruoc
+  rotate: false
+  xy: 1033, 1306
+  size: 725, 501
+  orig: 725, 501
+  offset: 0, 0
+  index: -1
+kiem
+  rotate: true
+  xy: 2, 2
+  size: 2011, 666
+  orig: 2011, 666
+  offset: 0, 0
+  index: -1
+shield
+  rotate: true
+  xy: 1040, 1809
+  size: 808, 809
+  orig: 4859, 1874
+  offset: 0, 0
+  index: -1
+tay1
+  rotate: false
+  xy: 670, 72
+  size: 256, 517
+  orig: 256, 517
+  offset: 0, 0
+  index: -1
+tay2
+  rotate: false
+  xy: 1610, 238
+  size: 224, 389
+  orig: 224, 389
+  offset: 0, 0
+  index: -1
+than
+  rotate: true
+  xy: 1229, 3446
+  size: 677, 630
+  orig: 677, 630
+  offset: 0, 0
+  index: -1
+vai1
+  rotate: false
+  xy: 928, 107
+  size: 680, 482
+  orig: 680, 482
+  offset: 0, 0
+  index: -1
+vai2
+  rotate: false
+  xy: 670, 1580
+  size: 361, 433
+  orig: 361, 433
+  offset: 0, 0
+  index: -1
