@@ -34,9 +34,68 @@ namespace EternalClash.Stage
         private bool isProcessing;
         private bool defeatProcessed;
 
-        private void Awake()
+        private const string BattleSceneName = "Battle";
+
+        /// <summary>
+        /// Tu tao controller trong scene Battle neu scene chua co san, theo dung mau
+        /// ma UI.BattlePopupController dang dung. Truoc day class nay khong nam trong
+        /// scene nao nen Instance luon null - StageManager.CompleteStage() goi
+        /// BeginPostStageFlow() vao chỗ trong, va BattlePopupController khong lay duoc
+        /// StageResult de hien thi.
+        /// Cac tham chieu UI panel deu duoc kiem tra null truoc khi dung nen ban tu
+        /// tao (khong co panel nao) van chay an toan.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void InstallSceneHook()
+        {
+            // RuntimeInitializeOnLoadMethod chi chay DUNG MOT LAN sau scene dau tien.
+            // Neu game khoi dong o MainMenu hoac Town roi moi vao Battle thi kiem tra
+            // ten scene o lan chay do that bai va controller khong bao gio duoc tao,
+            // khien StageManager.CompleteStage() goi vao Instance null -> khong co
+            // popup thang/thua. Vi vay phai bat them su kien sceneLoaded de kiem tra
+            // lai moi lan doi scene.
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+
+            EnsureInBattleScene();
+        }
+
+        private static void OnSceneLoaded(
+            UnityEngine.SceneManagement.Scene scene,
+            UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            EnsureInBattleScene();
+        }
+
+        /// <summary>
+        /// Tu tao controller trong scene Battle neu scene chua co san, theo dung mau
+        /// ma UI.BattlePopupController dang dung. Cac tham chieu UI panel deu duoc
+        /// kiem tra null truoc khi dung nen ban tu tao van chay an toan.
+        /// </summary>
+        private static void EnsureInBattleScene()
         {
             if (Instance != null)
+                return;
+
+            UnityEngine.SceneManagement.Scene scene =
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+
+            if (!scene.IsValid() ||
+                !string.Equals(scene.name, BattleSceneName, System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (FindObjectOfType<StageCompleteController>() != null)
+                return;
+
+            new GameObject("StageCompleteController (Runtime)")
+                .AddComponent<StageCompleteController>();
+
+            Debug.Log("[StageComplete] Da tu tao controller cho scene Battle.");
+        }
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
                 return;
@@ -142,6 +201,17 @@ namespace EternalClash.Stage
                 chest.SetRewardData(currentReward);
             }
 
+            // Khong sinh duoc ruong va cung khong co panel "Open Chest": khong con
+            // ai co the goi OnChestOpened(), luong se dung tai day va popup ket qua
+            // khong bao gio hien. Truong hop do di thang toi trao thuong + popup.
+            // Khi scene co du ruong/panel thi duong cu van chay nhu thiet ke.
+            if (chest == null && chestRewardPanel == null)
+            {
+                GrantReward();
+                ContinueAfterReward();
+                return;
+            }
+
             ShowChestRewardUI();
         }
 
@@ -210,9 +280,28 @@ namespace EternalClash.Stage
             if (stats != null)
                 stats.AddExp(stageResult.earnedExp);
 
-            if (currentReward != null && currentReward.type == RewardType.Material && currentReward.amount > 0)
+            // Trao phan thuong cua ruong theo dung loai. Truoc day chi xu ly Material:
+            // phan thuong Gold bi bo qua (popup van hien so nen nguoi choi thay thieu
+            // vang), con Gem thi mat han du RewardGenerator sinh no voi ti le 20%.
+            if (currentReward != null && currentReward.amount > 0)
             {
-                goldSys?.AddMaterials(currentReward.amount, 0);
+                switch (currentReward.type)
+                {
+                    case RewardType.Gold:
+                        goldSys?.AddGold(currentReward.amount);
+                        break;
+
+                    case RewardType.Gem:
+                        goldSys?.AddGem(currentReward.amount);
+                        break;
+
+                    case RewardType.Material:
+                        goldSys?.AddMaterials(currentReward.amount, 0);
+                        break;
+
+                    // Equipment duoc trao rieng qua EquipmentSystem.EquipItem()
+                    // trong OnEquipAccepted(), khong xu ly o day.
+                }
             }
         }
 
@@ -337,6 +426,12 @@ namespace EternalClash.Stage
             {
                 EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(0, 100);
             }
+
+            // Trao EXP an ui cho lan thua. Truoc day con so nay chi duoc hien len
+            // popup chu khong bao gio duoc cong that - GrantReward() chi chay o
+            // nhanh thang. Chi cong EXP, khong cong vang (earnedGold = 0).
+            if (earnedExp > 0)
+                PlayerStatSystem.Instance?.AddExp(earnedExp);
 
             ShowDefeatPopup(stageTime, earnedExp);
 
