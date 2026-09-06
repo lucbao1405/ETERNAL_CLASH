@@ -15,8 +15,10 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance { get; private set; }
 
     public StageState CurrentState { get; private set; }
+    public float BattleDuration { get; private set; }
 
     private WaveManager waveManager;
+    private float battleStartTime = -1f;
 
     private void Awake()
     {
@@ -54,6 +56,8 @@ public class StageManager : MonoBehaviour
     {
         EnsureWaveManager();
         CurrentState = StageState.Running;
+        BattleDuration = 0f;
+        battleStartTime = Time.time;
         Debug.Log("Stage Started");
 
         if (waveManager != null)
@@ -68,10 +72,27 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    public float GetBattleTime()
+    {
+        if (battleStartTime >= 0f)
+            return Time.time - battleStartTime;
+        return BattleDuration;
+    }
+
+    private void StopBattleTimer()
+    {
+        if (battleStartTime < 0f)
+            return;
+
+        BattleDuration = Time.time - battleStartTime;
+        battleStartTime = -1f;
+    }
+
     public void CompleteStage()
     {
         if (CurrentState != StageState.Running) return;
 
+        StopBattleTimer();
         CurrentState = StageState.Victory;
             EternalClash.Stage.StageCompleteController.Instance?.BeginPostStageFlow();
             if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
@@ -86,6 +107,7 @@ public class StageManager : MonoBehaviour
     {
         if (CurrentState != StageState.Running) return;
 
+        StopBattleTimer();
         CurrentState = StageState.Defeat;
         Debug.Log("Stage Defeat");
 

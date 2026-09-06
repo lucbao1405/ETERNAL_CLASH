@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections;
+using EternalClash.Data;
 
 namespace EternalClash.Chest
 {
@@ -41,6 +42,8 @@ namespace EternalClash.Chest
 
         public ChestState State { get; private set; } = ChestState.Closed;
         public bool opened { get; private set; }
+
+        private RewardData currentReward;
 
         public bool IsReadyForInteraction => State == ChestState.Closed && arrivedAtCenter;
 
@@ -177,18 +180,18 @@ namespace EternalClash.Chest
         private IEnumerator OpenRoutine()
         {
             ChestOpenEffectController effect = ChestOpenEffectController.Instance;
+            Color rarityColor = GetRarityColor();
+
             if (effect != null)
             {
                 effect.Configure(ClosedSprite, OpenedSprite);
-                yield return StartCoroutine(effect.PlayEffect(this));
+                yield return StartCoroutine(effect.PlayEffect(this, rarityColor));
             }
             else
             {
-                // Fallback local animation when the cinematic overlay is unavailable.
                 yield return StartCoroutine(PlayLocalOpenEffect());
             }
 
-            // Always end with the opened sprite applied (idempotent).
             ApplyOpenedSprite();
 
             PlayOpenParticles();
@@ -243,6 +246,69 @@ namespace EternalClash.Chest
         {
             if (chestSpriteRenderer != null && sprite != null)
                 chestSpriteRenderer.sprite = sprite;
+        }
+
+        public void SetRewardData(RewardData reward)
+        {
+            currentReward = reward;
+        }
+
+        private Color GetRarityColor()
+        {
+            if (currentReward == null)
+                return Color.white;
+
+            if (currentReward.HasItem)
+                return RarityToColor(currentReward.item.rarity);
+
+            switch (currentReward.type)
+            {
+                case RewardType.Gold:
+                    return new Color(1f, 0.84f, 0f);
+                case RewardType.Gem:
+                    return new Color(0f, 0.8f, 1f);
+                case RewardType.Material:
+                    return new Color(0.5f, 0.8f, 0.5f);
+                default:
+                    return Color.white;
+            }
+        }
+
+        private static Color RarityToColor(ItemRarity rarity)
+        {
+            switch (rarity)
+            {
+                case ItemRarity.Common:
+                    return new Color(0.7f, 0.7f, 0.7f);
+                case ItemRarity.Uncommon:
+                    return new Color(0.3f, 0.8f, 0.3f);
+                case ItemRarity.Rare:
+                    return new Color(0.2f, 0.5f, 1f);
+                case ItemRarity.Epic:
+                    return new Color(0.7f, 0.2f, 0.9f);
+                case ItemRarity.Legendary:
+                    return new Color(1f, 0.6f, 0.1f);
+                default:
+                    return Color.white;
+            }
+        }
+
+        public IEnumerator ScaleUpRoutine(float duration, float targetScale)
+        {
+            float elapsed = 0f;
+            Vector3 startScale = transform.localScale;
+            Vector3 endScale = startScale * targetScale;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float curveT = openScaleCurve.Evaluate(t);
+                transform.localScale = Vector3.Lerp(startScale, endScale, curveT);
+                yield return null;
+            }
+
+            transform.localScale = endScale;
         }
     }
 }

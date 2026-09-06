@@ -48,8 +48,15 @@ namespace EternalClash.UI
         [SerializeField] private Image rewardItemIcon;
         [SerializeField] private TMP_Text rewardItemNameText;
 
+        [Header("Bandroll")]
+        [SerializeField] private Image bandrollImage;
+        [SerializeField] private Sprite victoryBandrollSprite;
+        [SerializeField] private Sprite defeatBandrollSprite;
+        [SerializeField] private GameObject bandrollVictoryRoot;
+
         private StageResultMode currentMode = StageResultMode.Victory;
         private int defeatEarnedExp;
+        private PlayerStatSystem boundStats;
 
         private void Start()
         {
@@ -59,7 +66,63 @@ namespace EternalClash.UI
 
         private void OnEnable()
         {
+            ResolveBandrollVictoryRoot();
+            BindPlayerStats();
             RefreshUI();
+        }
+
+        private void OnDisable()
+        {
+            UnbindPlayerStats();
+        }
+
+        private void BindPlayerStats()
+        {
+            var stats = PlayerStatSystem.Instance;
+            if (stats == null || stats == boundStats)
+                return;
+
+            UnbindPlayerStats();
+            boundStats = stats;
+            boundStats.OnStatsChanged += OnPlayerStatsChanged;
+        }
+
+        private void UnbindPlayerStats()
+        {
+            if (boundStats == null)
+                return;
+
+            boundStats.OnStatsChanged -= OnPlayerStatsChanged;
+            boundStats = null;
+        }
+
+        private void OnPlayerStatsChanged()
+        {
+            if (!gameObject.activeInHierarchy)
+                return;
+            if (currentMode != StageResultMode.Victory)
+                return;
+
+            RefreshExpProgress();
+        }
+
+        private void ResolveBandrollVictoryRoot()
+        {
+            if (bandrollVictoryRoot != null)
+                return;
+
+            Transform[] allChildren = GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in allChildren)
+            {
+                string n = child.name;
+                if (string.Equals(n, "BandrollVictory", System.StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(n, "Victory", System.StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(n, "VictoryImage", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    bandrollVictoryRoot = child.gameObject;
+                    break;
+                }
+            }
         }
 
         public void ShowVictory()
@@ -75,6 +138,26 @@ namespace EternalClash.UI
             defeatEarnedExp = earnedExp;
             gameObject.SetActive(true);
             RefreshDefeat(stageTime, earnedExp);
+        }
+
+        private void ApplyBandroll(bool victory)
+        {
+            bool hasVictoryRoot = bandrollVictoryRoot != null;
+
+            if (hasVictoryRoot)
+                bandrollVictoryRoot.SetActive(victory);
+
+            if (bandrollImage != null)
+            {
+                Sprite target = victory ? victoryBandrollSprite : defeatBandrollSprite;
+                if (target != null && bandrollImage.sprite != target)
+                    bandrollImage.sprite = target;
+
+                // Title band and the victory bandroll share the same header slot,
+                // so only one of them may render at a time.
+                if (hasVictoryRoot && bandrollImage.gameObject != bandrollVictoryRoot)
+                    bandrollImage.gameObject.SetActive(!victory);
+            }
         }
 
         private void RefreshUI()
@@ -93,8 +176,8 @@ namespace EternalClash.UI
                 return;
 
             StageResultData result = stageCtrl.StageResult;
-            var stats = PlayerStatSystem.Instance;
 
+            ApplyBandroll(true);
             ApplyChrome(victoryTitle, null, true, true, true, true);
 
             int minutes = Mathf.FloorToInt(result.stageTime / 60f);
@@ -106,23 +189,7 @@ namespace EternalClash.UI
             if (xpBoxText != null)
                 xpBoxText.text = $"XP\n+{result.earnedExp}";
 
-            if (stats != null)
-            {
-                if (levelText != null)
-                    levelText.text = $"Level {stats.Level}";
-
-                if (expBarFill != null)
-                {
-                    float pct = stats.RequiredExp > 0 ? (float)stats.CurrentExp / stats.RequiredExp : 0f;
-                    expBarFill.fillAmount = pct;
-                }
-
-                if (expPercentText != null)
-                {
-                    int pct = stats.RequiredExp > 0 ? Mathf.RoundToInt((float)stats.CurrentExp / stats.RequiredExp * 100f) : 0;
-                    expPercentText.text = $"{stats.CurrentExp} / {stats.RequiredExp} ({pct}%)";
-                }
-            }
+            RefreshExpProgress();
 
             if (rewardItemRoot != null)
                 rewardItemRoot.SetActive(false);
@@ -164,6 +231,7 @@ namespace EternalClash.UI
 
         private void RefreshDefeat(float stageTime, int earnedExp)
         {
+            ApplyBandroll(false);
             ApplyChrome(defeatTitle, defeatMessage, false, true, true, false);
 
             int minutes = Mathf.FloorToInt(stageTime / 60f);
@@ -177,6 +245,28 @@ namespace EternalClash.UI
 
             if (rewardItemRoot != null)
                 rewardItemRoot.SetActive(false);
+        }
+
+        private void RefreshExpProgress()
+        {
+            var stats = PlayerStatSystem.Instance;
+            if (stats == null)
+                return;
+
+            if (levelText != null)
+                levelText.text = $"Level {stats.Level}";
+
+            if (expBarFill != null)
+            {
+                float pct = stats.RequiredExp > 0 ? (float)stats.CurrentExp / stats.RequiredExp : 0f;
+                expBarFill.fillAmount = Mathf.Clamp01(pct);
+            }
+
+            if (expPercentText != null)
+            {
+                int pct = stats.RequiredExp > 0 ? Mathf.RoundToInt((float)stats.CurrentExp / stats.RequiredExp * 100f) : 0;
+                expPercentText.text = $"{stats.CurrentExp} / {stats.RequiredExp} ({pct}%)";
+            }
         }
 
         private void ApplyChrome(string title, string message, bool showExpBar, bool showTimeBox, bool showXpBox, bool showReward)

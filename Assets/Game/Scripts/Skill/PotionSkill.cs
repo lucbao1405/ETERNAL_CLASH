@@ -15,7 +15,7 @@ namespace EternalClash.Skill
         protected override void Awake()
         {
             skillName = "Potion";
-            cooldown = 10.0f;
+            cooldown = 15.0f;
             base.Awake();
 
             health = GetComponentInParent<HealthSystem>();

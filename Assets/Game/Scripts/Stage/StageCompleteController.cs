@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using EternalClash.Data;
 using EternalClash.Village;
 using EternalClash.Core;
@@ -21,8 +20,6 @@ namespace EternalClash.Stage
         [SerializeField] private GameObject equipmentPreviewPanel;
         [SerializeField] private GameObject stageResultPanel;
         [SerializeField] private GameObject levelUpPanel;
-        [SerializeField] private GameObject stageClearBanner;
-        [SerializeField] private float stageClearBannerHoldSeconds = 1.6f;
         [SerializeField] private UI.StageResultUI stageResultUIScript;
 
         [Header("World")]
@@ -58,8 +55,6 @@ namespace EternalClash.Stage
                 stageResultPanel.SetActive(false);
             if (levelUpPanel != null)
                 levelUpPanel.SetActive(false);
-            if (stageClearBanner != null)
-                stageClearBanner.SetActive(false);
 
             if (stageResultUI == null)
             {
@@ -75,8 +70,7 @@ namespace EternalClash.Stage
 
             StopCombat();
 
-            var progress = FindObjectOfType<StageProgressController>();
-            float stageTime = progress != null ? progress.GetStageTime() : 60f;
+            float stageTime = ResolveBattleTime(60f);
 
             int baseExp = 100;
             int stageLevel = SaveManager.Instance != null && SaveManager.Instance.Data != null
@@ -145,7 +139,7 @@ namespace EternalClash.Stage
 
             if (chest != null && currentReward != null)
             {
-                chest.SetRewardSprite(ResolveRewardSprite(currentReward));
+                chest.SetRewardData(currentReward);
             }
 
             ShowChestRewardUI();
@@ -240,28 +234,11 @@ namespace EternalClash.Stage
         }
 
         /// <summary>
-        /// WIN path after the chest reward has been granted: disable ChestRewardPanel
-        /// (already handled by the caller), show the StageClearBanner briefly, then
-        /// reveal the victory StageResultPanel.
+        /// WIN path after the chest reward has been granted: the old StageClearBanner
+        /// is no longer used, the victory StageResultPanel opens directly.
         /// </summary>
         private void ShowVictoryFlow()
         {
-            StopAllCoroutines();
-
-            if (stageClearBanner != null)
-                stageClearBanner.SetActive(true);
-
-            StartCoroutine(ShowStageResultAfterBanner());
-        }
-
-        private IEnumerator ShowStageResultAfterBanner()
-        {
-            if (stageClearBannerHoldSeconds > 0f)
-                yield return new WaitForSecondsRealtime(stageClearBannerHoldSeconds);
-
-            if (stageClearBanner != null)
-                stageClearBanner.SetActive(false);
-
             if (stageResultUI != null)
                 stageResultUI.ShowVictory();
             else if (stageResultPanel != null)
@@ -282,26 +259,7 @@ namespace EternalClash.Stage
             if (stageResultPanel != null)
                 stageResultPanel.SetActive(false);
 
-            CheckLevelUp();
-        }
-
-        private void CheckLevelUp()
-        {
-            var stats = PlayerStatSystem.Instance;
-            if (stats != null && stats.StatPoints > 0)
-            {
-                ShowLevelUpUI();
-            }
-            else
-            {
-                ReturnToVillage();
-            }
-        }
-
-        private void ShowLevelUpUI()
-        {
-            if (levelUpPanel != null)
-                levelUpPanel.SetActive(true);
+            ReturnToVillage();
         }
 
         public void OnLevelUpConfirmed()
@@ -341,8 +299,7 @@ namespace EternalClash.Stage
 
             StopCombat();
 
-            var progress = FindObjectOfType<StageProgressController>();
-            float stageTime = progress != null ? progress.GetStageTime() : 0f;
+            float stageTime = ResolveBattleTime(0f);
 
             int baseExp = 10;
             int earnedExp = Mathf.Max(0, Mathf.RoundToInt(stageTime) / 6);
@@ -375,6 +332,15 @@ namespace EternalClash.Stage
         public void OnDefeatContinueClicked()
         {
             ReturnToVillage();
+        }
+
+        private float ResolveBattleTime(float fallback)
+        {
+            if (StageManager.Instance != null)
+                return StageManager.Instance.GetBattleTime();
+
+            var progress = FindObjectOfType<StageProgressController>();
+            return progress != null ? progress.GetStageTime() : fallback;
         }
     }
 
