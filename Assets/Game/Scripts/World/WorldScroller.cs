@@ -6,6 +6,7 @@ namespace EternalClash.World
     public class WorldScroller : MonoBehaviour
     {
         [Header("Layer Speeds")]
+        [SerializeField] private float skySpeed = 0.02f;
         [SerializeField] private float cloudSpeed = 0.1f;
         [SerializeField] private float mountainSpeed = 0.5f;
         [SerializeField] private float groundSpeed = 2.5f;
@@ -35,17 +36,19 @@ namespace EternalClash.World
             if (loopController == null)
                 loopController = FindObjectOfType<WorldLoopController>();
             if (chunkSpawner == null)
-                chunkSpawner = FindObjectOfType<WorldLoopSpawner>();
-            if (skyLayer == null)
-                skyLayer = FindChildByName(transform, "Sky");
+                chunkSpawner = GetComponent<WorldLoopSpawner>() ?? FindObjectOfType<WorldLoopSpawner>();
+
+            ResolveLayerReferences();
         }
 
         public bool IsScrolling => scrolling;
         public float WorldVelocityX => scrollDirection * GetGroundVelocity();
+        public float SkySpeed => skySpeed * currentMultiplier;
         public float CloudSpeed => cloudSpeed * currentMultiplier;
         public float MountainSpeed => mountainSpeed * currentMultiplier;
         public float GroundSpeed => groundSpeed * currentMultiplier;
         public float TreeSpeed => treeSpeed * currentMultiplier;
+        public float SkyVelocityX => scrollDirection * SkySpeed;
         public float CloudVelocityX => scrollDirection * CloudSpeed;
         public float MountainVelocityX => scrollDirection * MountainSpeed;
         public float GroundVelocityX => scrollDirection * GroundSpeed;
@@ -60,6 +63,7 @@ namespace EternalClash.World
             MoveLayer(mountainLayer, MountainSpeed);
             MoveLayer(groundLayer, GroundSpeed);
             MoveLayer(treeLayer, TreeSpeed);
+            MoveLayer(skyLayer, SkySpeed);
         }
 
         private void MoveLayer(Transform layer, float speed)
@@ -111,6 +115,14 @@ namespace EternalClash.World
             delta.y = 0f;
             if (Mathf.Abs(delta.x) < 0.0001f) return;
 
+            // The chunk spawner owns every cloned UI Image. Let it shift the complete
+            // layer sets so originals and clones can never drift apart.
+            if (chunkSpawner != null)
+            {
+                chunkSpawner.ApplyKnockbackShift(delta);
+                return;
+            }
+
             if (recoilRoutine != null)
                 StopCoroutine(recoilRoutine);
             recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
@@ -150,6 +162,21 @@ namespace EternalClash.World
                 skyLayer.position = skyLockedPosition;
 
             recoilRoutine = null;
+        }
+
+        private void ResolveLayerReferences()
+        {
+            if (skyLayer == null)
+                skyLayer = FindChildByName(transform, "Sky");
+            if (cloudLayer == null)
+                cloudLayer = FindChildByName(transform, "Cloud");
+            if (mountainLayer == null)
+                mountainLayer = FindChildByName(transform, "Mountain") ??
+                                FindChildByName(transform, "Moutain");
+            if (treeLayer == null)
+                treeLayer = FindChildByName(transform, "Tree");
+            if (groundLayer == null)
+                groundLayer = FindChildByName(transform, "Ground");
         }
 
         private static Transform FindChildByName(Transform parent, string childName)

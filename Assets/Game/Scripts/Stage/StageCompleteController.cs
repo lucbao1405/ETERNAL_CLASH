@@ -239,6 +239,13 @@ namespace EternalClash.Stage
         /// </summary>
         private void ShowVictoryFlow()
         {
+            if (UI.BattlePopupController.TryShowWin())
+            {
+                if (stageResultPanel != null)
+                    stageResultPanel.SetActive(false);
+                return;
+            }
+
             if (stageResultUI != null)
                 stageResultUI.ShowVictory();
             else if (stageResultPanel != null)
@@ -247,6 +254,13 @@ namespace EternalClash.Stage
 
         private void ShowDefeatPopup(float stageTime, int earnedExp)
         {
+            if (UI.BattlePopupController.TryShowLose())
+            {
+                if (stageResultPanel != null)
+                    stageResultPanel.SetActive(false);
+                return;
+            }
+
             if (stageResultUI != null)
                 stageResultUI.ShowDefeat(stageTime, earnedExp);
 
