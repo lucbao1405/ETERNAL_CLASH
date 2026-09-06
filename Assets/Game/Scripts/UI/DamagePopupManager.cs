@@ -24,6 +24,15 @@ namespace EternalClash.UI
             SpawnPopup(position, "-" + damage, isPlayerDamage ? PopupType.PlayerDamage : PopupType.Damage);
         }
 
+        /// <summary>
+        /// Sat thuong chi mang - hien khac mau va to hon de nguoi choi thay ro
+        /// diem LUCK dang co tac dung.
+        /// </summary>
+        public void ShowCriticalDamage(Vector3 position, int damage)
+        {
+            SpawnPopup(position, "-" + damage + "!", PopupType.Critical);
+        }
+
         public void ShowHeal(Vector3 position, int amount)
         {
             SpawnPopup(position, "+" + amount, PopupType.Heal);
@@ -55,7 +64,9 @@ namespace EternalClash.UI
             Damage,
             PlayerDamage,
             Heal,
-            Block
+            Block,
+            // Them vao cuoi enum de khong lam lech gia tri da serialize san.
+            Critical
         }
     }
 }

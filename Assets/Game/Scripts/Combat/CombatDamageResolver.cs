@@ -45,6 +45,16 @@ namespace EternalClash.Combat
             if (target == null || amount <= 0)
                 return;
 
+            // Chi mang chi ap cho don danh cua player (GDD 3.5 - LUCK tang critical).
+            // Khong ap cho EnemyAttack va Reflect.
+            bool isCritical = false;
+            if (source == DamageSource.BasicAttack || source == DamageSource.Charge)
+            {
+                var stats = Village.PlayerStatSystem.Instance;
+                if (stats != null)
+                    amount = stats.ApplyCritical(amount, out isCritical);
+            }
+
             // Player damage can have shield/block/defense processing.
             // Route it through DamageReceiver instead of directly reducing HP.
             if (source == DamageSource.EnemyAttack)
@@ -53,7 +63,7 @@ namespace EternalClash.Combat
                 if (receiver != null)
                 {
                     receiver.TakeDamage(amount);
-                    Debug.Log($"[DAMAGE] {source}: {amount}");
+                    Debug.Log($"[DAMAGE] {source}: {amount}{(isCritical ? " (CRIT)" : "")}");
                     return;
                 }
             }
@@ -61,8 +71,8 @@ namespace EternalClash.Combat
             var enemyReceiver = target.GetComponent<EnemyDamageReceiver>();
             if (enemyReceiver != null && source != DamageSource.EnemyAttack)
             {
-                enemyReceiver.TakeDamage(amount);
-                Debug.Log($"[DAMAGE] {source}: {amount}");
+                enemyReceiver.TakeDamage(amount, isCritical);
+                Debug.Log($"[DAMAGE] {source}: {amount}{(isCritical ? " (CRIT)" : "")}");
                 return;
             }
 
@@ -70,7 +80,7 @@ namespace EternalClash.Combat
             if (health != null)
             {
                 health.TakeDamage(amount);
-                Debug.Log($"[DAMAGE] {source}: {amount}");
+                Debug.Log($"[DAMAGE] {source}: {amount}{(isCritical ? " (CRIT)" : "")}");
             }
         }
     }

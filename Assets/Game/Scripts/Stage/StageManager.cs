@@ -94,13 +94,25 @@ public class StageManager : MonoBehaviour
 
         StopBattleTimer();
         CurrentState = StageState.Victory;
-            EternalClash.Stage.StageCompleteController.Instance?.BeginPostStageFlow();
-            if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
-            {
-                SaveManager.Instance.Data.stageLevel = Mathf.Min(5, SaveManager.Instance.Data.stageLevel + 1);
-                SaveManager.Instance.Save();
-            }
         Debug.Log("Stage Victory");
+
+        if (EternalClash.Stage.StageCompleteController.Instance != null)
+        {
+            EternalClash.Stage.StageCompleteController.Instance.BeginPostStageFlow();
+        }
+        else
+        {
+            // Khong co controller thi khong ai goi BattlePopupController -> khong
+            // co popup thang. Bao ro thay vi im lang bo qua bang toan tu "?.".
+            Debug.LogError("[STAGE] Thang man nhung StageCompleteController.Instance dang null " +
+                           "-> khong hien duoc popup Win.");
+        }
+
+        if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
+        {
+            SaveManager.Instance.Data.stageLevel = Mathf.Min(5, SaveManager.Instance.Data.stageLevel + 1);
+            SaveManager.Instance.Save();
+        }
     }
 
     public void FailStage()
@@ -111,6 +123,14 @@ public class StageManager : MonoBehaviour
         CurrentState = StageState.Defeat;
         Debug.Log("Stage Defeat");
 
-        EternalClash.Stage.StageCompleteController.Instance?.BeginDefeatFlow();
+        if (EternalClash.Stage.StageCompleteController.Instance != null)
+        {
+            EternalClash.Stage.StageCompleteController.Instance.BeginDefeatFlow();
+        }
+        else
+        {
+            Debug.LogError("[STAGE] Thua man nhung StageCompleteController.Instance dang null " +
+                           "-> khong hien duoc popup Lose.");
+        }
     }
 }

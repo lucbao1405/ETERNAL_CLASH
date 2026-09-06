@@ -14,22 +14,31 @@ namespace EternalClash.Combat
             impact = ImpactFeedbackSystem.Instance;
         }
 
-        public void TakeDamage(int damage)
+        // Tham so isCritical co gia tri mac dinh nen moi loi goi cu van bien dich.
+        public void TakeDamage(int damage, bool isCritical = false)
         {
             if (health == null)
                 return;
 
-            Debug.Log("[ENEMY DAMAGE] " + gameObject.name + " take " + damage);
+            Debug.Log("[ENEMY DAMAGE] " + gameObject.name + " take " + damage + (isCritical ? " (CRIT)" : ""));
 
             health.TakeDamage(damage);
 
             if (impact != null)
                 impact.EnemyHit(gameObject, damage);
 
-            if (EternalClash.UI.DamagePopupManager.Instance != null)
-                EternalClash.UI.DamagePopupManager.Instance.ShowDamage(transform.position + Vector3.up, damage, false);
+            var popupManager = EternalClash.UI.DamagePopupManager.Instance;
+            if (popupManager != null)
+            {
+                if (isCritical)
+                    popupManager.ShowCriticalDamage(transform.position + Vector3.up, damage);
+                else
+                    popupManager.ShowDamage(transform.position + Vector3.up, damage, false);
+            }
             else if (DamagePopup.Instance != null)
+            {
                 DamagePopup.Instance.Show(transform.position + Vector3.up, damage);
+            }
         }
     }
 }

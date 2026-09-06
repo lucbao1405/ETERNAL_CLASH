@@ -17,6 +17,10 @@ public class DamagePopup : MonoBehaviour
     public Color playerDamageColor = new Color(1f, 0.5f, 0.2f);
     public Color healColor = Color.green;
     public Color blockColor = Color.cyan;
+    public Color criticalColor = new Color(1f, 0.85f, 0.2f);
+
+    [Tooltip("He so phong to chu khi sat thuong chi mang")]
+    public float criticalScale = 1.4f;
 
     private Vector3 startScale;
     private Vector3 moveDirection;
@@ -52,6 +56,13 @@ public class DamagePopup : MonoBehaviour
 
             case DamagePopupManager.PopupType.PlayerDamage:
                 text.color = playerDamageColor;
+                break;
+
+            case DamagePopupManager.PopupType.Critical:
+                text.color = criticalColor;
+                // Phong to ngay tu dau; hieu ung scalePunch san co van chay tiep tren nen nay.
+                startScale *= criticalScale;
+                transform.localScale = startScale;
                 break;
 
             default:

@@ -8,10 +8,15 @@ namespace EternalClash.Village
         public static GoldSystem Instance { get; private set; }
 
         public int Gold { get; private set; }
+
+        /// <summary>Kim cuong - tien te hiem, nhan tu phan thuong cuoi man.</summary>
+        public int Gem { get; private set; }
+
         public int OreMaterial { get; private set; }
         public int LeatherMaterial { get; private set; }
 
         public event System.Action<int> OnGoldChanged;
+        public event System.Action<int> OnGemChanged;
         public event System.Action<int, int> OnMaterialsChanged;
 
         private void Awake()
@@ -43,6 +48,27 @@ namespace EternalClash.Village
             return true;
         }
 
+        public void AddGem(int amount)
+        {
+            if (amount <= 0) return;
+
+            Gem += amount;
+            OnGemChanged?.Invoke(Gem);
+            SyncSave();
+            Debug.Log($"[GEM] +{amount} -> Total: {Gem}");
+        }
+
+        public bool SpendGem(int amount)
+        {
+            if (amount <= 0) return false;
+            if (Gem < amount) return false;
+
+            Gem -= amount;
+            OnGemChanged?.Invoke(Gem);
+            SyncSave();
+            return true;
+        }
+
         public void AddMaterials(int ore, int leather)
         {
             OreMaterial += ore;
@@ -64,9 +90,18 @@ namespace EternalClash.Village
 
         public void LoadFromSave(SaveData data)
         {
+            if (data == null) return;
+
             Gold = data.gold;
+            Gem = data.gem;
             OreMaterial = data.oreMaterial;
             LeatherMaterial = data.leatherMaterial;
+
+            // Bao cho UI biet gia tri vua duoc nap, neu khong thi man hinh van giu
+            // chu placeholder cho toi lan thay doi dau tien.
+            OnGoldChanged?.Invoke(Gold);
+            OnGemChanged?.Invoke(Gem);
+            OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
         }
 
         private void SyncSave()
@@ -74,6 +109,7 @@ namespace EternalClash.Village
             if (SaveManager.Instance?.Data != null)
             {
                 SaveManager.Instance.Data.gold = Gold;
+                SaveManager.Instance.Data.gem = Gem;
                 SaveManager.Instance.Data.oreMaterial = OreMaterial;
                 SaveManager.Instance.Data.leatherMaterial = LeatherMaterial;
                 SaveManager.Instance.Save();

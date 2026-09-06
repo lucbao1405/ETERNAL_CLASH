@@ -6,6 +6,7 @@ public class SaveData
 {
     // Economy
     public int gold = 0;
+    public int gem = 0;
     public int oreMaterial = 0;
     public int leatherMaterial = 0;
 

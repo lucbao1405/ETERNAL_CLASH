@@ -62,6 +62,9 @@ namespace EternalClash.Enemy
             if (lootDropper != null)
                 lootDropper.DropLoot();
 
+            // Khong goi EnemyLootDropController o day: EnemyDeathHandler.Die() ben
+            // duoi da giu tham chieu toi no qua truong lootDrop va tu goi DropLoot().
+            // Goi ca hai noi se lam roi do va cong EXP hai lan moi lan quai chet.
             EnemyDeathHandler deathHandler = GetComponent<EnemyDeathHandler>();
             if (deathHandler != null)
                 deathHandler.Die();
