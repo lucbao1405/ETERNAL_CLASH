@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -23,6 +24,7 @@ namespace EternalClash.UI
         [SerializeField] private GameObject chestObject;
         [SerializeField] private Button openChestButton;
         [SerializeField] private Button continueButton;
+        [SerializeField] private Image chestopenbg;
 
         [Header("Open Prompt")]
         [SerializeField] private TMP_Text openPromptText;
@@ -37,6 +39,7 @@ namespace EternalClash.UI
         private bool subscribed;
         private bool openButtonBound;
         private bool continueButtonBound;
+        private bool openPhaseActive;
         private ChestController worldChest;
 
         private void Awake()
@@ -68,8 +71,69 @@ namespace EternalClash.UI
         {
             chestOpened = false;
             ResolveChest();
+            ResolveChestOpenBg();
             BindChestEvents();
             ShowOpenPhase();
+
+            // Lift the whole panel to the top of its canvas so no other
+            // overlay drawn later in the canvas order can swallow the OPEN clicks.
+            if (transform != null)
+                transform.SetAsLastSibling();
+        }
+
+        /// <summary>
+        /// Fallback click handling for OPEN. Some scene setups end up with an
+        /// invisible raycast blocker drawn above this button, which makes the
+        /// Button.unityEvent unreachable even though the button is visible.
+        /// This polls the raw pointer against the button's on-screen rect so the
+        /// player can always open the chest. Guarded by chestOpened / openPhaseActive,
+        /// so a normal working Button click cannot double-open.
+        /// </summary>
+        private void Update()
+        {
+            if (!openPhaseActive || chestOpened)
+                return;
+            if (openChestButton == null || !openChestButton.gameObject.activeInHierarchy)
+                return;
+
+            if (Input.GetMouseButtonDown(0) &&
+                RectTransformUtility.RectangleContainsScreenPoint(
+                    (RectTransform)openChestButton.transform, Input.mousePosition))
+            {
+                OnOpenClicked();
+            }
+        }
+
+        private void ResolveChestOpenBg()
+        {
+            if (chestopenbg != null)
+                return;
+
+            Transform searchRoot = chestObject != null ? chestObject.transform : transform;
+            if (searchRoot == null)
+                return;
+
+            foreach (var img in searchRoot.GetComponentsInChildren<Image>(true))
+            {
+                if (!IsOpenBgName(img))
+                    continue;
+
+                if (openChestButton != null && img.gameObject == openChestButton.gameObject)
+                    continue;
+                if (continueButton != null && img.gameObject == continueButton.gameObject)
+                    continue;
+
+                chestopenbg = img;
+                chestopenbg.raycastTarget = false;
+                break;
+            }
+        }
+
+        private static bool IsOpenBgName(Image img)
+        {
+            return img.name.Contains("chestopenbg", StringComparison.OrdinalIgnoreCase) ||
+                   img.name.Contains("ChestOpenBg", StringComparison.OrdinalIgnoreCase) ||
+                   img.name.Contains("OpenBg", StringComparison.OrdinalIgnoreCase);
         }
 
         private void OnDisable()
@@ -108,6 +172,8 @@ namespace EternalClash.UI
 
         private void ShowOpenPhase()
         {
+            openPhaseActive = true;
+
             if (openPromptText != null)
             {
                 openPromptText.text = "Open Chest";
@@ -115,24 +181,46 @@ namespace EternalClash.UI
             }
 
             if (openChestButton != null)
+            {
                 openChestButton.gameObject.SetActive(true);
+                openChestButton.interactable = true;
+
+                // Keep OPEN above any chest background drawn after it in the panel.
+                openChestButton.transform.SetAsLastSibling();
+            }
 
             if (rewardContentRoot != null)
                 rewardContentRoot.SetActive(false);
 
             if (continueButton != null)
                 continueButton.gameObject.SetActive(false);
+
+            if (chestopenbg != null)
+            {
+                chestopenbg.raycastTarget = false;
+
+                // Never deactivate the panel root itself; only child background images.
+                if (chestopenbg.gameObject != gameObject)
+                    chestopenbg.gameObject.SetActive(false);
+            }
         }
 
         private void OnOpenClicked()
         {
             if (chestOpened) return;
             chestOpened = true;
+            openPhaseActive = false;
 
             if (openPromptText != null)
                 openPromptText.gameObject.SetActive(false);
             if (openChestButton != null)
+            {
                 openChestButton.gameObject.SetActive(false);
+                openChestButton.interactable = false;
+            }
+
+            if (chestopenbg != null && ChestOpenEffectController.Instance != null)
+                ChestOpenEffectController.Instance.SetChestOpenBg(chestopenbg);
 
             if (worldChest != null)
                 worldChest.OpenChest();
@@ -148,11 +236,15 @@ namespace EternalClash.UI
         private void ShowRewardPhase()
         {
             chestOpened = true;
+            openPhaseActive = false;
 
             if (openPromptText != null)
                 openPromptText.gameObject.SetActive(false);
             if (openChestButton != null)
+            {
                 openChestButton.gameObject.SetActive(false);
+                openChestButton.interactable = false;
+            }
 
             BuildRewardSummary();
 
