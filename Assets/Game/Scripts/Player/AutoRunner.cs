@@ -18,6 +18,8 @@ namespace EternalClash.Player
 
         public float RunSpeed => runSpeed;
 
+        public bool IsRunning => isRunning;
+
         private void Update()
         {
             if (!isRunning)

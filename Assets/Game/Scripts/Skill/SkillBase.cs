@@ -1,9 +1,16 @@
+using System;
 using UnityEngine;
 
 namespace EternalClash.Skill
 {
     public abstract class SkillBase : MonoBehaviour
     {
+        /// <summary>
+        /// Animation-layer hook raised after a skill actually executes
+        /// (does not change any gameplay/cooldown behaviour).
+        /// </summary>
+        public event Action<string> SkillExecuted;
+
         public string skillName;
         public float cooldown = 5f;
 
@@ -41,6 +48,9 @@ namespace EternalClash.Skill
 
             Debug.Log("[SkillBase] Execute skill: " + skillName);
             Execute();
+
+            // Animation-layer feedback only (no gameplay impact).
+            SkillExecuted?.Invoke(skillName);
 
             // Start cooldown only after the skill actually executes
             timer = cooldown;

@@ -143,6 +143,7 @@ GameObject:
   - component: {fileID: -8685629703815699245}
   - component: {fileID: -8666561796210250806}
   - component: {fileID: 300311324677675463}
+  - component: {fileID: 219685781055295580}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -160,7 +161,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.9, y: 0.02, z: 0}
-  m_LocalScale: {x: 0.4658736, y: 0.6161005, z: 1}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5246571945738324225}
@@ -582,8 +583,8 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1645145209
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &300311324677675463
@@ -598,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d247ba06193faa74d9335f5481b2b56c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skeletonDataAsset: {fileID: 11400000, guid: 087585dc8b3d1bb4ab11dffa610b1749, type: 2}
+  skeletonDataAsset: {fileID: 11400000, guid: 277fbc2c2e68e4842a54d058a31319d8, type: 2}
   initialSkinName: 
   initialFlipX: 0
   initialFlipY: 0
@@ -620,9 +621,22 @@ MonoBehaviour:
     materialsInsideMask: []
     materialsOutsideMask: []
   disableRenderingOnOverride: 1
-  _animationName: run
+  _animationName: 
   loop: 0
   timeScale: 1
+--- !u!114 &219685781055295580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72e8f87ad9adc4e49b3e5625d7793687, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skeletonAnimation: {fileID: 0}
 --- !u!1 &3199390587613228680
 GameObject:
   m_ObjectHideFlags: 0
