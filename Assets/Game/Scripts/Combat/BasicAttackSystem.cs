@@ -21,7 +21,15 @@ namespace EternalClash.Combat
         }
         public void SetTarget(GameObject enemy){GameObject root=ResolveEnemyRoot(enemy);if(root!=null)target=root;}
         public void ClearTarget()=>target=null;
-        public void StartAttack(){if(target==null||!IsValidTarget(target))return;Debug.Log("[ATTACK START] "+name+" -> "+target.name);if(stateMachine!=null)stateMachine.ChangeState(CharacterState.Attack);DealDamage();}
+        public void StartAttack()
+        {
+            if (target == null || !IsValidTarget(target)) return;
+            Debug.Log("[ATTACK START] " + name + " -> " + target.name);
+            if (stateMachine != null) stateMachine.ChangeState(CharacterState.Attack);
+            // Animation-layer hook only (no gameplay impact).
+            GetComponent<EternalClash.Animation.IPlayerAnimationFeedback>()?.NotifyAttack();
+            DealDamage();
+        }
         public void AnimationDealDamage()=>DealDamage();
         public void TryAttack(GameObject enemy){SetTarget(enemy);StartAttack();}
         private void DealDamage()

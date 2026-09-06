@@ -47,6 +47,9 @@ namespace EternalClash.Combat
         {
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Attack);
+
+            // Animation-layer hook only (no gameplay impact).
+            GetComponent<EternalClash.Animation.IPlayerAnimationFeedback>()?.NotifyAttack();
         }
 
         public void AnimationDealDamage()
