@@ -14,11 +14,20 @@ namespace EternalClash.Player
         private ChargeSkill chargeSkill;
         private HashSet<GameObject> hitEnemies = new HashSet<GameObject>();
 
+        [Header("Charge Sweep")]
+        [Tooltip("World-space reach in front of the player that the charge hits. " +
+                 "Compensates for the scaled-down charge hitbox collider.")]
+        [SerializeField] private float chargeReach = 1.1f;
+        [Tooltip("Max vertical offset an enemy may have from the player and still be hit.")]
+        [SerializeField] private float verticalTolerance = 1.0f;
+        private const float FrontMinOffsetX = -0.05f;
+
         private void Awake()
         {
             chargeController = GetComponentInParent<PlayerChargeController>();
             var root = transform.root;
-            chargeSkill = root.GetComponentInChildren<ChargeSkill>();
+            chargeSkill = root.GetComponent<ChargeSkill>()
+                          ?? root.GetComponentInChildren<ChargeSkill>();
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -30,16 +39,56 @@ namespace EternalClash.Player
             if (enemyObject == null)
                 return;
 
-            bool isCharging = false;
-            if (chargeController != null && chargeController.IsCharging)
-                isCharging = true;
-            if (chargeSkill != null && chargeSkill.IsCharging)
-                isCharging = true;
-
-            if (!isCharging)
+            if (!IsCharging())
                 return;
 
-            if (hitEnemies.Contains(enemyObject))
+            HandleChargeHit(enemyObject);
+        }
+
+        private void Update()
+        {
+            if (!IsCharging())
+                return;
+
+            SweepFrontEnemies();
+        }
+
+        private bool IsCharging()
+        {
+            if (chargeController != null && chargeController.IsCharging)
+                return true;
+            if (chargeSkill != null && chargeSkill.IsCharging)
+                return true;
+            return false;
+        }
+
+        private void SweepFrontEnemies()
+        {
+            Vector3 origin = transform.root.position;
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                GameObject enemy = enemies[i];
+                if (enemy == null || !enemy.activeInHierarchy)
+                    continue;
+
+                GameObject enemyObject = ResolveEnemyRoot(enemy);
+                if (enemyObject == null || hitEnemies.Contains(enemyObject))
+                    continue;
+
+                Vector3 toEnemy = enemyObject.transform.position - origin;
+                if (toEnemy.x < FrontMinOffsetX || toEnemy.x > chargeReach)
+                    continue;
+                if (Mathf.Abs(toEnemy.y) > verticalTolerance)
+                    continue;
+
+                HandleChargeHit(enemyObject);
+            }
+        }
+
+        private void HandleChargeHit(GameObject enemyObject)
+        {
+            if (enemyObject == null || hitEnemies.Contains(enemyObject))
                 return;
 
             hitEnemies.Add(enemyObject);
@@ -47,6 +96,8 @@ namespace EternalClash.Player
             int finalDamage = PlayerStatSystem.Instance != null
                 ? PlayerStatSystem.Instance.ChargeDamage
                 : 20;
+
+            Debug.Log($"[CHARGE HIT] {enemyObject.name} finalDamage={finalDamage}");
 
             CombatDamageResolver.Instance?.DealDamage(
                 enemyObject,

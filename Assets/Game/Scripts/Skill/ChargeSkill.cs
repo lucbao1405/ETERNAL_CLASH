@@ -65,7 +65,8 @@ namespace EternalClash.Skill
 
             playerDamageReceiver = GetComponent<DamageReceiver>();
             playerKnockbackReceiver = GetComponent<KnockbackReceiver>();
-            playerChargeController = GetComponentInParent<PlayerChargeController>();
+            playerChargeController = GetComponent<PlayerChargeController>()
+                                     ?? GetComponentInParent<PlayerChargeController>();
         }
 
         protected override void Execute()
