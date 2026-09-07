@@ -16,6 +16,18 @@ namespace EternalClash.Wave
         [Header("Stage Data (Data-Driven)")]
         [SerializeField] private StageData stageData;
 
+        public StageData CurrentStageData => stageData;
+
+        /// <summary>
+        /// Gan StageData (du lieu cac Wave cua 1 man) cho WaveManager.
+        /// Goi truoc BeginStage() - thong thuong tu StageManager de moi lan vao
+        /// Battle tu dong nap dung man theo tien trinh da luu.
+        /// </summary>
+        public void SetStageData(StageData data)
+        {
+            stageData = data;
+        }
+
         [Header("Timing")]
         [Tooltip("Do tre truoc khi Wave dau tien cua man bat dau")]
         [SerializeField] private float firstWaveDelay = 1f;

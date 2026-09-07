@@ -276,6 +276,10 @@ public class DialogueManager : MonoBehaviour
         {
             panelToActivate.SetActive(true);
             panelToActivate.transform.SetAsLastSibling();
+
+            if (panelToActivate.name.StartsWith("Shop"))
+                EternalClash.UI.ShopScrollHelper.EnsureScrollRect(panelToActivate);
+
             Debug.Log($"[Dialogue] Opened panel '{panelToActivate.name}'.", panelToActivate);
         }
 

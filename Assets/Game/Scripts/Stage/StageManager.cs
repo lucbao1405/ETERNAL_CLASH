@@ -17,8 +17,30 @@ public class StageManager : MonoBehaviour
     public StageState CurrentState { get; private set; }
     public float BattleDuration { get; private set; }
 
+    [Header("Stage Data (Data-Driven)")]
+    [Tooltip("Danh sach StageData theo dung thu tu: index 0 = Stage 1, index 1 = Stage 2, ... " +
+             "Khi vao Battle, he thong tu chon StageData tuong ung voi SaveManager.Data.stageLevel.")]
+    [SerializeField] private EternalClash.Wave.StageData[] stageCatalog;
+
     private WaveManager waveManager;
     private float battleStartTime = -1f;
+
+    /// <summary>So man dang chay (doc tu tien trinh da luu truoc khi bat dau).</summary>
+    public int CurrentStageLevel { get; private set; } = 1;
+
+    /// <summary>StageData duoc nap cho man dang chay.</summary>
+    public EternalClash.Wave.StageData CurrentStageData { get; private set; }
+
+    /// <summary>Tong so man hien co (= do dai stageCatalog). Neu chua cau hinh thi mac dinh 1.</summary>
+    public int MaxStageLevel
+    {
+        get
+        {
+            if (stageCatalog == null || stageCatalog.Length == 0)
+                return 1;
+            return stageCatalog.Length;
+        }
+    }
 
     private void Awake()
     {
@@ -55,10 +77,12 @@ public class StageManager : MonoBehaviour
     public void StartStage()
     {
         EnsureWaveManager();
+        LoadStageForCurrentProgress();
+
         CurrentState = StageState.Running;
         BattleDuration = 0f;
         battleStartTime = Time.time;
-        Debug.Log("Stage Started");
+        Debug.Log($"[STAGE] Stage {CurrentStageLevel} Started - {StageDataName(CurrentStageData)}");
 
         if (waveManager != null)
         {
@@ -70,6 +94,47 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogWarning("[STAGE] WaveManager still missing after EnsureWaveManager().");
         }
+    }
+
+    /// <summary>
+    /// Doc stage da luu (SaveManager.Data.stageLevel) va nap StageData tuong ung
+    /// vao WaveManager truoc khi chay man. Khong hard-code stage nao trong code:
+    /// danh sach StageData duoc cau hinh o scene qua stageCatalog.
+    /// </summary>
+    private void LoadStageForCurrentProgress()
+    {
+        int savedLevel = 1;
+        if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
+            savedLevel = SaveManager.Instance.Data.stageLevel;
+
+        CurrentStageLevel = Mathf.Clamp(savedLevel, 1, MaxStageLevel);
+        CurrentStageData = GetStageData(CurrentStageLevel);
+
+        if (waveManager != null)
+            waveManager.SetStageData(CurrentStageData);
+    }
+
+    /// <summary>Lay StageData theo so man (1 = man dau tien), gioi han trong stageCatalog.</summary>
+    public EternalClash.Wave.StageData GetStageData(int stageLevel)
+    {
+        if (stageCatalog == null || stageCatalog.Length == 0)
+        {
+            Debug.LogError("[STAGE] stageCatalog chua duoc cau hinh trong scene Battle. " +
+                           "Gan danh sach StageData theo thu tu Stage 1..n.");
+            return null;
+        }
+
+        int index = Mathf.Clamp(stageLevel, 1, stageCatalog.Length) - 1;
+        return stageCatalog[index];
+    }
+
+    private string StageDataName(EternalClash.Wave.StageData data)
+    {
+        if (data == null)
+            return "(no StageData)";
+
+        int waveCount = data.waves != null ? data.waves.Length : 0;
+        return $"{data.name} ({waveCount} waves)";
     }
 
     public float GetBattleTime()
@@ -110,7 +175,10 @@ public class StageManager : MonoBehaviour
 
         if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
         {
-            SaveManager.Instance.Data.stageLevel = Mathf.Min(5, SaveManager.Instance.Data.stageLevel + 1);
+            // Clear thanh cong -> tang len man ke tiep, gioi han o man cuoi cung
+            // (so man lay tu stageCatalog de khong hard-code).
+            int nextStage = SaveManager.Instance.Data.stageLevel + 1;
+            SaveManager.Instance.Data.stageLevel = Mathf.Min(MaxStageLevel, nextStage);
             SaveManager.Instance.Save();
         }
     }
