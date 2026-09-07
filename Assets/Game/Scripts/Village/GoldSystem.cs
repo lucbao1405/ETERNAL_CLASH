@@ -31,9 +31,25 @@ namespace EternalClash.Village
             DontDestroyOnLoad(gameObject);
         }
 
+        /// <summary>
+        /// Tong vang nhat duoc ke tu dau tran hien tai. Popup ket qua doc gia tri
+        /// nay de bao dung so kiem duoc, thay vi cong them mot khoan thuong rieng.
+        /// Chi dem phan CONG vao, khong tru khi tieu tien.
+        /// </summary>
+        public int SessionGoldEarned { get; private set; }
+
+        /// <summary>Dat lai bo dem dau tran. StageManager goi khi bat dau man.</summary>
+        public void ResetSessionCounters()
+        {
+            SessionGoldEarned = 0;
+        }
+
         public void AddGold(int amount)
         {
+            if (amount <= 0) return;
+
             Gold += amount;
+            SessionGoldEarned += amount;
             OnGoldChanged?.Invoke(Gold);
             SyncSave();
             Debug.Log($"[GOLD] +{amount} -> Total: {Gold}");

@@ -45,6 +45,46 @@ namespace EternalClash.Village
         /// <summary>So diem tieu cho moi lan nang mot chi so.</summary>
         private const int STAT_POINT_COST = 1;
 
+        /// <summary>Max HP cong them cho moi diem VIT.</summary>
+        private const int VIT_MAX_HP = 15;
+
+        /// <summary>
+        /// Tong Max HP cong them tu VIT. HealthSystem doc gia tri nay luc Awake nen
+        /// bonus duoc ap lai dung moi lan Player spawn, thay vi bi mat theo prefab.
+        /// </summary>
+        public int BonusMaxHealth => Vitality * VIT_MAX_HP;
+
+        /// <summary>
+        /// Max HP goc cua Player khi chua cong VIT. Dung lam gia tri du phong cho
+        /// scene Town - o do khong co Player nao de hoi, nhung van can hien thanh mau.
+        /// Phai khop voi HealthSystem tren Player prefab; neu lech thi lan dau vao
+        /// Battle se tu duoc hieu chinh qua RegisterPlayerBaseMaxHealth().
+        /// </summary>
+        private const int FALLBACK_PLAYER_MAX_HEALTH = 100;
+
+        private int registeredBaseMaxHealth = -1;
+
+        /// <summary>Max HP goc dang dung (da hieu chinh neu tung gap Player that).</summary>
+        public int BasePlayerMaxHealth =>
+            registeredBaseMaxHealth > 0 ? registeredBaseMaxHealth : FALLBACK_PLAYER_MAX_HEALTH;
+
+        /// <summary>Tong Max HP = mau goc + bonus tu VIT.</summary>
+        public int TotalMaxHealth => BasePlayerMaxHealth + BonusMaxHealth;
+
+        /// <summary>
+        /// HealthSystem cua Player bao lai mau goc that su tren prefab khi no khoi tao.
+        /// Nho vay UI o Town khong phai doan, va neu ai do doi maxHealth tren prefab
+        /// thi con so hien ra van dung sau lan vao Battle dau tien.
+        /// </summary>
+        public void RegisterPlayerBaseMaxHealth(int baseMax)
+        {
+            if (baseMax <= 0 || registeredBaseMaxHealth == baseMax)
+                return;
+
+            registeredBaseMaxHealth = baseMax;
+            OnStatsChanged?.Invoke();
+        }
+
         /// <summary>
         /// Chi phi cong 1 diem chi so. UI doc gia tri nay de hien so tren nut,
         /// nen doi hang so o day la nut tu cap nhat theo.
@@ -56,7 +96,8 @@ namespace EternalClash.Village
 
         // Chi mang: nen 5%, moi diem LUCK them 1%, tran 50%.
         private const float BASE_CRIT_CHANCE = 0.05f;
-        private const float CRIT_CHANCE_PER_LUCK = 0.01f;
+        // GDD: moi diem LUCK cho +0.5% chi mang (va +1% ti le rot do hiem).
+        private const float CRIT_CHANCE_PER_LUCK = 0.005f;
         private const float MAX_CRIT_CHANCE = 0.5f;
         private const float CRIT_MULTIPLIER = 1.5f;
 
@@ -96,11 +137,25 @@ namespace EternalClash.Village
             }
         }
 
+        /// <summary>
+        /// Tong EXP nhan duoc ke tu dau tran hien tai (da tinh bonus INT).
+        /// Popup ket qua doc gia tri nay de bao dung so kiem duoc trong tran,
+        /// thay vi cong them mot khoan thuong rieng.
+        /// </summary>
+        public int SessionExpEarned { get; private set; }
+
+        /// <summary>Dat lai bo dem dau tran. StageManager goi khi bat dau man.</summary>
+        public void ResetSessionCounters()
+        {
+            SessionExpEarned = 0;
+        }
+
         public void AddExp(int amount)
         {
             float multiplier = 1f + (Intelligence * 0.05f);
             int finalExp = Mathf.RoundToInt(amount * multiplier);
             CurrentExp += finalExp;
+            SessionExpEarned += finalExp;
 
             while (CurrentExp >= RequiredExp)
             {
@@ -142,12 +197,29 @@ namespace EternalClash.Village
             Vitality++;
             RecalculateDerivedStats();
 
-            var player = GameObject.FindGameObjectWithTag("Player");
-            var health = player?.GetComponent<HealthSystem>();
-            if (health != null) health.IncreaseMaxHealth(15);
+            // Neu dang o Battle va Player dang song thi cap nhat ngay. Con o Town
+            // thi khong co Player nao ca - bonus van duoc luu qua Vitality va se
+            // duoc HealthSystem doc lai luc Player spawn o tran sau.
+            ApplyMaxHealthToLivePlayer();
 
             SyncToSave();
             OnStatsChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Cap nhat Max HP cho Player dang ton tai trong scene (neu co).
+        /// Truoc day AllocateVitality() goi thang IncreaseMaxHealth(15), nhung:
+        ///  - Trong Town khong co Player nao nen lenh do khong bao gio chay.
+        ///  - HealthSystem.Awake() dat lai maxHealth tu prefab moi lan spawn nen
+        ///    bonus cong don kieu do khong song qua duoc mot lan doi scene.
+        /// </summary>
+        public void ApplyMaxHealthToLivePlayer()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            var health = player != null ? player.GetComponent<HealthSystem>() : null;
+
+            if (health != null)
+                health.ApplyBonusMaxHealth(BonusMaxHealth);
         }
 
         public void AllocateLuck()

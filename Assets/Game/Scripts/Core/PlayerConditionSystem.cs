@@ -21,8 +21,21 @@ namespace EternalClash.Core
 
         public PlayerCondition Condition { get; private set; } = PlayerCondition.Normal;
 
+        /// <summary>
+        /// Hoi mau theo TUNG DOT: cu moi <see cref="RECOVERY_TICK_SECONDS"/> giay thi
+        /// cong mot lan bang phan tram nay cua Max HP. Tinh theo phan tram nen nhan
+        /// vat mau nhieu hay it deu hoi day trong cung mot khoang thoi gian.
+        /// </summary>
         public const float DEFAULT_RECOVERY_RATE = 5f;
-        public const int DEFAULT_RECOVERY_TARGET_PERCENT = 80;
+
+        /// <summary>Khoang cach giua hai dot hoi mau, tinh bang giay.</summary>
+        public const float RECOVERY_TICK_SECONDS = 5f;
+
+        /// <summary>Hoi den bao nhieu phan tram Max HP thi coi la khoi han.</summary>
+        public const int DEFAULT_RECOVERY_TARGET_PERCENT = 100;
+
+        /// <summary>Phan tram Max HP duoc hoi ngay khi ve lang sau khi chet.</summary>
+        public const int REVIVE_HP_PERCENT = 10;
 
         public event Action<PlayerCondition> OnConditionChanged;
         public event Action<int, int> OnRecoveredHpChanged;
@@ -52,6 +65,15 @@ namespace EternalClash.Core
             DontDestroyOnLoad(gameObject);
         }
 
+        /// <summary>
+        /// So HP hoi duoc trong mot dot. Lam tron len va toi thieu 1 de nhan vat
+        /// mau thap khong bi ket vinh vien vi moi dot lam tron xuong thanh 0.
+        /// </summary>
+        private int HealPerTick()
+        {
+            return Mathf.Max(1, Mathf.CeilToInt(maxHp * recoveryRatePerSecond / 100f));
+        }
+
         private void Update()
         {
             if (Condition != PlayerCondition.Injured)
@@ -68,26 +90,34 @@ namespace EternalClash.Core
                 return;
             }
 
-            recoveryAccumulator += recoveryRatePerSecond * Time.deltaTime;
-            int whole = Mathf.FloorToInt(recoveryAccumulator);
-            if (whole > 0)
-            {
-                recoveryAccumulator -= whole;
-                currentHp = Mathf.Min(currentHp + whole, maxHp);
-                OnRecoveredHpChanged?.Invoke(currentHp, maxHp);
-                SyncToSave();
+            // Hoi theo tung dot: dem thoi gian, du mot chu ky thi cong mot cuc.
+            // recoveryAccumulator o day la SO GIAY da tich, khong phai so HP.
+            recoveryAccumulator += Time.deltaTime;
 
-                if (currentHp >= targetHp)
-                {
-                    CompleteRecovery();
-                }
-            }
+            int ticks = Mathf.FloorToInt(recoveryAccumulator / RECOVERY_TICK_SECONDS);
+            if (ticks <= 0)
+                return;
+
+            recoveryAccumulator -= ticks * RECOVERY_TICK_SECONDS;
+
+            currentHp = Mathf.Min(currentHp + HealPerTick() * ticks, maxHp);
+            OnRecoveredHpChanged?.Invoke(currentHp, maxHp);
+            SyncToSave();
+
+            if (currentHp >= targetHp)
+                CompleteRecovery();
         }
 
-        public void MarkInjured(int hpAtDefeat, int playerMaxHp)
+        /// <summary>
+        /// Danh dau nguoi choi da guc va bat dau hoi phuc. Mau duoc dat lai o
+        /// <see cref="REVIVE_HP_PERCENT"/>% Max HP - nguoi choi chet voi 0 mau nhung
+        /// ve lang thi hoi sinh voi mot phan mau, roi tu hoi tiep theo thoi gian.
+        /// </summary>
+        public void MarkInjured(int playerMaxHp)
         {
             maxHp = Mathf.Max(1, playerMaxHp);
-            currentHp = Mathf.Clamp(hpAtDefeat, 0, maxHp);
+            currentHp = Mathf.Clamp(
+                Mathf.CeilToInt(maxHp * REVIVE_HP_PERCENT / 100f), 1, maxHp);
             recoveryRatePerSecond = DEFAULT_RECOVERY_RATE;
             recoveryTargetPercent = DEFAULT_RECOVERY_TARGET_PERCENT;
             recoveryAccumulator = 0f;
@@ -139,7 +169,11 @@ namespace EternalClash.Core
             long elapsed = Math.Max(0L, nowUnix - data.recoveryStartUnixTime);
             if (elapsed <= 0) return;
 
-            int recovered = Mathf.FloorToInt(elapsed * recoveryRatePerSecond);
+            // Cung cach tinh voi Update(): dem xem da qua bao nhieu dot tron ven.
+            int ticks = Mathf.FloorToInt(elapsed / RECOVERY_TICK_SECONDS);
+            if (ticks <= 0) return;
+
+            int recovered = HealPerTick() * ticks;
             if (recovered <= 0) return;
 
             int targetHp = Mathf.CeilToInt(maxHp * recoveryTargetPercent / 100f);

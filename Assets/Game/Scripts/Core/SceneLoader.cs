@@ -7,6 +7,12 @@ namespace EternalClash.Core
     {
         public static void LoadScene(string sceneName)
         {
+            // HealthSystem.Die() dat Time.timeScale = 0 khi Player chet va khong noi
+            // nao dat lai. Neu khong khoi phuc o day thi scene moi (Town) se dung
+            // hinh: hoi mau theo thoi gian khong chay, hoat anh dung im.
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+
             SceneManager.LoadScene(sceneName);
         }
 

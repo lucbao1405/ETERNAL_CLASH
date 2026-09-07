@@ -131,13 +131,17 @@ namespace EternalClash.Stage
 
             float stageTime = ResolveBattleTime(60f);
 
-            int baseExp = 100;
             int stageLevel = SaveManager.Instance != null && SaveManager.Instance.Data != null
                 ? Mathf.Clamp(SaveManager.Instance.Data.stageLevel, 1, 5)
                 : 1;
-            int earnedExp = baseExp + Mathf.RoundToInt(stageTime) * 2;
 
-            int earnedGold = Random.Range(30, 80);
+            // Khong con thuong them khi thang. Popup bao dung so EXP va vang da kiem
+            // duoc trong tran (nhat tu quai va vat pham) - nhung so nay da duoc cong
+            // vao tai khoan ngay luc nhat roi, o day chi doc lai de hien thi.
+            int earnedExp = PlayerStatSystem.Instance != null
+                ? PlayerStatSystem.Instance.SessionExpEarned : 0;
+            int earnedGold = GoldSystem.Instance != null
+                ? GoldSystem.Instance.SessionGoldEarned : 0;
 
             currentReward = RewardGenerator.GenerateStageReward(stageLevel);
 
@@ -272,13 +276,10 @@ namespace EternalClash.Stage
             if (stageResult == null) return;
 
             var goldSys = GoldSystem.Instance;
-            var stats = PlayerStatSystem.Instance;
 
-            if (goldSys != null)
-                goldSys.AddGold(stageResult.earnedGold);
-
-            if (stats != null)
-                stats.AddExp(stageResult.earnedExp);
+            // Khong cong lai earnedGold / earnedExp: hai con so do la TONG da kiem
+            // duoc trong tran va da vao tai khoan ngay luc nhat. Cong them lan nua
+            // se thanh nhan doi. O day chi trao phan thuong cua ruong.
 
             // Trao phan thuong cua ruong theo dung loai. Truoc day chi xu ly Material:
             // phan thuong Gold bi bo qua (popup van hien so nen nguoi choi thay thieu
@@ -378,8 +379,15 @@ namespace EternalClash.Stage
             isProcessing = false;
             defeatProcessed = false;
 
+            // Chi hoi day mau khi THANG. Neu vua thua thi phai giu nguyen trang thai
+            // thuong tich ma BeginDefeatFlow() vua dat - truoc day doan nay chay vo
+            // dieu kien nen no xoa sach trang thai do va co che hoi phuc khong bao
+            // gio chay duoc.
+            bool injured = EternalClash.Core.PlayerConditionSystem.Instance != null
+                && EternalClash.Core.PlayerConditionSystem.Instance.IsInjured;
+
             var data = SaveManager.Instance?.Data;
-            if (data != null)
+            if (data != null && !injured)
             {
                 data.playerCondition = (int)PlayerCondition.Normal;
                 var player = GameObject.FindGameObjectWithTag("Player");
@@ -404,14 +412,18 @@ namespace EternalClash.Stage
 
             float stageTime = ResolveBattleTime(0f);
 
-            int baseExp = 10;
-            int earnedExp = Mathf.Max(0, Mathf.RoundToInt(stageTime) / 6);
+            // Thua cung giu nguyen nhung gi da kiem duoc trong tran, khong bi tru.
+            // Cach tinh giong het luong thang - chi khac la khong co ruong phan thuong.
+            int earnedExp = PlayerStatSystem.Instance != null
+                ? PlayerStatSystem.Instance.SessionExpEarned : 0;
+            int earnedGold = GoldSystem.Instance != null
+                ? GoldSystem.Instance.SessionGoldEarned : 0;
 
             stageResult = new StageResultData
             {
                 stageTime = stageTime,
                 earnedExp = earnedExp,
-                earnedGold = 0,
+                earnedGold = earnedGold,
                 rewards = new System.Collections.Generic.List<RewardData>()
             };
 
@@ -420,19 +432,17 @@ namespace EternalClash.Stage
             {
                 var health = player.GetComponent<EternalClash.Character.HealthSystem>();
                 int maxHp = health != null ? health.MaxHealth : 100;
-                EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(0, maxHp);
+                EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(maxHp);
             }
             else
             {
-                EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(0, 100);
+                int maxHp = PlayerStatSystem.Instance != null
+                    ? PlayerStatSystem.Instance.TotalMaxHealth : 100;
+                EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(maxHp);
             }
 
-            // Trao EXP an ui cho lan thua. Truoc day con so nay chi duoc hien len
-            // popup chu khong bao gio duoc cong that - GrantReward() chi chay o
-            // nhanh thang. Chi cong EXP, khong cong vang (earnedGold = 0).
-            if (earnedExp > 0)
-                PlayerStatSystem.Instance?.AddExp(earnedExp);
-
+            // Khong cong lai gi o day: EXP va vang deu da vao tai khoan ngay luc
+            // nhat trong tran. Cong them nua se thanh nhan doi.
             ShowDefeatPopup(stageTime, earnedExp);
 
             Debug.Log("[DEFEAT] Defeat result UI shown.");
