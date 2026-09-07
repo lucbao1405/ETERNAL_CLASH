@@ -40,6 +40,7 @@ namespace EternalClash.UI
 
         private readonly List<TMP_Text> goldTexts = new List<TMP_Text>();
         private readonly List<TMP_Text> gemTexts = new List<TMP_Text>();
+        private readonly List<TMP_Text> hpTexts = new List<TMP_Text>();
 
         // O chu hien chi phi tren mat tung nut nang cap.
         private readonly List<TMP_Text> costLabels = new List<TMP_Text>();
@@ -48,6 +49,11 @@ namespace EternalClash.UI
         private static readonly Color CostBlockedColor = new Color(0.75f, 0.4f, 0.4f);
 
         private TMP_Text pointsText;
+
+        // True khi o hien diem la object co san trong scene (vd "Point"). Luc do chi
+        // ghi con so, vi nhan chu da duoc nguoi dung UI thiet ke san canh do roi.
+        private bool pointsTextIsSceneObject;
+
         private bool initialized;
         private bool subscribed;
 
@@ -136,6 +142,13 @@ namespace EternalClash.UI
                 GoldSystem.Instance.OnGemChanged -= OnCurrencyChanged;
             }
 
+            var condition = EternalClash.Core.PlayerConditionSystem.Instance;
+            if (condition != null)
+            {
+                condition.OnRecoveredHpChanged -= OnRecoveredHpChanged;
+                condition.OnRecoveryCompleted -= Refresh;
+            }
+
             // Danh dau da go, de OnEnable/Update dang ky lai duoc.
             subscribed = false;
         }
@@ -168,8 +181,21 @@ namespace EternalClash.UI
                 GoldSystem.Instance.OnGemChanged += OnCurrencyChanged;
             }
 
+            // Hoi mau khi bi thuong xay ra dan theo thoi gian, nen thanh HP phai
+            // cap nhat theo chu khong chi ve mot lan luc mo Town.
+            var condition = EternalClash.Core.PlayerConditionSystem.Instance;
+            if (condition != null)
+            {
+                condition.OnRecoveredHpChanged -= OnRecoveredHpChanged;
+                condition.OnRecoveredHpChanged += OnRecoveredHpChanged;
+                condition.OnRecoveryCompleted -= Refresh;
+                condition.OnRecoveryCompleted += Refresh;
+            }
+
             subscribed = true;
         }
+
+        private void OnRecoveredHpChanged(int current, int max) => Refresh();
 
         private void Initialize()
         {
@@ -214,6 +240,9 @@ namespace EternalClash.UI
             // Cau truc giong cac nhom chi so: Icon + mot o chu la con truc tiep.
             CollectDirectChildTexts(scene, "Vang", goldTexts);
             CollectDirectChildTexts(scene, "Kim_Cuong", gemTexts);
+
+            // --- Thanh mau: Stat/Hp/So_Hp ---
+            CollectDirectChildTexts(scene, "Hp", hpTexts);
 
             pointsText = CreatePointsLabel(staUpdate);
 
@@ -333,8 +362,45 @@ namespace EternalClash.UI
         /// Tao nhan "Diem cong: N" phia tren cum nut. Sta_Update co Layout Group nen
         /// nhan duoc dat lam con cua panel cha, khong chen vao trong cum nut.
         /// </summary>
+        /// <summary>
+        /// Ten cac object trong scene co the dung lam cho hien so diem. Uu tien dung
+        /// object co san do nguoi dung UI tao, chi khi khong co moi tu tao nhan moi.
+        /// </summary>
+        private static readonly string[] PointsObjectNames =
+        {
+            "Point", "Points", "So_Point", "Diem", "So_Diem", "StatPoint", "StatPoints"
+        };
+
         private TMP_Text CreatePointsLabel(Transform staUpdate)
         {
+            Scene scene = gameObject.scene;
+
+            // 1) Uu tien object co san trong scene ten "Point" (hoac cac bien the).
+            //    O chu co the nam ngay tren object do, hoac la con truc tiep cua no
+            //    theo dung kieu Icon + Text ma UI nay dang dung o cho khac.
+            foreach (string name in PointsObjectNames)
+            {
+                foreach (Transform candidate in FindAllInScene(scene, name))
+                {
+                    TMP_Text own = candidate.GetComponent<TMP_Text>();
+                    if (own != null)
+                    {
+                        pointsTextIsSceneObject = true;
+                        Debug.Log($"[TownStat] Hien so diem tren object co san '{name}'.");
+                        return own;
+                    }
+
+                    TMP_Text child = FirstDirectChildText(candidate);
+                    if (child != null)
+                    {
+                        pointsTextIsSceneObject = true;
+                        Debug.Log($"[TownStat] Hien so diem tren con cua '{name}'.");
+                        return child;
+                    }
+                }
+            }
+
+            // 2) Khong co thi tu tao nhan canh cum nut.
             if (staUpdate == null)
                 return null;
 
@@ -441,10 +507,16 @@ namespace EternalClash.UI
             Apply(luckTexts, stats.Luck);
             Apply(levelTexts, stats.Level);
 
+            ApplyHealthTexts(stats);
+
             if (pointsText != null)
-                pointsText.text = stats.CanAllocate
-                    ? $"Diem cong: {stats.StatPoints}"
-                    : "Het diem cong";
+            {
+                // O co san trong scene: chi ghi con so, giu nguyen phan nhan chu
+                // va icon ma nguoi dung UI da dat canh do.
+                pointsText.text = pointsTextIsSceneObject
+                    ? stats.StatPoints.ToString()
+                    : (stats.CanAllocate ? $"Diem cong: {stats.StatPoints}" : "Het diem cong");
+            }
 
             // Chi phi hien tren mat tung nut. Doi mau khi khong du diem de nguoi choi
             // thay ngay la dang thieu chu khong phai nut hong.
@@ -465,6 +537,36 @@ namespace EternalClash.UI
             if (intButton != null) intButton.interactable = hasPoints;
             if (vitButton != null) vitButton.interactable = hasPoints;
             if (luckButton != null) luckButton.interactable = hasPoints;
+        }
+
+        /// <summary>
+        /// Hien "mau hien tai / mau toi da". O Town khong co Player nao de hoi, nen:
+        ///  - Mau toi da lay tu PlayerStatSystem.TotalMaxHealth (goc + bonus VIT).
+        ///  - Mau hien tai lay tu PlayerConditionSystem neu no dang giu trang thai
+        ///    thuong tich; khong thi coi nhu day mau.
+        /// </summary>
+        private void ApplyHealthTexts(PlayerStatSystem stats)
+        {
+            if (hpTexts.Count == 0)
+                return;
+
+            int maxHp = stats.TotalMaxHealth;
+            int currentHp = maxHp;
+
+            var condition = EternalClash.Core.PlayerConditionSystem.Instance;
+            if (condition != null && condition.MaxHp > 0 && condition.IsInjured)
+            {
+                // Dang thuong tich: hien so mau that dang hoi, nhung van dung tran
+                // la TotalMaxHealth de khong lech voi chi so VIT vua cong.
+                currentHp = Mathf.Clamp(condition.CurrentHp, 0, maxHp);
+            }
+
+            string line = $"{currentHp}/{maxHp}";
+            for (int i = 0; i < hpTexts.Count; i++)
+            {
+                if (hpTexts[i] != null)
+                    hpTexts[i].text = line;
+            }
         }
 
         private static void Apply(List<TMP_Text> texts, int value)

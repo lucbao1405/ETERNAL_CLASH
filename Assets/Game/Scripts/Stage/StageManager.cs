@@ -82,6 +82,12 @@ public class StageManager : MonoBehaviour
         CurrentState = StageState.Running;
         BattleDuration = 0f;
         battleStartTime = Time.time;
+
+        // Dat lai bo dem dau tran de popup ket qua bao dung so EXP/vang kiem duoc
+        // trong chinh man nay. Vang va EXP van duoc cong ngay luc nhat, day chi la
+        // bo dem de hien thi.
+        EternalClash.Village.PlayerStatSystem.Instance?.ResetSessionCounters();
+        EternalClash.Village.GoldSystem.Instance?.ResetSessionCounters();
         Debug.Log($"[STAGE] Stage {CurrentStageLevel} Started - {StageDataName(CurrentStageData)}");
 
         if (waveManager != null)
