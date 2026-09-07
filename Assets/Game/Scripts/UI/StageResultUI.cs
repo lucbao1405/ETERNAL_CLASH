@@ -57,6 +57,7 @@ namespace EternalClash.UI
         private StageResultMode currentMode = StageResultMode.Victory;
         private int defeatEarnedExp;
         private PlayerStatSystem boundStats;
+        private Canvas parentCanvas;
 
         private void Start()
         {
@@ -69,10 +70,14 @@ namespace EternalClash.UI
             ResolveBandrollVictoryRoot();
             BindPlayerStats();
             RefreshUI();
+            RaiseCanvasSorting();
+            DisableCharacterRenderers();
         }
 
         private void OnDisable()
         {
+            RestoreCanvasSorting();
+            RestoreCharacterRenderers();
             UnbindPlayerStats();
         }
 
@@ -294,6 +299,67 @@ namespace EternalClash.UI
                 TMP_Text btnLabel = continueButton.GetComponentInChildren<TMP_Text>();
                 if (btnLabel != null)
                     btnLabel.text = "Continue";
+            }
+        }
+
+        private void RaiseCanvasSorting()
+        {
+            if (parentCanvas == null)
+                parentCanvas = GetComponentInParent<Canvas>();
+
+            if (parentCanvas != null)
+            {
+                parentCanvas.overrideSorting = true;
+                parentCanvas.sortingOrder = 100;
+            }
+
+            DisableCharacterRenderers();
+        }
+
+        private void RestoreCanvasSorting()
+        {
+            if (parentCanvas != null)
+            {
+                parentCanvas.overrideSorting = false;
+                parentCanvas.sortingOrder = 4;
+            }
+        }
+
+        private void DisableCharacterRenderers()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                var renderers = player.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                    r.enabled = false;
+            }
+
+            var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            foreach (var enemy in enemies)
+            {
+                var renderers = enemy.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                    r.enabled = false;
+            }
+        }
+
+        private void RestoreCharacterRenderers()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                var renderers = player.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                    r.enabled = true;
+            }
+
+            var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            foreach (var enemy in enemies)
+            {
+                var renderers = enemy.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                    r.enabled = true;
             }
         }
 
