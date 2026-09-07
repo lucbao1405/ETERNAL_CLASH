@@ -21,15 +21,23 @@ public class SmoothSlide : MonoBehaviour
 
     void Start()
     {
-        // Khởi tạo vị trí ban đầu ở ngoài màn hình
+        if (panelRect == null)
+            panelRect = GetComponent<RectTransform>();
+
+        if (panelRect == null)
+        {
+            Debug.LogError("[SmoothSlide] panelRect is not assigned and no RectTransform found on this GameObject.", this);
+            enabled = false;
+            return;
+        }
+
         panelRect.anchoredPosition = offScreenPos;
         targetPos = offScreenPos;
-        
-        // Khởi tạo nền tối tàng hình ban đầu
+
         if (darkOverlay != null)
         {
             darkOverlay.alpha = 0f;
-            darkOverlay.blocksRaycasts = false; 
+            darkOverlay.blocksRaycasts = false;
         }
     }
 
