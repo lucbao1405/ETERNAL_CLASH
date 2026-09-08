@@ -3,6 +3,14 @@ using EternalClash.Core.Save;
 
 namespace EternalClash.Village
 {
+    /// <summary>Cac loai nguyen lieu che tao trong game.</summary>
+    public enum MaterialType
+    {
+        Ore,
+        Leather,
+        Wood
+    }
+
     public class GoldSystem : MonoBehaviour
     {
         public static GoldSystem Instance { get; private set; }
@@ -14,6 +22,7 @@ namespace EternalClash.Village
 
         public int OreMaterial { get; private set; }
         public int LeatherMaterial { get; private set; }
+        public int WoodMaterial { get; private set; }
 
         public event System.Action<int> OnGoldChanged;
         public event System.Action<int> OnGemChanged;
@@ -85,6 +94,54 @@ namespace EternalClash.Village
             return true;
         }
 
+        /// <summary>
+        /// Cong mot loai nguyen lieu. Dung cho vat pham nhat duoc tren ban do -
+        /// moi vat pham chi cho mot loai nen khong can ham nhieu tham so.
+        /// </summary>
+        public void AddMaterial(MaterialType type, int amount)
+        {
+            if (amount <= 0) return;
+
+            switch (type)
+            {
+                case MaterialType.Ore: OreMaterial += amount; break;
+                case MaterialType.Leather: LeatherMaterial += amount; break;
+                case MaterialType.Wood: WoodMaterial += amount; break;
+            }
+
+            OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
+            SyncSave();
+            Debug.Log($"[MATERIALS] +{amount} {type} -> Total: {GetMaterial(type)}");
+        }
+
+        public int GetMaterial(MaterialType type)
+        {
+            switch (type)
+            {
+                case MaterialType.Ore: return OreMaterial;
+                case MaterialType.Leather: return LeatherMaterial;
+                case MaterialType.Wood: return WoodMaterial;
+                default: return 0;
+            }
+        }
+
+        public bool SpendMaterial(MaterialType type, int amount)
+        {
+            if (amount <= 0) return false;
+            if (GetMaterial(type) < amount) return false;
+
+            switch (type)
+            {
+                case MaterialType.Ore: OreMaterial -= amount; break;
+                case MaterialType.Leather: LeatherMaterial -= amount; break;
+                case MaterialType.Wood: WoodMaterial -= amount; break;
+            }
+
+            OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
+            SyncSave();
+            return true;
+        }
+
         public void AddMaterials(int ore, int leather)
         {
             OreMaterial += ore;
@@ -112,6 +169,7 @@ namespace EternalClash.Village
             Gem = data.gem;
             OreMaterial = data.oreMaterial;
             LeatherMaterial = data.leatherMaterial;
+            WoodMaterial = data.woodMaterial;
 
             // Bao cho UI biet gia tri vua duoc nap, neu khong thi man hinh van giu
             // chu placeholder cho toi lan thay doi dau tien.
@@ -128,6 +186,7 @@ namespace EternalClash.Village
                 SaveManager.Instance.Data.gem = Gem;
                 SaveManager.Instance.Data.oreMaterial = OreMaterial;
                 SaveManager.Instance.Data.leatherMaterial = LeatherMaterial;
+                SaveManager.Instance.Data.woodMaterial = WoodMaterial;
                 SaveManager.Instance.Save();
             }
         }

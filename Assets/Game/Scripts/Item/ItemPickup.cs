@@ -7,7 +7,12 @@ namespace EternalClash.Item
     {
         Potion,
         Gold,
-        Exp
+        Exp,
+        // Them vao CUOI enum: gia tri so cua Potion/Gold/Exp giu nguyen nen cac
+        // prefab da cau hinh tu truoc khong bi lech loai.
+        Ore,
+        Leather,
+        Wood
     }
 
     public class ItemPickup : MonoBehaviour
@@ -70,6 +75,22 @@ namespace EternalClash.Item
                 case ItemType.Exp:
                     EternalClash.Village.PlayerStatSystem.Instance?.AddExp(amount);
                     Debug.Log("[ITEM] EXP +" + amount);
+                    break;
+
+                // Nguyen lieu che tao: AddMaterial() tu ghi save nen khong can lam gi them.
+                case ItemType.Ore:
+                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
+                        EternalClash.Village.MaterialType.Ore, amount);
+                    break;
+
+                case ItemType.Leather:
+                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
+                        EternalClash.Village.MaterialType.Leather, amount);
+                    break;
+
+                case ItemType.Wood:
+                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
+                        EternalClash.Village.MaterialType.Wood, amount);
                     break;
             }
 
