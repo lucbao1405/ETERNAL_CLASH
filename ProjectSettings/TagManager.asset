@@ -14,6 +14,7 @@ TagManager:
   - Panel
   - Button
   - Image
+  - Item
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - BackGround
   - PlayerDetect
   - UIWorld
-  - 
+  - Item
   - 
   - 
   - 
@@ -51,9 +52,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: UI
-    uniqueID: 456390319
-    locked: 0
   - name: BackGround
     uniqueID: 3493580911
     locked: 0
@@ -72,18 +70,21 @@ TagManager:
   - name: Ground
     uniqueID: 640554009
     locked: 0
-  - name: Player
-    uniqueID: 1645145209
-    locked: 0
   - name: Effect
     uniqueID: 2907239353
-    locked: 0
-  - name: Enemy
-    uniqueID: 141949279
     locked: 0
   - name: Popupdmg
     uniqueID: 1254822279
     locked: 0
   - name: Item
     uniqueID: 2745280903
+    locked: 0
+  - name: Player
+    uniqueID: 1645145209
+    locked: 0
+  - name: Enemy
+    uniqueID: 141949279
+    locked: 0
+  - name: UI
+    uniqueID: 456390319
     locked: 0

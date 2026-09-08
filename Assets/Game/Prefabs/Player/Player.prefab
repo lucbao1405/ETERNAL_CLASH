@@ -685,7 +685,7 @@ MonoBehaviour:
   cooldown: 5
   chargeMultiplier: 2.5
   chargeDuration: 1.5
-  baseDamage: 20
+  baseDamage: 15
   knockbackForce: 2.5
   stunDuration: 1.5
 --- !u!1 &3680067286225788542
@@ -825,6 +825,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea2abe0923de2e44986dc57f83893dcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  chargeReach: 1.1
+  verticalTolerance: 1
 --- !u!1 &8467807564603379602
 GameObject:
   m_ObjectHideFlags: 0
