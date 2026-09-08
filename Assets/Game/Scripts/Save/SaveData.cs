@@ -9,6 +9,7 @@ public class SaveData
     public int gem = 0;
     public int oreMaterial = 0;
     public int leatherMaterial = 0;
+    public int woodMaterial = 0;
 
     // Progression
     public int level = 1;

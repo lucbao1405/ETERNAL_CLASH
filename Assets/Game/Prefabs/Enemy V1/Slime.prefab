@@ -428,10 +428,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 049da3b2adb6513458dc6a4064c7bc21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dropPrefabs: []
+  dropPrefabs:
+  - {fileID: 1124958982350944136, guid: 2d21221e847f62a4c8d50138270b4d19, type: 3}
+  - {fileID: 5309306437869403614, guid: 7e643d219a1b9ea4289c70dd110526fb, type: 3}
   expReward: 5
   expPickupPrefab: {fileID: 6455461337433564593, guid: 7ea2456fa51da7a4cb9e83c1d498874d, type: 3}
-  oreReward: 1
+  oreReward: 0
   leatherReward: 0
 --- !u!114 &9081691796644040037
 MonoBehaviour:
