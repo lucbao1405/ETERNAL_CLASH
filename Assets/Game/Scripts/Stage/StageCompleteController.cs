@@ -8,6 +8,7 @@ using EternalClash.World;
 using EternalClash.Player;
 using EternalClash.Combat;
 using EternalClash.Wave;
+using EternalClash.BattleResult;
 
 namespace EternalClash.Stage
 {
@@ -125,6 +126,13 @@ namespace EternalClash.Stage
         public void BeginPostStageFlow()
         {
             if (isProcessing) return;
+
+            // Neu co BattleResultFlowController (he thong popup moi) trong scene thi
+            // de no dieu khien toan bo flow thang (chest -> reward -> win popup).
+            if (BattleResultFlowController.Instance != null &&
+                BattleResultFlowController.Instance.StartVictoryFlow())
+                return;
+
             isProcessing = true;
 
             StopCombat();
@@ -156,7 +164,11 @@ namespace EternalClash.Stage
             SpawnChest();
         }
 
-        private void StopCombat()
+        /// <summary>
+        /// Dung combat/scroll/spawn. Public de BattleResultFlowController goi lai khi
+        /// no tiep quan flow ket qua.
+        /// </summary>
+        public void StopCombat()
         {
             var scroller = FindObjectOfType<WorldScroller>();
             if (scroller != null)
@@ -406,6 +418,13 @@ namespace EternalClash.Stage
         public void BeginDefeatFlow()
         {
             if (defeatProcessed) return;
+
+            // Neu co BattleResultFlowController (he thong popup moi) trong scene thi
+            // de no dieu khien toan bo flow thua (lose popup, khong chay chest).
+            if (BattleResultFlowController.Instance != null &&
+                BattleResultFlowController.Instance.StartDefeatFlow())
+                return;
+
             defeatProcessed = true;
 
             StopCombat();
@@ -427,6 +446,21 @@ namespace EternalClash.Stage
                 rewards = new System.Collections.Generic.List<RewardData>()
             };
 
+            MarkPlayerInjured();
+
+            // Khong cong lai gi o day: EXP va vang deu da vao tai khoan ngay luc
+            // nhat trong tran. Cong them nua se thanh nhan doi.
+            ShowDefeatPopup(stageTime, earnedExp);
+
+            Debug.Log("[DEFEAT] Defeat result UI shown.");
+        }
+
+        /// <summary>
+        /// Danh dau Player bi thuong (Injured) de hoi phuc khi ve lang.
+        /// Public cho BattleResultFlowController dung lai khi no tiep quan flow thua.
+        /// </summary>
+        public void MarkPlayerInjured()
+        {
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
@@ -440,12 +474,6 @@ namespace EternalClash.Stage
                     ? PlayerStatSystem.Instance.TotalMaxHealth : 100;
                 EternalClash.Core.PlayerConditionSystem.Instance?.MarkInjured(maxHp);
             }
-
-            // Khong cong lai gi o day: EXP va vang deu da vao tai khoan ngay luc
-            // nhat trong tran. Cong them nua se thanh nhan doi.
-            ShowDefeatPopup(stageTime, earnedExp);
-
-            Debug.Log("[DEFEAT] Defeat result UI shown.");
         }
 
         public void OnDefeatContinueClicked()

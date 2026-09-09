@@ -17,6 +17,13 @@ namespace EternalClash.Item
 
     public class ItemPickup : MonoBehaviour
     {
+        /// <summary>
+        /// Duoc goi moi khi Player nhat mot vat pham (truoc khi huy prefab).
+        /// BattleResultFlowController lang nghe su kien nay de ghi nhan battle loot
+        /// nhat duoc trong tran. Tham so la pickup va so luong.
+        /// </summary>
+        public static event System.Action<ItemPickup, int> OnItemCollected;
+
         public ItemType itemType;
         public int amount = 10;
         public float magnetRange = 2f;
@@ -113,6 +120,7 @@ namespace EternalClash.Item
             }
 
             Debug.Log("[ITEM] Collected " + itemType);
+            OnItemCollected?.Invoke(this, amount);
             Destroy(gameObject);
         }
     }

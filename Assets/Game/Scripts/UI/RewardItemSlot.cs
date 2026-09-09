@@ -20,10 +20,40 @@ namespace EternalClash.UI
         private void Awake()
         {
             if (itemPic == null)
-                itemPic = GetComponent<Image>();
+            {
+                Image childPic = FindChildImage(transform, "ItemPic");
+                itemPic = childPic != null ? childPic : GetComponent<Image>();
+            }
 
             if (soluongText == null)
-                soluongText = GetComponentInChildren<TMP_Text>();
+                soluongText = GetComponentInChildren<TMP_Text>(true);
+        }
+
+        // Slot "1..8": root Image là khung slot, icon thật nằm ở Image con "ItemPic".
+        private static Image FindChildImage(Transform root, string name)
+        {
+            foreach (Transform child in root)
+            {
+                if (Normalize(child.name) == Normalize(name))
+                    return child.GetComponent<Image>();
+                Image nested = FindChildImage(child, name);
+                if (nested != null)
+                    return nested;
+            }
+            return null;
+        }
+
+        private static string Normalize(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+            var buffer = new System.Text.StringBuilder(value.Length);
+            foreach (char c in value)
+            {
+                if (char.IsLetterOrDigit(c))
+                    buffer.Append(char.ToLowerInvariant(c));
+            }
+            return buffer.ToString();
         }
 
         public void SetSprite(Sprite sprite)
