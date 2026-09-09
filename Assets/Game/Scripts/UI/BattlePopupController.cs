@@ -7,6 +7,7 @@ using TMPro;
 using EternalClash.Stage;
 using EternalClash.Data;
 using EternalClash.Village;
+using EternalClash.BattleResult;
 
 namespace EternalClash.UI
 {
@@ -479,13 +480,27 @@ namespace EternalClash.UI
             closeSettingsButton = EnsureButton(closeTransform);
 
             settingMotion = PreparePanel(settingPanel, settingOnScreenY);
-            winMotion = PreparePanel(winPopup, resultOnScreenY);
-            loseMotion = PreparePanel(losePopup, resultOnScreenY);
+
+            // Khi BattleResultFlowController có trong scene, controller đó tự quản lý
+            // toàn bộ Win/Lose popup (chest -> reward -> win/lose). Controller cũ chỉ
+            // cần đảm bảo hai popup bị ẩn lúc đầu, KHÔNG lùi ra ngoài màn hình, KHÔNG
+            // tạo CanvasGroup và KHÔNG bind nút Return (tránh gọi thoát trận hai lần).
+            if (BattleResultFlowController.Instance != null)
+            {
+                if (winPopup != null)
+                    winPopup.gameObject.SetActive(false);
+                if (losePopup != null)
+                    losePopup.gameObject.SetActive(false);
+            }
+            else
+            {
+                winMotion = PreparePanel(winPopup, resultOnScreenY);
+                loseMotion = PreparePanel(losePopup, resultOnScreenY);
+                BindResultPanel(winMotion, victory: true);
+                BindResultPanel(loseMotion, victory: false);
+            }
 
             BindSettingsPanel();
-            BindResultPanel(winMotion, victory: true);
-            BindResultPanel(loseMotion, victory: false);
-
             WireButtons();
 
             if (settingsButton == null)
