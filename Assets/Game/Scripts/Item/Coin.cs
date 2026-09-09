@@ -1,46 +1,23 @@
 using UnityEngine;
-using EternalClash.Village;
 
-public class Coin : MonoBehaviour
+namespace EternalClash.Item
 {
-    [SerializeField] private int value = 5;
-    [SerializeField] private float moveSpeed = 6f;
-
-    private Transform player;
-
-    private void Awake()
+    public class Coin : ItemPickup
     {
-        GameObject obj = GameObject.FindGameObjectWithTag("Player");
-        if (obj != null)
-            player = obj.transform;
-    }
+        [SerializeField] private int value = 1;
 
-    private void Update()
-    {
-        if (player == null)
+        private void Awake()
         {
-            GameObject obj = GameObject.FindGameObjectWithTag("Player");
-            if (obj != null)
-                player = obj.transform;
-            return;
+            itemType = ItemType.Gold;
+            amount = Mathf.Max(1, value);
+            magnetRange = 4f;
+            moveSpeed = 8f;
         }
 
-        transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
+        private void OnValidate()
         {
-            PlayerCoin playerCoin = other.GetComponent<PlayerCoin>();
-            if (playerCoin != null)
-            {
-                playerCoin.AddCoin(value);
-            }
-
-            GoldSystem.Instance?.AddGold(value);
-
-            Destroy(gameObject);
+            if (!Application.isPlaying)
+                amount = Mathf.Max(1, value);
         }
     }
 }

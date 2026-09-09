@@ -21,20 +21,39 @@ namespace EternalClash.Item
         public int amount = 10;
         public float magnetRange = 2f;
         public float moveSpeed = 8f;
+        public float magnetDelay = 0f;
 
         private Transform player;
         private bool collected;
+        private float magnetAvailableAt = -1f;
+
+        private void Awake()
+        {
+            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+            player = playerObject != null ? playerObject.transform : null;
+
+            if (magnetDelay <= 0f)
+                magnetAvailableAt = Time.time;
+        }
+
+        public void SetMagnetDelay(float delay)
+        {
+            magnetDelay = Mathf.Max(0f, delay);
+            magnetAvailableAt = Time.time + magnetDelay;
+        }
 
         private void Update()
         {
             if (player == null)
             {
-                GameObject obj = GameObject.FindGameObjectWithTag("Player");
-                if (obj != null)
-                    player = obj.transform;
+                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+                player = playerObject != null ? playerObject.transform : null;
             }
 
             if (player == null || collected)
+                return;
+
+            if (magnetAvailableAt > Time.time)
                 return;
 
             float distance = Vector2.Distance(transform.position, player.position);
@@ -68,7 +87,6 @@ namespace EternalClash.Item
                     break;
 
                 case ItemType.Gold:
-                    playerObject.GetComponent<PlayerCoin>()?.AddCoin(amount);
                     EternalClash.Village.GoldSystem.Instance?.AddGold(amount);
                     break;
 
