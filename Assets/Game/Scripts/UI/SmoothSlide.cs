@@ -1,23 +1,26 @@
 using UnityEngine;
+using System.Collections;
 
 public class SmoothSlide : MonoBehaviour
 {
     [Header("UI Cần Trượt")]
-    public RectTransform panelRect; 
-    
-    [Header("Màn Tối (Tùy chọn)")]
-    public CanvasGroup darkOverlay; // Thêm biến chứa lớp nền tối
+    public RectTransform panelRect;
+
+    [Header("Màn Tối")]
+    public CanvasGroup darkOverlay;
 
     [Header("Tọa độ")]
-    public Vector2 offScreenPos = new Vector2(0, 1500); 
-    public Vector2 onScreenPos = new Vector2(0, 0);     
+    public Vector2 offScreenPos = new Vector2(0, 1500);
+    public Vector2 onScreenPos = new Vector2(0, 0);
 
-    [Header("Tốc độ trượt")]
-    public float slideSpeed = 12f;
+    [Header("Tốc độ")]
+    public float moveSpeed = 4500f;
 
-    private Vector2 targetPos;
+    [Header("Khoảng bật")]
+    public float bounceDistance = 100f;
+
     private bool isOpen = false;
-    private float targetAlpha = 0f; // Mục tiêu độ mờ của nền tối
+    private Coroutine slideCoroutine;
 
     void Start()
     {
@@ -26,13 +29,12 @@ public class SmoothSlide : MonoBehaviour
 
         if (panelRect == null)
         {
-            Debug.LogError("[SmoothSlide] panelRect is not assigned and no RectTransform found on this GameObject.", this);
+            Debug.LogError("[SmoothSlide] Không tìm thấy Panel RectTransform.", this);
             enabled = false;
             return;
         }
 
         panelRect.anchoredPosition = offScreenPos;
-        targetPos = offScreenPos;
 
         if (darkOverlay != null)
         {
@@ -41,35 +43,68 @@ public class SmoothSlide : MonoBehaviour
         }
     }
 
-    void Update()
+    public void TogglePanel()
     {
-        // 1. Trượt mượt bảng Setting
-        panelRect.anchoredPosition = Vector2.Lerp(panelRect.anchoredPosition, targetPos, Time.deltaTime * slideSpeed);
-        
-        // 2. Mờ mượt nền tối
-        if (darkOverlay != null)
+        isOpen = !isOpen;
+
+        if (slideCoroutine != null)
+            StopCoroutine(slideCoroutine);
+
+        if (isOpen)
         {
-            darkOverlay.alpha = Mathf.Lerp(darkOverlay.alpha, targetAlpha, Time.deltaTime * slideSpeed);
+            if (darkOverlay != null)
+            {
+                darkOverlay.alpha = 1f;
+                darkOverlay.blocksRaycasts = true;
+            }
+
+            slideCoroutine = StartCoroutine(OpenPanel());
+        }
+        else
+        {
+            if (darkOverlay != null)
+            {
+                darkOverlay.alpha = 0f;
+                darkOverlay.blocksRaycasts = false;
+            }
+
+            slideCoroutine = StartCoroutine(ClosePanel());
         }
     }
 
-    public void TogglePanel()
+    IEnumerator OpenPanel()
     {
-        isOpen = !isOpen; 
-        
-        if (isOpen) 
+        // Vị trí thấp hơn vị trí chính
+        Vector2 lowPosition = onScreenPos + new Vector2(0, -bounceDistance);
+
+        // Giai đoạn 1:
+        // Trượt từ ngoài màn hình -> vị trí thấp
+        yield return MoveTo(lowPosition);
+
+        // Giai đoạn 2:
+        // Bật từ vị trí thấp -> vị trí chính
+        yield return MoveTo(onScreenPos);
+    }
+
+    IEnumerator ClosePanel()
+    {
+        // Đóng: từ vị trí hiện tại -> ngoài màn hình
+        yield return MoveTo(offScreenPos);
+    }
+
+    IEnumerator MoveTo(Vector2 targetPosition)
+    {
+        while (Vector2.Distance(panelRect.anchoredPosition, targetPosition) > 0.1f)
         {
-            // Lệnh MỞ
-            targetPos = onScreenPos; 
-            targetAlpha = 1f; // Hiện nền tối
-            if (darkOverlay != null) darkOverlay.blocksRaycasts = true; // Chặn người chơi click xuyên qua nền đen
+            panelRect.anchoredPosition = Vector2.MoveTowards(
+                panelRect.anchoredPosition,
+                targetPosition,
+                moveSpeed * Time.deltaTime
+            );
+
+            yield return null;
         }
-        else 
-        {
-            // Lệnh ĐÓNG
-            targetPos = offScreenPos; 
-            targetAlpha = 0f; // Ẩn nền tối
-            if (darkOverlay != null) darkOverlay.blocksRaycasts = false; // Mở lại tương tác cho game phía sau
-        }
+
+        panelRect.anchoredPosition = targetPosition;
     }
 }
