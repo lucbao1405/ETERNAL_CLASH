@@ -42,6 +42,14 @@ namespace EternalClash.UI
         private readonly List<TMP_Text> gemTexts = new List<TMP_Text>();
         private readonly List<TMP_Text> hpTexts = new List<TMP_Text>();
 
+        // Cum "Lv" trong panel Trang_Bi:
+        //   Lv                       -> Slider hien tien do EXP
+        //   Lv/lv text               -> nhan dang "Lv 5"
+        //   Lv/So_Lv                 -> so dang "40/150"
+        private readonly List<TMP_Text> levelLabelTexts = new List<TMP_Text>();
+        private readonly List<TMP_Text> expTexts = new List<TMP_Text>();
+        private readonly List<Slider> expSliders = new List<Slider>();
+
         // O chu hien chi phi tren mat tung nut nang cap.
         private readonly List<TMP_Text> costLabels = new List<TMP_Text>();
 
@@ -244,6 +252,25 @@ namespace EternalClash.UI
             // --- Thanh mau: Stat/Hp/So_Hp ---
             CollectDirectChildTexts(scene, "Hp", hpTexts);
 
+            // --- Cum "Lv": thanh EXP + nhan cap + so EXP ---
+            foreach (Transform lv in FindAllInScene(scene, "Lv"))
+            {
+                Slider slider = lv.GetComponent<Slider>();
+                if (slider != null && !expSliders.Contains(slider))
+                    expSliders.Add(slider);
+
+                // Ten co khoang trang va chu thuong dung nhu trong scene.
+                Transform label = FindDescendant(lv, "lv text");
+                TMP_Text labelText = label != null ? label.GetComponent<TMP_Text>() : null;
+                if (labelText != null && !levelLabelTexts.Contains(labelText))
+                    levelLabelTexts.Add(labelText);
+
+                Transform expNumber = FindDescendant(lv, "So_Lv");
+                TMP_Text expText = expNumber != null ? expNumber.GetComponent<TMP_Text>() : null;
+                if (expText != null && !expTexts.Contains(expText))
+                    expTexts.Add(expText);
+            }
+
             pointsText = CreatePointsLabel(staUpdate);
 
             // O chu chi phi tren mat 4 nut. Dung mot o so co san lam mau de thua
@@ -265,6 +292,10 @@ namespace EternalClash.UI
 
             Debug.Log($"[TownStat] Da noi {buttons}/4 nut, {values} o so, {levelTexts.Count} o Level, " +
                       $"{goldTexts.Count} o Vang, {gemTexts.Count} o Kim cuong.");
+
+            Debug.Log($"[TownStat] Cum Lv: {expSliders.Count} thanh EXP, " +
+                      $"{levelLabelTexts.Count} nhan 'lv text', {expTexts.Count} o 'So_Lv', " +
+                      $"o diem={(pointsText != null ? pointsText.name : "KHONG CO")}.");
 
             if (buttons < 4)
                 Debug.LogWarning("[TownStat] Thieu nut. Kiem tra ten con cua 'Sta_Update' " +
@@ -368,6 +399,9 @@ namespace EternalClash.UI
         /// </summary>
         private static readonly string[] PointsObjectNames =
         {
+            // Uu tien "Available_Point_Text" - o chu that su trong cum Lv cua panel
+            // Trang_Bi. "Available_Point" chi la khung anh boc ngoai, khong co TMP.
+            "Available_Point_Text",
             "Point", "Points", "So_Point", "Diem", "So_Diem", "StatPoint", "StatPoints"
         };
 
@@ -507,6 +541,7 @@ namespace EternalClash.UI
             Apply(luckTexts, stats.Luck);
             Apply(levelTexts, stats.Level);
 
+            ApplyLevelGroup(stats);
             ApplyHealthTexts(stats);
 
             if (pointsText != null)
@@ -545,6 +580,43 @@ namespace EternalClash.UI
         ///  - Mau hien tai lay tu PlayerConditionSystem neu no dang giu trang thai
         ///    thuong tich; khong thi coi nhu day mau.
         /// </summary>
+        /// <summary>
+        /// Cap nhat cum "Lv": nhan cap, so EXP va thanh tien do.
+        /// RequiredExp la moc de len cap ke tiep, con CurrentExp la phan da tich
+        /// duoc trong cap hien tai (AddExp tru bot moi lan len cap), nen ti le
+        /// CurrentExp/RequiredExp chinh la do day cua thanh.
+        /// </summary>
+        private void ApplyLevelGroup(PlayerStatSystem stats)
+        {
+            for (int i = 0; i < levelLabelTexts.Count; i++)
+            {
+                if (levelLabelTexts[i] != null)
+                    levelLabelTexts[i].text = $"Lv {stats.Level}";
+            }
+
+            int required = Mathf.Max(1, stats.RequiredExp);
+            int current = Mathf.Clamp(stats.CurrentExp, 0, required);
+
+            string line = $"{current}/{stats.RequiredExp}";
+            for (int i = 0; i < expTexts.Count; i++)
+            {
+                if (expTexts[i] != null)
+                    expTexts[i].text = line;
+            }
+
+            float ratio = Mathf.Clamp01((float)current / required);
+            for (int i = 0; i < expSliders.Count; i++)
+            {
+                if (expSliders[i] == null)
+                    continue;
+
+                // Ep khoang gia tri ve 0..1 de khong phu thuoc cau hinh san trong scene.
+                expSliders[i].minValue = 0f;
+                expSliders[i].maxValue = 1f;
+                expSliders[i].value = ratio;
+            }
+        }
+
         private void ApplyHealthTexts(PlayerStatSystem stats)
         {
             if (hpTexts.Count == 0)
