@@ -8,8 +8,6 @@ namespace EternalClash.Enemy
         public int attackDamage = 5;
         public float moveSpeed = 1f;
 
-        [SerializeField] private GameObject coinPrefab;
-
         private EnemyHealthSystem healthSystem;
         private CharacterStateMachine stateMachine;
         private bool isDead;
@@ -53,18 +51,6 @@ namespace EternalClash.Enemy
             if (stateMachine != null)
                 stateMachine.ChangeState(CharacterState.Dead);
 
-            if (coinPrefab != null)
-                Instantiate(coinPrefab, transform.position, Quaternion.identity);
-
-            // Kich hoat roi do theo bang loot (neu Enemy co gan EnemyLootDropper).
-            // Kiem tra null an toan - Enemy nao chua gan component nay se don gian bo qua.
-            EnemyLootDropper lootDropper = GetComponent<EnemyLootDropper>();
-            if (lootDropper != null)
-                lootDropper.DropLoot();
-
-            // Khong goi EnemyLootDropController o day: EnemyDeathHandler.Die() ben
-            // duoi da giu tham chieu toi no qua truong lootDrop va tu goi DropLoot().
-            // Goi ca hai noi se lam roi do va cong EXP hai lan moi lan quai chet.
             EnemyDeathHandler deathHandler = GetComponent<EnemyDeathHandler>();
             if (deathHandler != null)
                 deathHandler.Die();

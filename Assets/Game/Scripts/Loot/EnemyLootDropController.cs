@@ -1,62 +1,118 @@
-using UnityEngine;
-using EternalClash.Village;
+using System.Collections;
 using EternalClash.Item;
+using EternalClash.Loot;
+using EternalClash.Village;
+using UnityEngine;
 
 public class EnemyLootDropController : MonoBehaviour
 {
-    [SerializeField] private GameObject[] dropPrefabs;
+    [SerializeField] private LootData[] lootTable;
+    [SerializeField] private int expReward;
 
-    [Header("Rewards granted on death (per GDD 3.1 / 3.5)")]
-    [SerializeField] private int expReward = 10;
-    [SerializeField] private GameObject expPickupPrefab;
-    [SerializeField] private int oreReward = 1;
-    [SerializeField] private int leatherReward = 0;
+    [Header("Loot Physics")]
+    [SerializeField] private float safeSpawnOffset = 1f;
+    [SerializeField] private float launchSpeed = 3f;
+    [SerializeField] private float gravityScale = 0.35f;
+    [SerializeField] private PhysicsMaterial2D physicsMaterial;
+
+    [Header("Pickup")]
+    [SerializeField] private float magnetDelay = 0.4f;
+    [SerializeField] private string itemSortingLayer = "Item";
 
     public void DropLoot()
     {
-        if (dropPrefabs != null && dropPrefabs.Length > 0)
+        if (lootTable != null && lootTable.Length > 0)
         {
-            int index = Random.Range(0, dropPrefabs.Length);
-            if (dropPrefabs[index] != null)
-                Instantiate(dropPrefabs[index], transform.position, Quaternion.identity);
+            foreach (LootData entry in lootTable)
+            {
+                if (entry == null || entry.prefab == null || entry.dropRate <= 0f)
+                    continue;
+
+                if (Random.value >= entry.dropRate)
+                    continue;
+
+                SpawnDrop(entry);
+            }
         }
 
-        SpawnExpLoot();
-        GrantMaterialRewards();
+        GrantExpReward();
     }
 
-    private void SpawnExpLoot()
+    private void GrantExpReward()
     {
-        if (expReward <= 0) return;
+        if (expReward <= 0)
+            return;
 
-        if (expPickupPrefab != null)
+        EternalClash.Village.PlayerStatSystem.Instance?.AddExp(expReward);
+    }
+
+    private void SpawnDrop(LootData entry)
+    {
+        int amount = Random.Range(entry.minAmount, Mathf.Max(entry.minAmount + 1, entry.maxAmount + 1));
+        Vector3 spawnPosition = GetSafeSpawnPosition();
+        Vector2 launchDirection = GetLaunchDirection(spawnPosition);
+
+        GameObject drop = Instantiate(entry.prefab, spawnPosition, Quaternion.identity);
+        drop.transform.SetParent(null, true);
+
+        ItemPickup pickup = drop.GetComponent<ItemPickup>();
+        if (pickup != null)
         {
-            GameObject orb = Instantiate(expPickupPrefab, transform.position, Quaternion.identity);
-            ItemPickup pickup = orb.GetComponent<ItemPickup>();
-            if (pickup != null)
-                pickup.amount = expReward;
+            pickup.itemType = entry.itemType;
+            pickup.amount = amount;
+            pickup.SetMagnetDelay(magnetDelay);
         }
-        else
+
+        SpriteRenderer spriteRenderer = drop.GetComponentInChildren<SpriteRenderer>();
+        if (spriteRenderer != null)
         {
-            PlayerStatSystem.Instance?.AddExp(expReward);
+            if (entry.itemSprite != null)
+                spriteRenderer.sprite = entry.itemSprite;
+
+            spriteRenderer.sortingLayerName = itemSortingLayer;
+        }
+
+        Rigidbody2D rigidBody = drop.GetComponent<Rigidbody2D>();
+        if (rigidBody != null)
+        {
+            rigidBody.velocity = launchDirection * launchSpeed;
+            rigidBody.gravityScale = gravityScale;
+
+            if (physicsMaterial != null)
+                rigidBody.sharedMaterial = physicsMaterial;
         }
     }
 
-    private void GrantMaterialRewards()
+    private Vector3 GetSafeSpawnPosition()
     {
-        if (GoldSystem.Instance == null) return;
+        Transform player = FindPlayer();
+        Vector2 awayFromPlayer = player != null
+            ? transform.position - player.position
+            : Random.insideUnitCircle;
 
-        int ore = oreReward;
-        int leather = leatherReward;
+        if (awayFromPlayer.sqrMagnitude < 0.0001f)
+            awayFromPlayer = Vector2.up;
 
-        // LUCK raises rare material drop rate (GDD 3.5)
-        if (PlayerStatSystem.Instance != null && Random.value < PlayerStatSystem.Instance.RareDropRate)
-        {
-            ore += oreReward;
-            leather += leatherReward;
-        }
+        awayFromPlayer.Normalize();
+        return transform.position + (Vector3)awayFromPlayer * Mathf.Max(0f, safeSpawnOffset);
+    }
 
-        if (ore > 0 || leather > 0)
-            GoldSystem.Instance.AddMaterials(ore, leather);
+    private Vector2 GetLaunchDirection(Vector3 spawnPosition)
+    {
+        Transform player = FindPlayer();
+        Vector2 launchDirection = player != null && player.position != spawnPosition
+            ? spawnPosition - player.position
+            : Random.insideUnitCircle;
+
+        if (launchDirection.sqrMagnitude < 0.0001f)
+            launchDirection = Vector2.up;
+
+        return launchDirection.normalized;
+    }
+
+    private Transform FindPlayer()
+    {
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        return playerObject != null ? playerObject.transform : null;
     }
 }
