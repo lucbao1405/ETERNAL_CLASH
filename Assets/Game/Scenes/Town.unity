@@ -293,7 +293,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 0}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!1 &14954717
 GameObject:
   m_ObjectHideFlags: 0
@@ -835,7 +836,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!114 &26143549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3593,6 +3595,7 @@ GameObject:
   - component: {fileID: 259854499}
   - component: {fileID: 259854498}
   - component: {fileID: 259854497}
+  - component: {fileID: 259854500}
   m_Layer: 5
   m_Name: Go
   m_TagString: Untagged
@@ -3715,6 +3718,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 259854495}
   m_CullTransparentMesh: 1
+--- !u!114 &259854500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259854495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &272951721
 GameObject:
   m_ObjectHideFlags: 0
@@ -9801,6 +9818,7 @@ GameObject:
   - component: {fileID: 731406046}
   - component: {fileID: 731406045}
   - component: {fileID: 731406044}
+  - component: {fileID: 731406047}
   m_Layer: 5
   m_Name: Avt
   m_TagString: Untagged
@@ -9848,7 +9866,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!114 &731406045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9887,6 +9906,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731406042}
   m_CullTransparentMesh: 1
+--- !u!114 &731406047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731406042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &748637007
 GameObject:
   m_ObjectHideFlags: 0
@@ -10515,6 +10548,7 @@ GameObject:
   - component: {fileID: 768247879}
   - component: {fileID: 768247878}
   - component: {fileID: 768247881}
+  - component: {fileID: 768247882}
   m_Layer: 5
   m_Name: Skill
   m_TagString: Untagged
@@ -10656,6 +10690,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &768247882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 768247876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &778099213
 GameObject:
   m_ObjectHideFlags: 0
@@ -10874,6 +10922,7 @@ GameObject:
   - component: {fileID: 790171162}
   - component: {fileID: 790171161}
   - component: {fileID: 790171160}
+  - component: {fileID: 790171163}
   m_Layer: 5
   m_Name: Shop
   m_TagString: Untagged
@@ -10994,6 +11043,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 790171158}
   m_CullTransparentMesh: 1
+--- !u!114 &790171163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790171158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &804350532
 GameObject:
   m_ObjectHideFlags: 0
@@ -11328,6 +11391,7 @@ RectTransform:
   - {fileID: 701092589}
   - {fileID: 1244347077}
   - {fileID: 931990565}
+  - {fileID: 1028341380}
   m_Father: {fileID: 2127649510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -11389,7 +11453,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 0}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!1 &835649751
 GameObject:
   m_ObjectHideFlags: 0
@@ -14345,7 +14410,7 @@ RectTransform:
   m_GameObject: {fileID: 1028341379}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9998606, y: 0.9998606, z: 0.9998606}
+  m_LocalScale: {x: 0.99986064, y: 0.99986064, z: 0.99986064}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1438773468}
@@ -14353,11 +14418,11 @@ RectTransform:
   - {fileID: 1288996567}
   - {fileID: 455803063}
   - {fileID: 32139129}
-  m_Father: {fileID: 2127649510}
+  m_Father: {fileID: 831664832}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -14.214879, y: 1999.198}
+  m_AnchoredPosition: {x: -14.214879, y: 28.197998}
   m_SizeDelta: {x: 663.96, y: 936.29}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1028341381
@@ -17468,6 +17533,7 @@ GameObject:
   - component: {fileID: 1232712412}
   - component: {fileID: 1232712411}
   - component: {fileID: 1232712414}
+  - component: {fileID: 1232712415}
   m_Layer: 5
   m_Name: Trang_Bi
   m_TagString: Untagged
@@ -17604,6 +17670,20 @@ Animation:
   m_PlayAutomatically: 1
   m_AnimatePhysics: 0
   m_CullingType: 0
+--- !u!114 &1232712415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232712409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &1242048789
 GameObject:
   m_ObjectHideFlags: 0
@@ -19277,7 +19357,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!114 &1367580943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20975,7 +21056,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!114 &1467799057
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21605,6 +21687,7 @@ GameObject:
   - component: {fileID: 1496905720}
   - component: {fileID: 1496905719}
   - component: {fileID: 1496905718}
+  - component: {fileID: 1496905721}
   m_Layer: 5
   m_Name: Bag
   m_TagString: Untagged
@@ -21725,6 +21808,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1496905716}
   m_CullTransparentMesh: 1
+--- !u!114 &1496905721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496905716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7f3de7b9f415344886bf2383d814f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressedScale: 1.15
+  duration: 0.1
 --- !u!1 &1499360498
 GameObject:
   m_ObjectHideFlags: 0
@@ -22991,7 +23088,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!114 &1605854829
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23646,7 +23744,8 @@ MonoBehaviour:
   darkOverlay: {fileID: 449994779}
   offScreenPos: {x: 0, y: 2000}
   onScreenPos: {x: 0, y: 250}
-  slideSpeed: 12
+  moveSpeed: 4500
+  bounceDistance: 100
 --- !u!1 &1656386010
 GameObject:
   m_ObjectHideFlags: 0
@@ -30242,7 +30341,6 @@ RectTransform:
   - {fileID: 731406043}
   - {fileID: 723889528}
   - {fileID: 831664832}
-  - {fileID: 1028341380}
   - {fileID: 12087375}
   m_Father: {fileID: 1855945120}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
