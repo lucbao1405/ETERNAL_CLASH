@@ -30,8 +30,6 @@ namespace EternalClash.EditorTools
     public static class BattleResultFlowSceneSetup
     {
         private const string ChestPrefabPath = "Assets/Game/Prefabs/Chest/RewardChest.prefab";
-        private const string ChestClosedSpritePath = "Assets/Ui/Battle/Chest.png";
-        private const string ChestOpenSpritePath = "Assets/Ui/Battle/Opened Chest.png";
         private const string ChestSpineDataPath = "Assets/Game/Animations/chest/spine_SkeletonData.asset";
 
         // Win/Lose popup nên nằm cao hơn tâm một chút (px trong canvas).
@@ -68,7 +66,7 @@ namespace EternalClash.EditorTools
             if (loseT != null) PrepareSlots(loseT);
 
             // 3) Build / reuse ChestRewardPopup under MainCanvas.
-            RectTransform chestPopup = EnsureChestPopup(canvas, log);
+            RectTransform chestPopup = EnsureChestPopup(manKhac != null ? manKhac : canvas, log);
 
             // 4) Wire result UIs onto Win/Lose.
             BattleResultUI winUI = WireResultUI(winT, addGoldRow: true, log, "Win_Popup");
@@ -86,7 +84,9 @@ namespace EternalClash.EditorTools
             var controller = managerRoot.GetComponent<BattleResultFlowController>();
             if (controller == null)
                 controller = managerRoot.gameObject.AddComponent<BattleResultFlowController>();
-            WireManager(controller, chestPopup, winT, loseT, winUI, loseUI);
+            if (managerRoot.GetComponent<ChestRewardController>() == null)
+                managerRoot.gameObject.AddComponent<ChestRewardController>();
+            WireManager(controller, chestPopup, winT, loseT, winUI, loseUI, scene);
 
             // 6) Save.
             EditorSceneManager.MarkSceneDirty(scene);
@@ -162,13 +162,6 @@ namespace EternalClash.EditorTools
             Image dimImg = CreateImage("Dim", popup, Stretch);
             dimImg.color = new Color(0f, 0f, 0f, 0.55f);
 
-            RectTransform chestRt = CreateRect("ChestImage", popup);
-            CenterBox(chestRt, new Vector2(560f, 420f), new Vector2(0f, -100f));
-            Image chestImg = chestRt.gameObject.AddComponent<Image>();
-            chestImg.raycastTarget = false;
-
-            // Rương chính dùng Spine animation có sẵn (ruong -> open). ChestImage giữ
-            // làm fallback (khi có chestSkeleton, ChestRewardUI tự ẩn ảnh tĩnh).
             SkeletonGraphic chestSkeleton = CreateChestSkeleton(popup, log);
 
             // Lấy TMP mẫu ở phạm vi cả canvas (popup mới chưa có text nào).
@@ -218,21 +211,19 @@ namespace EternalClash.EditorTools
             claimBtn.targetGraphic = claimImg;
             claimRt.SetAsLastSibling();
 
+            ChestAnimationController animation = popup.gameObject.AddComponent<ChestAnimationController>();
+            animation.Configure(chestSkeleton);
+            ChestRewardRevealController reveal = popup.gameObject.AddComponent<ChestRewardRevealController>();
             ChestRewardUI ui = popup.gameObject.AddComponent<ChestRewardUI>();
             var so = new SerializedObject(ui);
-            SetRef(so, "chestImage", chestImg);
-            SetRef(so, "chestClosedSprite", LoadSprite(ChestClosedSpritePath));
-            SetRef(so, "chestOpenSprite", LoadSprite(ChestOpenSpritePath));
             SetRef(so, "chestSkeleton", chestSkeleton);
-            SerializedProperty closedAnim = so.FindProperty("chestClosedAnim");
-            if (closedAnim != null) closedAnim.stringValue = "ruong";
-            SerializedProperty openAnim = so.FindProperty("chestOpenAnim");
-            if (openAnim != null) openAnim.stringValue = "open";
+            SetRef(so, "chestAnimation", animation);
             SetRef(so, "itemDisplayRoot", itemRoot);
             SetRef(so, "itemIcon", iconImg);
             SetRef(so, "itemNameText", nameTmp);
             SetRef(so, "itemQuantityText", qtyTmp);
             SetRef(so, "claimButton", claimBtn);
+            SetRef(so, "revealController", reveal);
             if (tapTmp != null)
                 SetRef(so, "tapHint", tapTmp.gameObject);
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -271,7 +262,7 @@ namespace EternalClash.EditorTools
             SerializedProperty ray = so.FindProperty("raycastTarget");
             if (ray != null) ray.boolValue = false;
             so.ApplyModifiedPropertiesWithoutUndo();
-            log.AppendLine("Chest skeleton (Spine) added: ruong/open.");
+            log.AppendLine("Chest skeleton (Spine) added: ruong/open/hold.");
             return skeleton;
         }
 
@@ -386,11 +377,12 @@ namespace EternalClash.EditorTools
             Transform winT,
             Transform loseT,
             BattleResultUI winUI,
-            BattleResultUI loseUI)
+            BattleResultUI loseUI,
+            Scene scene)
         {
             var so = new SerializedObject(controller);
             GameObject chestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ChestPrefabPath);
-            SetRef(so, "chestPrefab", chestPrefab);
+            ChestRewardController chestController = controller.GetComponent<ChestRewardController>();
             SetRef(so, "chestRewardPopup", chestPopup != null ? chestPopup.gameObject : null);
             if (chestPopup != null)
                 SetRef(so, "chestRewardUI", chestPopup.GetComponent<ChestRewardUI>());
@@ -398,7 +390,22 @@ namespace EternalClash.EditorTools
             SetRef(so, "losePopup", loseT != null ? loseT.gameObject : null);
             SetRef(so, "winUI", winUI);
             SetRef(so, "loseUI", loseUI);
+            SetRef(so, "chestPrefab", chestPrefab);
+            SetRef(so, "chestRewardController", chestController);
+            Transform spawnPoint = FindRootChild(scene, "ChestSpawnPoint");
+            SetRef(so, "chestSpawnPoint", spawnPoint != null ? spawnPoint.gameObject : null);
+            SerializedProperty victoryDelay = so.FindProperty("victoryDelay");
+            if (victoryDelay != null) victoryDelay.floatValue = 2f;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            if (chestController != null)
+            {
+                var chestSo = new SerializedObject(chestController);
+                SetRef(chestSo, "chestPrefab", chestPrefab);
+                SetRef(chestSo, "chestSpawnPoint", spawnPoint != null ? spawnPoint.gameObject : null);
+                SetRef(chestSo, "interactionLayer", chestPopup != null ? chestPopup.gameObject : null);
+                chestSo.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         // ------------------------------------------------------------------
@@ -410,11 +417,6 @@ namespace EternalClash.EditorTools
             SerializedProperty prop = so.FindProperty(field);
             if (prop == null) return;
             prop.objectReferenceValue = value;
-        }
-
-        private static Sprite LoadSprite(string path)
-        {
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
         private static RectTransform CreateRect(string name, Transform parent)

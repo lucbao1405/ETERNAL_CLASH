@@ -112,11 +112,11 @@ namespace EternalClash.Character
                 return;
             }
 
-            // Chi Player chet moi dung game
+            // The defeat result flow uses unscaled time. Disable combat through its
+            // controller instead of freezing the process before LosePopup can appear.
             PlayerDead = true;
             Debug.Log("[GAME] Player died - stop battle");
 
-            Time.timeScale = 0f;
             OnDeath?.Invoke();
         }
     }

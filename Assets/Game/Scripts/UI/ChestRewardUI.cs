@@ -1,388 +1,224 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using Spine.Unity;
 
 namespace EternalClash.UI
 {
-    /// <summary>
-    /// Chest Reward Popup - điều khiển việc hiện item từ rương theo từng cái.
-    ///
-    /// STATE 1: Chest đóng (ShowClosed) -> STATE 2: Chest mở (ShowOpen) ->
-    /// STATE 3: Hold. Khi Player tap, item hiện tại bay lên rồi chuyển sang item
-    /// kế tiếp. Hết toàn bộ item -> gọi onFinished (= CompleteChestReward).
-    ///
-    /// KHÔNG tạo animation mới cho chest: rương đóng/mở chỉ là đổi sprite do
-    /// Inspector gán. Item "bay lên" là UI tween đơn giản; nếu không gán các
-    /// reference hiển thị item thì popup tự động chạy qua từng item (auto advance)
-    /// để flow không bao giờ bị kẹt.
-    /// </summary>
-    public class ChestRewardUI : MonoBehaviour
+    /// <summary>Coordinates tap input for the popup chest and its chest-only rewards.</summary>
+    public sealed class ChestRewardUI : MonoBehaviour
     {
-        [Header("Chest States")]
+        [Header("Chest")]
         [SerializeField] private Image chestImage;
         [SerializeField] private Sprite chestClosedSprite;
         [SerializeField] private Sprite chestOpenSprite;
-        [SerializeField] private GameObject chestEffectRoot;
-
-        // Dùng animation rương có sẵn (Assets/Game/Animations/chest - Spine). Khi gán
-        // chestSkeleton thì rương đóng/mở được phát bằng animation thay vì đổi sprite.
         [SerializeField] private SkeletonGraphic chestSkeleton;
-        [SerializeField] private string chestClosedAnim = "ruong";
-        [SerializeField] private string chestOpenAnim = "open";
+        [SerializeField] private ChestAnimationController chestAnimation;
 
-        [SerializeField] private float chestOpenDelay = 0.45f;
-
-        [Header("Item Reveal")]
+        [Header("Item Display")]
         [SerializeField] private RectTransform itemDisplayRoot;
         [SerializeField] private Image itemIcon;
         [SerializeField] private TextMeshProUGUI itemNameText;
         [SerializeField] private TextMeshProUGUI itemQuantityText;
-        [SerializeField] private Button claimButton;
-        [SerializeField] private GameObject tapHint;
         [SerializeField] private RectTransform itemStartAnchor;
         [SerializeField] private RectTransform itemEndAnchor;
+        [SerializeField] private ChestRewardRevealController revealController;
 
-        [Header("Timing")]
-        [SerializeField] private float revealDelay = 0.35f;
-        [SerializeField] private float claimLockDuration = 0.3f;
-        [SerializeField] private float flyDuration = 0.4f;
-        [SerializeField] private float autoAdvanceInterval = 0.9f;
+        [Header("Input")]
+        [SerializeField] private Button claimButton;
+        [SerializeField] private GameObject tapHint;
+        [SerializeField, Min(0f)] private float inputLockDuration = 0.15f;
+        [SerializeField, Min(0.01f)] private float flyDuration = 0.4f;
 
         public bool IsRevealing { get; private set; }
-        public bool HasItems => queue.Count > 0;
 
-        private readonly List<ItemReward> queue = new List<ItemReward>();
-        private int currentIndex = -1;
         private Action onFinished;
-        private Coroutine revealRoutine;
-        private Coroutine flyRoutine;
-        private bool advanceRequested;
-        private bool finishSent;
-        private float tapEnabledAt = -1f;
+        private readonly List<ItemReward> pendingChestRewards = new List<ItemReward>();
+        private float inputEnabledAt;
+        private bool awaitingCloseTap;
         private bool buttonBound;
 
         private void Awake()
         {
-            BindClaimButton();
+            ResolveControllers();
+            BindButton();
+        }
+
+        private void OnEnable()
+        {
+            ResolveControllers();
+            BindButton();
         }
 
         private void OnDisable()
         {
-            StopReveal();
+            StopCurrentSequence();
         }
 
-        private void BindClaimButton()
+        private void OnDestroy()
         {
-            if (buttonBound) return;
-            buttonBound = true;
-            if (claimButton != null)
-                claimButton.onClick.AddListener(OnClaimPressed);
+            if (buttonBound && claimButton != null)
+                claimButton.onClick.RemoveListener(HandleTap);
+            if (chestAnimation != null)
+                chestAnimation.OpenCompleted -= HandleOpenComplete;
+            if (revealController != null)
+                revealController.AllItemsRevealed -= HandleAllItemsRevealed;
         }
 
-        // ------------------------------------------------------------------
-        // Chest states
-        // ------------------------------------------------------------------
-
-        public void ShowClosed()
+        private void Update()
         {
-            if (chestSkeleton != null && chestSkeleton.AnimationState != null)
-            {
-                chestSkeleton.gameObject.SetActive(true);
-                if (chestImage != null)
-                    chestImage.enabled = false;
-                chestSkeleton.AnimationState.SetAnimation(0, chestClosedAnim, true);
-            }
-            else if (chestImage != null && chestClosedSprite != null)
-            {
-                chestImage.sprite = chestClosedSprite;
-                chestImage.enabled = true;
-            }
-
-            if (chestEffectRoot != null)
-                chestEffectRoot.SetActive(false);
-            HideItemDisplay();
+            if (IsRevealing && claimButton == null && Input.GetMouseButtonDown(0))
+                HandleTap();
         }
 
-        public void ShowOpen()
+        public void ShowRewards(IList<ItemReward> chestRewards, Action finished)
         {
-            if (chestSkeleton != null && chestSkeleton.AnimationState != null)
-            {
-                chestSkeleton.gameObject.SetActive(true);
-                if (chestImage != null)
-                    chestImage.enabled = false;
-                chestSkeleton.AnimationState.SetAnimation(0, chestOpenAnim, false);
-            }
-            else if (chestImage != null && chestOpenSprite != null)
-            {
-                chestImage.sprite = chestOpenSprite;
-                chestImage.enabled = true;
-            }
-
-            if (chestEffectRoot != null)
-                chestEffectRoot.SetActive(true);
-        }
-
-        // ------------------------------------------------------------------
-        // Reveal flow
-        // ------------------------------------------------------------------
-
-        /// <summary>
-        /// Hiện popup và reveal từng item. Mỗi item chờ Player tap (hoặc button)
-        /// để chuyển sang item kế tiếp. Khi hết item -> onFinished được gọi.
-        /// </summary>
-        public void ShowRewards(IList<ItemReward> rewards, Action finished)
-        {
-            if (revealRoutine != null)
-            {
-                StopCoroutine(revealRoutine);
-                revealRoutine = null;
-            }
-            if (flyRoutine != null)
-            {
-                StopCoroutine(flyRoutine);
-                flyRoutine = null;
-            }
-
-            queue.Clear();
-            if (rewards != null)
-                queue.AddRange(rewards);
-
+            ResolveControllers();
+            StopCurrentSequence();
             onFinished = finished;
-            currentIndex = -1;
-            finishSent = false;
-            advanceRequested = false;
-            tapEnabledAt = -1f;
             IsRevealing = true;
+            awaitingCloseTap = false;
+            inputEnabledAt = Time.unscaledTime + inputLockDuration;
+            pendingChestRewards.Clear();
+            if (chestRewards != null)
+            {
+                for (int i = 0; i < chestRewards.Count; i++)
+                    pendingChestRewards.Add(chestRewards[i]);
+            }
 
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
-
-            revealRoutine = StartCoroutine(RevealRoutine());
+            if (chestImage != null)
+            {
+                chestImage.sprite = chestClosedSprite;
+                chestImage.enabled = chestSkeleton == null;
+            }
+            chestAnimation?.PlayClosed();
+            SetTapHint(true);
         }
 
         public void Hide()
         {
-            StopReveal();
-            if (gameObject != null)
-                gameObject.SetActive(false);
+            StopCurrentSequence();
+            gameObject.SetActive(false);
         }
 
-        private IEnumerator RevealRoutine()
+        private void HandleTap()
         {
-            // STATE 1: chest đóng -> STATE 2: chest mở
-            ShowClosed();
-            if (HasChestVisuals() && chestOpenDelay > 0f)
-                yield return new WaitForSecondsRealtime(chestOpenDelay);
-            ShowOpen();
-            ShowTapHint(false);
+            if (!IsRevealing || Time.unscaledTime < inputEnabledAt)
+                return;
 
-            if (queue.Count == 0)
+            if (chestAnimation != null && chestAnimation.State == ChestState.Closed)
             {
-                Complete();
-                yield break;
-            }
-
-            yield return new WaitForSecondsRealtime(revealDelay);
-
-            for (currentIndex = 0; currentIndex < queue.Count; currentIndex++)
-            {
-                if (finishSent) yield break;
-                ShowCurrentItem();
-
-                yield return new WaitForSecondsRealtime(claimLockDuration);
-
-                if (HasItemVisuals())
-                {
-                    tapEnabledAt = Time.unscaledTime;
-                    advanceRequested = false;
-                    ShowTapHint(true);
-
-                    while (!advanceRequested && !finishSent)
-                    {
-                        if (claimButton == null &&
-                            Input.GetMouseButtonDown(0) &&
-                            Time.unscaledTime >= tapEnabledAt + 0.05f)
-                        {
-                            advanceRequested = true;
-                        }
-                        yield return null;
-                    }
-
-                    ShowTapHint(false);
-                    if (finishSent) yield break;
-                }
-                else
-                {
-                    // Không gán visual item -> tự chạy qua item để flow không kẹt.
-                    yield return new WaitForSecondsRealtime(autoAdvanceInterval);
-                }
-            }
-
-            Complete();
-        }
-
-        private void ShowCurrentItem()
-        {
-            ItemReward entry = CurrentEntry();
-            if (entry == null || entry.item == null)
-            {
-                HideItemDisplay();
+                SetTapHint(false);
+                inputEnabledAt = float.PositiveInfinity;
+                chestAnimation.PlayOpen();
                 return;
             }
 
-            if (itemDisplayRoot != null)
-                itemDisplayRoot.gameObject.SetActive(true);
+            if (chestAnimation == null || chestAnimation.State != ChestState.Hold)
+                return;
 
-            if (itemIcon != null)
+            if (awaitingCloseTap)
             {
-                Sprite sprite = LoadItemIcon(entry);
-                itemIcon.sprite = sprite;
-                itemIcon.enabled = sprite != null;
+                Finish();
+                return;
             }
 
-            if (itemNameText != null)
+            if (revealController == null || !revealController.RevealNextItem())
+                awaitingCloseTap = true;
+        }
+
+        private void HandleOpenComplete()
+        {
+            if (!IsRevealing)
+                return;
+
+            if (chestImage != null)
             {
-                itemNameText.text = string.IsNullOrEmpty(entry.item.itemName)
-                    ? entry.item.itemId
-                    : entry.item.itemName;
-                itemNameText.gameObject.SetActive(true);
+                chestImage.sprite = chestOpenSprite;
+                chestImage.enabled = chestSkeleton == null;
             }
-
-            if (itemQuantityText != null)
-            {
-                itemQuantityText.text = "x" + Mathf.Max(1, entry.quantity);
-                itemQuantityText.gameObject.SetActive(true);
-            }
-
-            PlayFlyIn();
+            revealController?.StartReveal(pendingChestRewards, chestAnimation);
+            inputEnabledAt = Time.unscaledTime + inputLockDuration;
+            SetTapHint(true);
         }
 
-        private void PlayFlyIn()
+        private void HandleAllItemsRevealed()
         {
-            if (itemDisplayRoot == null) return;
-            if (flyRoutine != null)
-            {
-                StopCoroutine(flyRoutine);
-                flyRoutine = null;
-            }
-
-            Vector3 from;
-            Vector3 to;
-            if (itemStartAnchor != null && itemEndAnchor != null)
-            {
-                from = itemStartAnchor.position;
-                to = itemEndAnchor.position;
-            }
-            else
-            {
-                from = itemDisplayRoot.position + Vector3.down * 120f;
-                to = itemDisplayRoot.position;
-            }
-
-            flyRoutine = StartCoroutine(FlyTo(itemDisplayRoot, from, to));
+            awaitingCloseTap = true;
+            inputEnabledAt = Time.unscaledTime + inputLockDuration;
+            SetTapHint(true);
         }
 
-        private IEnumerator FlyTo(RectTransform target, Vector3 from, Vector3 to)
+        private void Finish()
         {
-            target.position = from;
-            float elapsed = 0f;
-            while (elapsed < flyDuration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / flyDuration));
-                target.position = Vector3.Lerp(from, to, t);
-                yield return null;
-            }
-            target.position = to;
-        }
-
-        private void HideItemDisplay()
-        {
-            if (itemDisplayRoot != null)
-                itemDisplayRoot.gameObject.SetActive(false);
-            if (itemIcon != null)
-                itemIcon.enabled = false;
-            if (itemNameText != null)
-                itemNameText.gameObject.SetActive(false);
-            if (itemQuantityText != null)
-                itemQuantityText.gameObject.SetActive(false);
-        }
-
-        private bool HasItemVisuals()
-        {
-            return itemDisplayRoot != null ||
-                   itemIcon != null ||
-                   itemNameText != null ||
-                   itemQuantityText != null;
-        }
-
-        private bool HasChestVisuals()
-        {
-            return chestImage != null || chestSkeleton != null ||
-                   chestClosedSprite != null || chestOpenSprite != null;
-        }
-
-        private ItemReward CurrentEntry()
-        {
-            if (currentIndex < 0 || currentIndex >= queue.Count)
-                return null;
-            return queue[currentIndex];
-        }
-
-        private void OnClaimPressed()
-        {
-            if (!IsRevealing) return;
-            if (Time.unscaledTime < tapEnabledAt) return;
-            advanceRequested = true;
-        }
-
-        private void ShowTapHint(bool visible)
-        {
-            if (tapHint != null && tapHint.activeSelf != visible)
-                tapHint.SetActive(visible);
-        }
-
-        private void Complete()
-        {
-            if (finishSent) return;
-            finishSent = true;
             IsRevealing = false;
-            ShowTapHint(false);
-
+            SetTapHint(false);
             Action callback = onFinished;
             onFinished = null;
+            pendingChestRewards.Clear();
             callback?.Invoke();
         }
 
-        private void StopReveal(bool hideItems = true)
+        private void StopCurrentSequence()
         {
-            if (revealRoutine != null)
-            {
-                StopCoroutine(revealRoutine);
-                revealRoutine = null;
-            }
-            if (flyRoutine != null)
-            {
-                StopCoroutine(flyRoutine);
-                flyRoutine = null;
-            }
             IsRevealing = false;
-            finishSent = true;
-            if (hideItems)
-                HideItemDisplay();
+            awaitingCloseTap = false;
+            inputEnabledAt = float.PositiveInfinity;
+            onFinished = null;
+            pendingChestRewards.Clear();
+            revealController?.FinishReveal();
+            SetTapHint(false);
         }
 
-        private static Sprite LoadItemIcon(ItemReward reward)
+        private void ResolveControllers()
         {
-            if (reward == null || reward.item == null)
-                return null;
-            if (string.IsNullOrEmpty(reward.item.iconSpriteName))
-                return null;
-            return Resources.Load<Sprite>(reward.item.iconSpriteName);
+            if (chestAnimation == null)
+            {
+                chestAnimation = GetComponent<ChestAnimationController>();
+                if (chestAnimation == null)
+                    chestAnimation = gameObject.AddComponent<ChestAnimationController>();
+            }
+            chestAnimation.Configure(chestSkeleton);
+            if (revealController == null)
+            {
+                revealController = GetComponent<ChestRewardRevealController>();
+                if (revealController == null)
+                    revealController = gameObject.AddComponent<ChestRewardRevealController>();
+            }
+
+            // The item must originate inside the popup chest and land in the
+            // display area. Older scene wiring did not serialize these optional
+            // anchors, so use the authored popup objects as safe defaults.
+            if (itemStartAnchor == null && chestSkeleton != null)
+                itemStartAnchor = chestSkeleton.rectTransform;
+            if (itemEndAnchor == null && itemDisplayRoot != null)
+                itemEndAnchor = itemDisplayRoot;
+
+            revealController.Configure(itemDisplayRoot, itemIcon, itemNameText, itemQuantityText,
+                itemStartAnchor != null ? itemStartAnchor : chestSkeleton != null ? chestSkeleton.rectTransform : null,
+                itemEndAnchor, flyDuration);
+            chestAnimation.OpenCompleted -= HandleOpenComplete;
+            chestAnimation.OpenCompleted += HandleOpenComplete;
+            revealController.AllItemsRevealed -= HandleAllItemsRevealed;
+            revealController.AllItemsRevealed += HandleAllItemsRevealed;
+        }
+
+        private void BindButton()
+        {
+            if (buttonBound || claimButton == null)
+                return;
+            claimButton.onClick.AddListener(HandleTap);
+            buttonBound = true;
+        }
+
+        private void SetTapHint(bool visible)
+        {
+            if (tapHint != null)
+                tapHint.SetActive(visible);
         }
     }
 }

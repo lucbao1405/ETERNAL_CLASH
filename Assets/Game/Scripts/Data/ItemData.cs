@@ -1,9 +1,11 @@
 using System;
+using UnityEngine;
 
 namespace EternalClash.Data
 {
     [Serializable]
-    public class ItemData
+    [CreateAssetMenu(fileName = "ItemData", menuName = "Game/Item Data")]
+    public class ItemData : ScriptableObject
     {
         public string itemId;
         public string itemName;
@@ -16,6 +18,8 @@ namespace EternalClash.Data
         public int vitBonus;
         public int luckBonus;
         public string description;
+        public Sprite icon;
+        public int quantity;
         public string iconSpriteName;
     }
 

@@ -13,12 +13,8 @@ namespace EternalClash.Chest
     }
 
     /// <summary>
-    /// World reward chest: floats to the center of the screen, waits for the player
-    /// to tap it, then plays the open effect (ChestOpenEffectController) and swaps
-    /// the closed sprite with the opened sprite.
-    ///
-    /// The reward itself is displayed/granted by the existing reward flow
-    /// (ChestRewardUI -> StageCompleteController). This controller never grants rewards.
+    /// Legacy interactive world chest. The battle-result flow disables this component
+    /// on its transition chest so the world chest remains visual-only.
     /// </summary>
     public class ChestController : MonoBehaviour
     {
@@ -26,7 +22,7 @@ namespace EternalClash.Chest
         [SerializeField] private float floatToCenterDuration = 1.5f;
         [SerializeField] private float floatHeight = 0.3f;
 
-        [Header("Open Effect")]
+        [Header("Legacy Open Effect")]
         [SerializeField] private float openScaleDuration = 0.4f;
         [SerializeField] private AnimationCurve openScaleCurve = AnimationCurve.EaseInOut(0, 1, 1, 1.2f);
         [SerializeField] private ParticleSystem openParticles;

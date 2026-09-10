@@ -39,6 +39,8 @@ public class NPCDialogue : MonoBehaviour
         if (npcButton.targetGraphic == null)
             npcButton.targetGraphic = GetComponent<Graphic>();
 
+        npcButton.enabled = true;
+        npcButton.interactable = true;
         npcButton.onClick.AddListener(ShowDialogue);
         CreateTransparentClickArea();
         ResolvePanelAfterDialogue();
@@ -133,18 +135,13 @@ public class NPCDialogue : MonoBehaviour
         if (skeletonData == null)
             return false;
 
-        Canvas parentCanvas = GetComponentInParent<Canvas>();
-        float pixelsPerUnit = parentCanvas != null
-            ? parentCanvas.referencePixelsPerUnit
-            : 100f;
-
         size = new Vector2(
-            skeletonData.Width * pixelsPerUnit,
-            skeletonData.Height * pixelsPerUnit
+            skeletonData.Width,
+            skeletonData.Height
         );
         offset = new Vector2(
-            (skeletonData.X + skeletonData.Width * 0.5f) * pixelsPerUnit,
-            (skeletonData.Y + skeletonData.Height * 0.5f) * pixelsPerUnit
+            skeletonData.X + skeletonData.Width * 0.5f,
+            skeletonData.Y + skeletonData.Height * 0.5f
         );
         return true;
     }

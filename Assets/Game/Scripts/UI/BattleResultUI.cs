@@ -277,6 +277,8 @@ namespace EternalClash.UI
         {
             if (reward == null || reward.item == null)
                 return null;
+            if (reward.item.icon != null)
+                return reward.item.icon;
             if (string.IsNullOrEmpty(reward.item.iconSpriteName))
                 return null;
             return Resources.Load<Sprite>(reward.item.iconSpriteName);

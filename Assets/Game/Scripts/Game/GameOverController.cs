@@ -12,11 +12,15 @@ namespace EternalClash.Game
 
             IsGameOver = true;
             Debug.Log("[GAME OVER] Player defeated");
-
-            // khoa thoi gian tran dau
-            Time.timeScale = 0f;
-
             DisableBattleInput();
+
+            // StageManager.FailStage is the single defeat entry point. This component
+            // only disables local input; DamageReceiver/PlayerDeathHandler report death.
+        }
+
+        private void OnDestroy()
+        {
+            IsGameOver = false;
         }
 
         private void DisableBattleInput()
