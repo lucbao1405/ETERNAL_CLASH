@@ -109,6 +109,14 @@ public class CurrencySaveData
 public class InventorySaveData
 {
     public List<EquipmentItemSaveData> equipmentItems = new List<EquipmentItemSaveData>();
+    public List<ItemStackSaveData> items = new List<ItemStackSaveData>();
+}
+
+[Serializable]
+public class ItemStackSaveData
+{
+    public string itemId = string.Empty;
+    public int amount;
 }
 
 [Serializable]

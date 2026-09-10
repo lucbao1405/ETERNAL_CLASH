@@ -12,7 +12,7 @@ namespace EternalClash.Core.Save
     {
         public const string IronSwordId = "iron_sword_t1";
         public const string IronShieldId = "iron_shield_t1";
-        public const string IronArmorId = "Iron_armor";
+        public const string IronArmorId = "iron_armor";
 
         public static void Apply(SaveData data)
         {
@@ -20,9 +20,9 @@ namespace EternalClash.Core.Save
                 return;
 
             data.equipment ??= new EquipmentSaveData();
-            data.equipment.weapon = CreateItem(IronSwordId, 1, 5, 0, 0, 0, 1);
-            data.equipment.shield = CreateItem(IronShieldId, 2, 0, 0, 10, 0, 1);
-            data.equipment.armor = CreateItem(IronArmorId, 3, 0, 5, 10, 0, 1);
+            data.equipment.weapon = CreateItem(IronSwordId, 1, 1, 0, 0, 0, 1);
+            data.equipment.shield = CreateItem(IronShieldId, 2, 0, 0, 1, 0, 1);
+            data.equipment.armor = CreateItem(IronArmorId, 3, 0, 0, 2, 0, 1);
             data.weaponTier = 1;
             data.armorTier = 1;
         }
@@ -41,12 +41,45 @@ namespace EternalClash.Core.Save
         public static ItemData CreateItemData(string itemId)
         {
             if (string.Equals(itemId, IronSwordId, StringComparison.OrdinalIgnoreCase))
-                return CreateItemData(IronSwordId, "Iron Sword", EquipmentSlot.Weapon, 5, 0, 0, 1, 0);
+                return CreateItemData(IronSwordId, "Iron Sword", EquipmentSlot.Weapon, 1, 0, 0, 1, 0);
             if (string.Equals(itemId, IronShieldId, StringComparison.OrdinalIgnoreCase))
-                return CreateItemData(IronShieldId, "Iron Shield", EquipmentSlot.Shield, 0, 0, 10, 1, 0);
+                return CreateItemData(IronShieldId, "Iron Shield", EquipmentSlot.Shield, 0, 0, 1, 1, 0);
             if (string.Equals(itemId, IronArmorId, StringComparison.OrdinalIgnoreCase))
-                return CreateItemData(IronArmorId, "Iron Armor", EquipmentSlot.Armor, 0, 5, 10, 0, 1);
+                return CreateItemData(IronArmorId, "Iron Armor", EquipmentSlot.Armor, 0, 0, 2, 0, 1);
             return null;
+        }
+
+        /// <summary>
+        /// Returns the rebalanced starting-iron snapshot bonuses for save migration.
+        /// The retained upgrade level is preserved while equipment remains separate
+        /// from the player's base stats.
+        /// </summary>
+        public static bool TryGetIronProgressionBonuses(string itemId, int upgradeLevel,
+            out int strength, out int vitality)
+        {
+            strength = 0;
+            vitality = 0;
+            int level = Mathf.Max(0, upgradeLevel);
+
+            if (string.Equals(itemId, IronSwordId, StringComparison.OrdinalIgnoreCase))
+            {
+                strength = 1 + level;
+                return true;
+            }
+
+            if (string.Equals(itemId, IronShieldId, StringComparison.OrdinalIgnoreCase))
+            {
+                vitality = 1 + level;
+                return true;
+            }
+
+            if (string.Equals(itemId, IronArmorId, StringComparison.OrdinalIgnoreCase))
+            {
+                vitality = 2 + level * 3;
+                return true;
+            }
+
+            return false;
         }
 
         private static EquipmentItemSaveData CreateItem(

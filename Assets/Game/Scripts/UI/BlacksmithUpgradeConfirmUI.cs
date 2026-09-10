@@ -17,7 +17,7 @@ namespace EternalClash.UI
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button closeButton;
         [SerializeField] private GameObject vatPhamCan;
-        [SerializeField] private GameObject hienThiVatPham;
+        [SerializeField] private Image equipmentPreviewIcon;
         [SerializeField] private MaterialSlotUI[] materialSlots = new MaterialSlotUI[3];
         [SerializeField] private ItemData copperOreItem;
         [SerializeField] private ItemData woodItem;
@@ -49,6 +49,11 @@ namespace EternalClash.UI
             AutoWireMaterialSlots();
             upgradeCallback = callback;
             closeCallback = onClose;
+            if (equipmentPreviewIcon != null)
+            {
+                equipmentPreviewIcon.sprite = itemData.icon;
+                equipmentPreviewIcon.enabled = itemData.icon != null;
+            }
             if (tenTrangbi != null)
                 tenTrangbi.text = itemData.itemName;
             string upgradePreview = "Upgrade:\nLevel " + currentLevel + " -> Level " + (currentLevel + 1);
@@ -112,13 +117,12 @@ namespace EternalClash.UI
             bool hasMaterials = slotIndex > 0;
             if (vatPhamCan != null)
                 vatPhamCan.SetActive(hasMaterials);
-            if (hienThiVatPham != null)
-                hienThiVatPham.SetActive(hasMaterials);
         }
 
         private void AutoWireMaterialSlots()
         {
-            if (hienThiVatPham == null)
+            Transform materialRoot = vatPhamCan != null ? vatPhamCan.transform.Find("Hienthivp") : null;
+            if (materialRoot == null)
                 return;
 
             if (materialSlots == null || materialSlots.Length != 3)
@@ -127,7 +131,7 @@ namespace EternalClash.UI
             for (int i = 0; i < materialSlots.Length; i++)
             {
                 materialSlots[i] ??= new MaterialSlotUI();
-                Transform root = hienThiVatPham.transform.Find((i + 1).ToString());
+                Transform root = materialRoot.Find((i + 1).ToString());
                 materialSlots[i].Bind(root);
             }
         }

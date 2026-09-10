@@ -42,6 +42,13 @@ namespace EternalClash.UI
             enabled = false;
         }
 
+        /// <summary>Opens the existing item detail panel immediately for click-driven UIs.</summary>
+        public void ShowItemDetail()
+        {
+            if (item != null)
+                ShowTooltip();
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             StopHolding();

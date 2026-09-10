@@ -20,7 +20,7 @@ MonoBehaviour:
   stars: 1
   weaponTier: 1
   armorTier: 0
-  strBonus: 5
+  strBonus: 1
   intBonus: 0
   vitBonus: 0
   luckBonus: 0

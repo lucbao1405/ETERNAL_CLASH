@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using EternalClash.Core.Save;
 using EternalClash.Village;
 
 namespace EternalClash.UI
@@ -64,6 +65,7 @@ namespace EternalClash.UI
 
         private bool initialized;
         private bool subscribed;
+        private SaveManager subscribedSaveManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallSceneHook()
@@ -141,6 +143,10 @@ namespace EternalClash.UI
 
         private void OnDisable()
         {
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+            subscribedSaveManager = null;
+
             if (PlayerStatSystem.Instance != null)
                 PlayerStatSystem.Instance.OnStatsChanged -= Refresh;
 
@@ -174,6 +180,7 @@ namespace EternalClash.UI
 
         private void Subscribe()
         {
+            SubscribeToSaveChanges();
             if (PlayerStatSystem.Instance == null)
                 return;
 
@@ -202,6 +209,22 @@ namespace EternalClash.UI
 
             subscribed = true;
         }
+
+        private void SubscribeToSaveChanges()
+        {
+            SaveManager saveManager = SaveManager.Instance;
+            if (saveManager == subscribedSaveManager)
+                return;
+
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+
+            subscribedSaveManager = saveManager;
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged += OnSaveDataChanged;
+        }
+
+        private void OnSaveDataChanged(SaveData _) => Refresh();
 
         private void OnRecoveredHpChanged(int current, int max) => Refresh();
 
@@ -248,6 +271,8 @@ namespace EternalClash.UI
             // Cau truc giong cac nhom chi so: Icon + mot o chu la con truc tiep.
             CollectDirectChildTexts(scene, "Vang", goldTexts);
             CollectDirectChildTexts(scene, "Kim_Cuong", gemTexts);
+            CollectDirectChildTexts(scene, "Khung_Vang", goldTexts);
+            CollectDirectChildTexts(scene, "Khung_Kim_Cuong", gemTexts);
 
             // --- Thanh mau: Stat/Hp/So_Hp ---
             CollectDirectChildTexts(scene, "Hp", hpTexts);
@@ -524,11 +549,11 @@ namespace EternalClash.UI
 
         private void Refresh()
         {
-            GoldSystem gold = GoldSystem.Instance;
-            if (gold != null)
+            SaveData save = SaveManager.Instance?.Data;
+            if (save?.currency != null)
             {
-                Apply(goldTexts, gold.Gold);
-                Apply(gemTexts, gold.Gem);
+                Apply(goldTexts, save.currency.gold);
+                Apply(gemTexts, save.currency.gem);
             }
 
             PlayerStatSystem stats = PlayerStatSystem.Instance;

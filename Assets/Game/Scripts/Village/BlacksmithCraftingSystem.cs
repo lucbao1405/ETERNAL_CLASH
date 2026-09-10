@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using EternalClash.Core.Save;
 using EternalClash.Data;
 using EternalClash.Upgrade;
@@ -42,25 +44,27 @@ namespace EternalClash.Village
         public bool CanUpgrade(ItemSlot slot)
         {
             UpgradeRecipeData recipe = GetRecipe(slot);
-            GoldSystem gold = GoldSystem.Instance;
-            return recipe != null && gold != null && HasResources(gold, recipe);
+            return recipe != null && HasResources(SaveManager.Instance?.Data, recipe, false);
         }
 
         public bool TryUpgrade(ItemSlot slot)
         {
             SaveData data = SaveManager.Instance?.Data;
-            GoldSystem gold = GoldSystem.Instance;
             UpgradeRecipeData recipe = GetRecipe(slot);
             EquipmentItemSaveData savedItem = GetSavedItem(data, slot);
-            if (recipe == null || gold == null || savedItem == null || !HasResources(gold, recipe))
+            if (recipe == null || savedItem == null || !HasResources(data, recipe, true))
                 return false;
 
-            gold.SpendGold(recipe.goldCost);
+            data.currency.gold -= recipe.goldCost;
+            // Save migration still mirrors legacy currency fields during persistence.
+            data.gold = data.currency.gold;
             foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
             {
                 if (requirement.amount > 0)
-                    gold.SpendMaterial(requirement.materialType, requirement.amount);
+                    ConsumeMaterial(data.inventory.items, GetMaterialItemId(requirement.materialType), requirement.amount);
             }
+
+            GoldSystem.Instance?.LoadFromSave(data);
 
             savedItem.upgradeLevel += Mathf.Max(1, recipe.upgradeValue);
             ApplyUpgradeBonus(savedItem, slot, Mathf.Max(1, recipe.upgradeValue));
@@ -92,14 +96,74 @@ namespace EternalClash.Village
             ArmorTier = data != null ? data.armorTier : 0;
         }
 
-        private bool HasResources(GoldSystem gold, UpgradeRecipeData recipe)
+        private static bool HasResources(SaveData data, UpgradeRecipeData recipe, bool logFailures)
         {
-            if (gold.Gold < recipe.goldCost)
+            if (data?.currency == null || data.inventory?.items == null)
                 return false;
+
+            if (data.currency.gold < recipe.goldCost)
+            {
+                if (logFailures)
+                    Debug.LogWarning($"[BLACKSMITH] Gold check failed: Required: gold {recipe.goldCost}; Actual: gold {data.currency.gold}");
+                return false;
+            }
+
             foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
-                if (gold.GetMaterial(requirement.materialType) < requirement.amount)
+            {
+                if (requirement.amount <= 0)
+                    continue;
+
+                string itemId = GetMaterialItemId(requirement.materialType);
+                int actual = GetMaterialAmount(data.inventory.items, itemId);
+                if (actual < requirement.amount)
+                {
+                    if (logFailures)
+                    {
+                        Debug.LogWarning($"[BLACKSMITH] Material check failed:\nRequired:\n{itemId} {requirement.amount}\nActual:\n{itemId} {actual}");
+                    }
                     return false;
+                }
+            }
+
             return true;
+        }
+
+        private static string GetMaterialItemId(MaterialType materialType)
+        {
+            switch (materialType)
+            {
+                case MaterialType.Ore: return "copper_ore";
+                case MaterialType.Leather: return "wolf_hide";
+                case MaterialType.Wood: return "wood_small";
+                case MaterialType.Steel: return "steel_ore";
+                default: return string.Empty;
+            }
+        }
+
+        private static int GetMaterialAmount(IEnumerable<ItemStackSaveData> items, string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId))
+                return 0;
+
+            return items.Where(item => item != null &&
+                    string.Equals(item.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+                .Sum(item => Mathf.Max(0, item.amount));
+        }
+
+        private static void ConsumeMaterial(List<ItemStackSaveData> items, string itemId, int amount)
+        {
+            for (int i = items.Count - 1; i >= 0 && amount > 0; i--)
+            {
+                ItemStackSaveData stack = items[i];
+                if (stack == null || !string.Equals(stack.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int consumed = Mathf.Min(stack.amount, amount);
+                stack.amount -= consumed;
+                amount -= consumed;
+                if (stack.amount <= 0)
+                    items.RemoveAt(i);
+            }
         }
 
         private UpgradeRecipeData FindRecipe(string itemId)

@@ -1,5 +1,9 @@
 using UnityEngine;
 using EternalClash.Character;
+using EternalClash.Core.Save;
+using EternalClash.Data;
+using System;
+using System.Collections.Generic;
 
 namespace EternalClash.Item
 {
@@ -121,26 +125,52 @@ namespace EternalClash.Item
                     Debug.Log("[ITEM] EXP +" + amount);
                     break;
 
-                // Nguyen lieu che tao: AddMaterial() tu ghi save nen khong can lam gi them.
+                // Normal drops belong to the bag inventory, not the currency DTO.
                 case ItemType.Ore:
-                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
-                        EternalClash.Village.MaterialType.Ore, amount);
+                    AddNormalItem("Ore", amount);
                     break;
 
                 case ItemType.Leather:
-                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
-                        EternalClash.Village.MaterialType.Leather, amount);
+                    AddNormalItem("Leather", amount);
                     break;
 
                 case ItemType.Wood:
-                    EternalClash.Village.GoldSystem.Instance?.AddMaterial(
-                        EternalClash.Village.MaterialType.Wood, amount);
+                    AddNormalItem("Wood", amount);
                     break;
             }
 
             Debug.Log("[ITEM] Collected " + itemType);
             OnItemCollected?.Invoke(this, amount);
             Destroy(gameObject);
+        }
+
+        private static void AddNormalItem(string rewardKey, int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            ItemData item = ItemCatalog.Find(rewardKey);
+            if (item == null || string.IsNullOrWhiteSpace(item.itemId) ||
+                string.Equals(item.itemType, "Currency", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            SaveData data = SaveManager.Instance?.Data;
+            if (data == null)
+                return;
+
+            data.inventory ??= new InventorySaveData();
+            data.inventory.items ??= new List<ItemStackSaveData>();
+
+            ItemStackSaveData stack = data.inventory.items.Find(value =>
+                value != null && string.Equals(value.itemId, item.itemId, StringComparison.OrdinalIgnoreCase));
+            if (stack == null)
+            {
+                stack = new ItemStackSaveData { itemId = item.itemId };
+                data.inventory.items.Add(stack);
+            }
+
+            stack.amount += amount;
+            SaveCoordinator.RequestSave();
         }
     }
 }

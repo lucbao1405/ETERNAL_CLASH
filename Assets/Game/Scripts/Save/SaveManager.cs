@@ -107,12 +107,17 @@ namespace EternalClash.Core.Save
                 Data = repository.Load();
                 bool failedToLoad = repository is PlayerPrefsSaveRepository playerPrefsRepository && playerPrefsRepository.LastLoadFailed;
                 hasSaveData = Data != null;
-                Data = SaveMigrationManager.Migrate(Data);
+                Data = SaveMigrationManager.Migrate(Data, out bool migrated);
 
                 if (failedToLoad)
                 {
                     // Replace corrupt data with a valid fallback payload immediately.
                     hasSaveData = true;
+                    Save();
+                }
+                else if (hasSaveData && migrated)
+                {
+                    // Persist cleanup performed while migrating old inventory data.
                     Save();
                 }
 
@@ -132,7 +137,10 @@ namespace EternalClash.Core.Save
 
         public void ResetSave()
         {
+            repository.Delete();
             Data = new SaveData();
+            hasSaveData = false;
+            NewGameEquipmentDefaults.Apply(Data);
             Save();
         }
 
@@ -161,12 +169,9 @@ namespace EternalClash.Core.Save
 
         public void DeleteSave()
         {
-
+            repository.Delete();
             Data = new SaveData();
             hasSaveData = false;
-
-
-            repository.Delete();
         }
 
 
