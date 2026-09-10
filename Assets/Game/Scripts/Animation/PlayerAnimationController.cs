@@ -14,9 +14,10 @@ namespace EternalClash.Animation
     /// Pure presentation layer: it only reacts to gameplay signals and never
     /// changes combat/damage/skill behaviour.
     ///
-    /// Available Player spine animations:
-    ///   Idle = "stand", Run = "run", Attack = "choc", Shield = "shield",
-    ///   Potion = "heal", Hurt = "damage", Death = "damage" (no dedicated death clip).
+    /// Available Player spine animations (bo Spine moi, commit "nhanvatchinh"):
+    ///   Idle = "stand", Run = "run", Attack = "attack", Charge = "charge",
+    ///   Shield = "shield", Potion = "healing", Hurt = "hit", Death = "dead",
+    ///   Victory = "victory".
     /// </summary>
     public class PlayerAnimationController : MonoBehaviour, IPlayerAnimationFeedback
     {
@@ -25,20 +26,24 @@ namespace EternalClash.Animation
 
         private const string AnimIdle = "stand";
         private const string AnimRun = "run";
-        private const string AnimAttack = "choc";
+        private const string AnimAttack = "attack";
+        private const string AnimCharge = "charge";
         private const string AnimShield = "shield";
-        private const string AnimPotion = "heal";
-        private const string AnimHurt = "damage";
-        private const string AnimDeath = "damage";
+        private const string AnimPotion = "healing";
+        private const string AnimHurt = "hit";
+        private const string AnimDeath = "dead";
+        private const string AnimVictory = "victory";
 
         private enum VisualState
         {
             None,
             Attack,
+            Charge,
             Shield,
             Potion,
             Hurt,
-            Death
+            Death,
+            Victory
         }
 
         private HealthSystem healthSystem;
@@ -46,6 +51,7 @@ namespace EternalClash.Animation
         private readonly System.Collections.Generic.List<SkillBase> boundSkills =
             new System.Collections.Generic.List<SkillBase>();
         private ShieldSkill shieldSource;
+        private EternalClash.Wave.WaveManager waveManager;
         private int lastHealth = -1;
         private int animVersion;
         private VisualState state = VisualState.None;
@@ -120,6 +126,21 @@ namespace EternalClash.Animation
             }
 
             subscribed = true;
+            TrySubscribeStageComplete();
+        }
+
+        /// <summary>
+        /// Thang man -> animation "victory". WaveManager co the Awake sau Player nen
+        /// thu lai moi frame cho toi khi dang ky duoc.
+        /// </summary>
+        private void TrySubscribeStageComplete()
+        {
+            if (!subscribed || waveManager != null)
+                return;
+
+            waveManager = EternalClash.Wave.WaveManager.Instance;
+            if (waveManager != null)
+                waveManager.OnStageComplete += NotifyVictory;
         }
 
         private void Unsubscribe()
@@ -140,12 +161,18 @@ namespace EternalClash.Animation
             }
             boundSkills.Clear();
 
+            if (waveManager != null)
+                waveManager.OnStageComplete -= NotifyVictory;
+            waveManager = null;
+
             subscribed = false;
         }
 
         private void Update()
         {
-            if (dead || skeletonAnimation == null)
+            TrySubscribeStageComplete();
+
+            if (dead || state == VisualState.Victory || skeletonAnimation == null)
                 return;
 
             // Shield pose is a looping pose driven by the skill duration.
@@ -182,40 +209,58 @@ namespace EternalClash.Animation
 
         // ----- Gameplay feedback (animation layer only) --------------------
 
+        /// <summary>Chet hoac thang man: giu nguyen animation cuoi, khong doi nua.</summary>
+        private bool IsFinished => dead || state == VisualState.Death || state == VisualState.Victory;
+
         public void NotifyAttack()
         {
-            if (dead || state == VisualState.Death)
+            if (IsFinished)
                 return;
-            if (state == VisualState.Shield)
-                return; // keep the shield pose while blocking
+            if (state == VisualState.Shield || state == VisualState.Charge)
+                return; // giu tu the do khien / luot kiem
             PlayOneShot(AnimAttack, VisualState.Attack);
         }
 
         public void NotifyPotion()
         {
-            if (dead || state == VisualState.Death)
+            if (IsFinished)
                 return;
-            if (state == VisualState.Shield)
+            if (state == VisualState.Shield || state == VisualState.Charge)
                 return;
             PlayOneShot(AnimPotion, VisualState.Potion);
         }
 
+        public void NotifyCharge(float chargeDuration)
+        {
+            if (IsFinished)
+                return;
+
+            shieldSource = null;
+            // Clip "charge" dai ~2.1s, tang toc cho vua khit thoi gian luot cua skill.
+            PlayOneShot(AnimCharge, VisualState.Charge, chargeDuration);
+        }
+
         public void NotifyShield(SkillBase source)
         {
-            if (dead || state == VisualState.Death)
+            if (IsFinished)
                 return;
 
             shieldSource = source as ShieldSkill;
             state = VisualState.Shield;
-            PlayLoop(AnimShield);
+
+            // Clip "shield" dai ~2.1s: 1 vong clip = dung thoi gian khien, khien
+            // keo dai hon thi lap lai. Update() tra ve Run/Idle khi khien tat.
+            float duration = shieldSource != null ? shieldSource.shieldDuration : 0f;
+            TrackEntry entry = PlayLoop(AnimShield);
+            FitToDuration(entry, duration);
         }
 
         public void NotifyHurt()
         {
-            if (dead || state == VisualState.Death)
+            if (IsFinished)
                 return;
-            if (state == VisualState.Shield)
-                return; // shield pose already conveys blocking
+            if (state == VisualState.Shield || state == VisualState.Charge)
+                return; // dang do khien / luot thi khong ngat tu the
             PlayOneShot(AnimHurt, VisualState.Hurt);
         }
 
@@ -226,6 +271,15 @@ namespace EternalClash.Animation
             dead = true;
             state = VisualState.Death;
             PlayOnce(AnimDeath);
+        }
+
+        public void NotifyVictory()
+        {
+            if (IsFinished)
+                return;
+            state = VisualState.Victory;
+            shieldSource = null;
+            PlayLoop(AnimVictory);
         }
 
         public void PlayIdle() => PlayLoop(AnimIdle);
@@ -241,12 +295,26 @@ namespace EternalClash.Animation
             return skeletonAnimation.Skeleton.Data.FindAnimation(name) != null;
         }
 
-        private void PlayLoop(string name)
+        private TrackEntry PlayLoop(string name)
         {
             if (!HasAnimation(name))
-                return;
+                return null;
             animVersion++;
-            skeletonAnimation.AnimationState.SetAnimation(0, name, true);
+            return skeletonAnimation.AnimationState.SetAnimation(0, name, true);
+        }
+
+        /// <summary>
+        /// Doi toc do phat de 1 vong clip dai dung "duration" giay.
+        /// duration <= 0 thi giu toc do goc.
+        /// </summary>
+        private static void FitToDuration(TrackEntry entry, float duration)
+        {
+            if (entry == null || entry.Animation == null || duration <= 0f)
+                return;
+
+            float clipDuration = entry.Animation.Duration;
+            if (clipDuration > 0f)
+                entry.TimeScale = clipDuration / duration;
         }
 
         private void PlayOnce(string name)
@@ -261,7 +329,7 @@ namespace EternalClash.Animation
         /// loop when it completes. A newer play call bumps animVersion so a
         /// stale completion callback can never override a newer state.
         /// </summary>
-        private void PlayOneShot(string name, VisualState visualState)
+        private void PlayOneShot(string name, VisualState visualState, float fitDuration = 0f)
         {
             if (skeletonAnimation == null)
                 return;
@@ -280,7 +348,10 @@ namespace EternalClash.Animation
             int version = ++animVersion;
             TrackEntry entry = skeletonAnimation.AnimationState.SetAnimation(0, name, false);
             if (entry != null)
+            {
+                FitToDuration(entry, fitDuration);
                 entry.Complete += _ => OnOneShotComplete(version, visualState);
+            }
         }
 
         private void OnOneShotComplete(int version, VisualState visualState)
@@ -293,7 +364,7 @@ namespace EternalClash.Animation
 
         private void PlayBaseLoop()
         {
-            if (dead)
+            if (dead || state == VisualState.Victory)
                 return;
             if (skeletonAnimation == null)
                 return;
@@ -342,7 +413,19 @@ namespace EternalClash.Animation
             {
                 NotifyPotion();
             }
-            // Charge and any other skills are intentionally ignored here.
+            else if (string.Equals(skillName, "Charge", StringComparison.OrdinalIgnoreCase))
+            {
+                float duration = 0f;
+                foreach (SkillBase skill in boundSkills)
+                {
+                    if (skill is ChargeSkill charge)
+                    {
+                        duration = charge.GetChargeDuration();
+                        break;
+                    }
+                }
+                NotifyCharge(duration);
+            }
         }
     }
 }

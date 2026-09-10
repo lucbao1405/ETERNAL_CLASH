@@ -35,13 +35,37 @@ namespace EternalClash.Village
 
             EquipmentSaveData equipment = SaveManager.Instance.Data.equipment;
             skeletonAnimation.Skeleton.SetSlotsToSetupPose();
-            skeletonAnimation.Skeleton.SetAttachment("kiem",
-                HasItem(equipment.weapon) ? "kiem" : null);
-            skeletonAnimation.Skeleton.SetAttachment("shield",
-                HasItem(equipment.shield) ? "shield" : null);
-            skeletonAnimation.Skeleton.SetAttachment("aochoang",
-                HasItem(equipment.armor) ? "aochoang" : null);
+            // Ten slot / attachment theo bo Spine Player moi: slot va attachment trung ten.
+            SetEquipmentSlot(WeaponSlot, HasItem(equipment.weapon));
+            SetEquipmentSlot(ShieldSlot, HasItem(equipment.shield));
+            SetEquipmentSlot(ArmorSlot, HasItem(equipment.armor));
             skeletonAnimation.AnimationState.Apply(skeletonAnimation.Skeleton);
+        }
+
+        private const string WeaponSlot = "kiem";
+        private const string ShieldSlot = "khien";
+        private const string ArmorSlot = "ao chaong";
+
+        /// <summary>
+        /// Bat/tat hinh trang bi tren slot. Skeleton.SetAttachment nem loi neu slot
+        /// khong ton tai (vd sau khi doi file Spine), nen kiem tra truoc va chi canh bao.
+        /// </summary>
+        private void SetEquipmentSlot(string slotName, bool visible)
+        {
+            Spine.Skeleton skeleton = skeletonAnimation.Skeleton;
+            if (skeleton.FindSlot(slotName) == null)
+            {
+                Debug.LogWarning($"[EquipmentVisual] Spine Player khong co slot \"{slotName}\" - bo qua.");
+                return;
+            }
+
+            if (visible && skeleton.GetAttachment(slotName, slotName) == null)
+            {
+                Debug.LogWarning($"[EquipmentVisual] Slot \"{slotName}\" khong co attachment cung ten - bo qua.");
+                return;
+            }
+
+            skeleton.SetAttachment(slotName, visible ? slotName : null);
         }
 
         private static bool HasItem(EquipmentItemSaveData item)
