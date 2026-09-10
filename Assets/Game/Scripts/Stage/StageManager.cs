@@ -185,7 +185,7 @@ public class StageManager : MonoBehaviour
             // (so man lay tu stageCatalog de khong hard-code).
             int nextStage = SaveManager.Instance.Data.stageLevel + 1;
             SaveManager.Instance.Data.stageLevel = Mathf.Min(MaxStageLevel, nextStage);
-            SaveManager.Instance.Save();
+            SaveCoordinator.RequestSave();
         }
     }
 

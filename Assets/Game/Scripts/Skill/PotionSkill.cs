@@ -41,6 +41,10 @@ namespace EternalClash.Skill
             int finalHeal = PlayerStatSystem.Instance != null 
                 ? PlayerStatSystem.Instance.PotionHealAmount 
                 : baseHealAmount;
+            int healingLevel = AlchemistUpgradeSystem.Instance != null
+                ? AlchemistUpgradeSystem.Instance.HealingLevel
+                : 1;
+            finalHeal *= healingLevel;
 
             Debug.Log($"[SKILL] Potion USED - Heal amount: {finalHeal}");
             health.Heal(finalHeal);

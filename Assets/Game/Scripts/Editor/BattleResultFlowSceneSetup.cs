@@ -29,7 +29,6 @@ namespace EternalClash.EditorTools
     /// </summary>
     public static class BattleResultFlowSceneSetup
     {
-        private const string ChestPrefabPath = "Assets/Game/Prefabs/Chest/RewardChest.prefab";
         private const string ChestSpineDataPath = "Assets/Game/Animations/chest/spine_SkeletonData.asset";
 
         // Win/Lose popup nên nằm cao hơn tâm một chút (px trong canvas).
@@ -119,14 +118,20 @@ namespace EternalClash.EditorTools
             {
                 Transform slot = FindDescendant(popup, i.ToString());
                 if (slot == null)
+                    slot = FindDescendant(popup, "ItemSlot_" + i);
+                if (slot == null)
                     continue;
 
                 Image frame = slot.GetComponent<Image>();
                 if (frame == null)
                     frame = slot.gameObject.AddComponent<Image>();
-                frame.raycastTarget = false;
+                frame.raycastTarget = true;
+                if (frame.color.a < 0.01f)
+                    frame.color = new Color(1f, 1f, 1f, 0.003f);
 
                 Transform pic = FindDescendant(slot, "ItemPic");
+                if (pic == null)
+                    pic = FindDescendant(slot, "Icon");
                 if (pic != null)
                 {
                     Image icon = pic.GetComponent<Image>();
@@ -138,6 +143,14 @@ namespace EternalClash.EditorTools
 
                 if (slot.GetComponent<RewardItemSlot>() == null)
                     slot.gameObject.AddComponent<RewardItemSlot>();
+                if (slot.GetComponent<ItemTooltipController>() == null)
+                    slot.gameObject.AddComponent<ItemTooltipController>();
+
+                foreach (TextMeshProUGUI itemName in slot.GetComponentsInChildren<TextMeshProUGUI>(true))
+                {
+                    if (itemName != null && Normalize(itemName.gameObject.name) == "itemname")
+                        itemName.gameObject.SetActive(false);
+                }
             }
         }
 
@@ -381,7 +394,6 @@ namespace EternalClash.EditorTools
             Scene scene)
         {
             var so = new SerializedObject(controller);
-            GameObject chestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ChestPrefabPath);
             ChestRewardController chestController = controller.GetComponent<ChestRewardController>();
             SetRef(so, "chestRewardPopup", chestPopup != null ? chestPopup.gameObject : null);
             if (chestPopup != null)
@@ -390,10 +402,7 @@ namespace EternalClash.EditorTools
             SetRef(so, "losePopup", loseT != null ? loseT.gameObject : null);
             SetRef(so, "winUI", winUI);
             SetRef(so, "loseUI", loseUI);
-            SetRef(so, "chestPrefab", chestPrefab);
             SetRef(so, "chestRewardController", chestController);
-            Transform spawnPoint = FindRootChild(scene, "ChestSpawnPoint");
-            SetRef(so, "chestSpawnPoint", spawnPoint != null ? spawnPoint.gameObject : null);
             SerializedProperty victoryDelay = so.FindProperty("victoryDelay");
             if (victoryDelay != null) victoryDelay.floatValue = 2f;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -401,8 +410,6 @@ namespace EternalClash.EditorTools
             if (chestController != null)
             {
                 var chestSo = new SerializedObject(chestController);
-                SetRef(chestSo, "chestPrefab", chestPrefab);
-                SetRef(chestSo, "chestSpawnPoint", spawnPoint != null ? spawnPoint.gameObject : null);
                 SetRef(chestSo, "interactionLayer", chestPopup != null ? chestPopup.gameObject : null);
                 chestSo.ApplyModifiedPropertiesWithoutUndo();
             }

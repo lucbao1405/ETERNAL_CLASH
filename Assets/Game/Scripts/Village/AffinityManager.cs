@@ -103,7 +103,7 @@ namespace EternalClash.Village
                 data.unlockedLetters = new System.Collections.Generic.List<string>();
 
             data.unlockedLetters.Add(milestone.letterId);
-            SaveManager.Instance.Save();
+            SaveCoordinator.RequestSave();
             ApplyPermanentBuff(milestone);
             Debug.Log($"[AFFINITY] Letter unlocked: {milestone.letterTitle}");
         }
@@ -145,7 +145,7 @@ namespace EternalClash.Village
             if (SaveManager.Instance?.Data != null)
             {
                 SaveManager.Instance.Data.affinityPoints = AffinityPoints;
-                SaveManager.Instance.Save();
+                SaveCoordinator.RequestSave();
             }
         }
     }

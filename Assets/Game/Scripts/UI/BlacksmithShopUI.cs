@@ -2,14 +2,15 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using EternalClash.Core.Save;
 using EternalClash.Data;
+using EternalClash.Upgrade;
 using EternalClash.Village;
 
 namespace EternalClash.UI
 {
     /// <summary>
-    /// Reference-only UI for the blacksmith shop. It previews existing equipment
-    /// and resource values without performing an upgrade or changing save data.
+    /// Binds the blacksmith panel to the persistent equipment and upgrade systems.
     /// </summary>
     public class BlacksmithShopUI : MonoBehaviour
     {
@@ -64,18 +65,29 @@ namespace EternalClash.UI
         [Header("Controls")]
         [SerializeField] private Button weaponButton;
         [SerializeField] private Button armorButton;
+        [SerializeField] private Button shieldButton;
         [SerializeField] private Button upgradeButton;
         [SerializeField] private Button closeButton;
 
         private ItemSlot selectedSlot = ItemSlot.Weapon;
+        private string selectedItemId;
+        private ItemData selectedItem;
+        private UpgradeRecipeData selectedRecipe;
+        private bool detailShown;
+        private Transform weaponListRoot;
+        private Transform shieldListRoot;
+        private Transform armorListRoot;
 
         private void Awake()
         {
             AutoWireReferences();
-            if (weaponButton != null) weaponButton.onClick.AddListener(SelectWeapon);
-            if (armorButton != null) armorButton.onClick.AddListener(SelectArmor);
+            if (weaponButton != null) weaponButton.onClick.AddListener(OnWeaponPressed);
+            if (armorButton != null) armorButton.onClick.AddListener(OnArmorPressed);
+            if (shieldButton != null) shieldButton.onClick.AddListener(OnShieldPressed);
+            if (upgradeButton != null) upgradeButton.onClick.AddListener(UpgradeSelected);
             if (closeButton != null) closeButton.onClick.AddListener(Close);
             if (upgradeButton != null) upgradeButton.interactable = false;
+            BindInventoryLists();
         }
 
         private void AutoWireReferences()
@@ -83,6 +95,9 @@ namespace EternalClash.UI
             Transform equipment = transform.Find("EquipmentPreview");
             Transform current = equipment?.Find("CurrentEquipment");
             Transform next = equipment?.Find("NextEquipment");
+            Transform legacyPreview = FindChildRecursive(transform, "ThongTinNangCap");
+            current ??= legacyPreview?.Find("Current") ?? legacyPreview?.Find("ThongTinVatPham");
+            next ??= legacyPreview?.Find("Next");
             currentEquipmentIcon ??= current?.Find("ItemIcon")?.GetComponent<Image>();
             currentEquipmentNameText ??= current?.Find("ItemName")?.GetComponent<TMP_Text>();
             currentEquipmentStatsText ??= current?.Find("StatsText")?.GetComponent<TMP_Text>();
@@ -103,12 +118,27 @@ namespace EternalClash.UI
             }
 
             Transform upgradePreview = transform.Find("UpgradePreview");
+            upgradePreview ??= legacyPreview;
             beforeStatsText ??= upgradePreview?.Find("BeforeStats")?.GetComponent<TMP_Text>();
             afterStatsText ??= upgradePreview?.Find("AfterStats")?.GetComponent<TMP_Text>();
             weaponButton ??= transform.Find("CategoryTab/Weapon_Button")?.GetComponent<Button>();
             armorButton ??= transform.Find("CategoryTab/Armor_Button")?.GetComponent<Button>();
+            shieldButton ??= transform.Find("CategoryTab/Shield_Button")?.GetComponent<Button>();
             upgradeButton ??= transform.Find("Upgrade_Button")?.GetComponent<Button>();
             closeButton ??= transform.Find("Header/Close_Button")?.GetComponent<Button>();
+
+            BindLegacyButton("KhungKiem", ref weaponButton);
+            BindLegacyButton("KhungSetAoGiap", ref armorButton);
+            BindLegacyButton("KhungKhien", ref shieldButton);
+            closeButton ??= FindChildRecursive(transform, "X")?.GetComponent<Button>();
+        }
+
+        private void BindLegacyButton(string objectName, ref Button field)
+        {
+            Transform target = FindChildRecursive(transform, objectName);
+            if (target == null)
+                return;
+            field ??= target.GetComponent<Button>() ?? target.gameObject.AddComponent<Button>();
         }
 
         private void OnEnable()
@@ -119,7 +149,13 @@ namespace EternalClash.UI
         public void Open()
         {
             gameObject.SetActive(true);
-            SelectWeapon();
+            detailShown = false;
+            selectedSlot = ItemSlot.Weapon;
+            selectedItemId = null;
+            selectedItem = null;
+            selectedRecipe = null;
+            ClearDetail();
+            RefreshInventory();
         }
 
         public void Close()
@@ -131,22 +167,113 @@ namespace EternalClash.UI
 
         public void SelectWeapon()
         {
-            selectedSlot = ItemSlot.Weapon;
-            RefreshEquipment();
-            RefreshRequirement();
+            OnWeaponPressed();
         }
 
         public void SelectArmor()
         {
-            selectedSlot = ItemSlot.Armor;
+            OnArmorPressed();
+        }
+
+        private void OnWeaponPressed()
+        {
+            ClearSelection();
+            detailShown = true;
+            ShowDetail(ItemSlot.Weapon);
+        }
+
+        private void OnArmorPressed()
+        {
+            ClearSelection();
+            detailShown = true;
+            ShowDetail(ItemSlot.Armor);
+        }
+
+        private void OnShieldPressed()
+        {
+            ClearSelection();
+            detailShown = true;
+            ShowDetail(ItemSlot.Accessory);
+        }
+
+        private void ClearSelection()
+        {
+            selectedItemId = null;
+            selectedItem = null;
+            selectedRecipe = null;
+        }
+
+        private void UpgradeSelected()
+        {
+            BlacksmithCraftingSystem smith = BlacksmithCraftingSystem.Instance;
+            if (smith == null || !smith.CanUpgrade(selectedSlot))
+                return;
+            if (smith.TryUpgrade(selectedSlot))
+            {
+                SaveCoordinator.RequestSave();
+                RefreshAfterUpgrade();
+            }
+        }
+
+        private void ShowDetail(ItemSlot slot)
+        {
+            selectedSlot = slot;
             RefreshEquipment();
             RefreshRequirement();
+            if (upgradeButton != null)
+                upgradeButton.interactable = BlacksmithCraftingSystem.Instance?.CanUpgrade(selectedSlot) == true;
+        }
+
+        private void RefreshAfterUpgrade()
+        {
+            selectedItem = null;
+            RefreshEquipment();
+            RefreshRequirement();
+            RefreshInventory();
+        }
+
+        public void RefreshCurrentView()
+        {
+            if (detailShown)
+            {
+                RefreshEquipment();
+                RefreshRequirement();
+            }
+            else
+            {
+                ClearDetail();
+            }
+            RefreshInventory();
+        }
+
+        private void ClearDetail()
+        {
+            if (currentEquipmentIcon != null)
+                currentEquipmentIcon.sprite = null;
+            if (nextEquipmentIcon != null)
+                nextEquipmentIcon.sprite = null;
+            if (currentEquipmentNameText != null)
+                currentEquipmentNameText.text = "Select a weapon or armor";
+            if (nextEquipmentNameText != null)
+                nextEquipmentNameText.text = string.Empty;
+            if (currentEquipmentStatsText != null)
+                currentEquipmentStatsText.text = string.Empty;
+            if (nextEquipmentStatsText != null)
+                nextEquipmentStatsText.text = string.Empty;
+            if (beforeStatsText != null)
+                beforeStatsText.text = string.Empty;
+            if (afterStatsText != null)
+                afterStatsText.text = string.Empty;
+            if (goldAmountText != null)
+                goldAmountText.text = string.Empty;
+            if (upgradeButton != null)
+                upgradeButton.interactable = false;
         }
 
         public void RefreshEquipment()
         {
             int tier = GetSelectedTier();
-            ItemData current = EquipmentSystem.Instance?.GetEquippedItem(selectedSlot);
+            ItemData current = selectedItem ?? ResolveItem(selectedSlot);
 
             if (currentEquipmentIcon != null)
                 currentEquipmentIcon.sprite = current != null ? current.icon : null;
@@ -158,23 +285,24 @@ namespace EternalClash.UI
             if (nextEquipmentNameText != null)
                 nextEquipmentNameText.text = GetEquipmentLabel() + " - Bậc " + (tier + 1);
             if (nextEquipmentStatsText != null)
-                nextEquipmentStatsText.text = "Xem trước nâng cấp";
+                nextEquipmentStatsText.text = FormatUpgradeStat(current);
             if (nextEquipmentIcon != null)
-                nextEquipmentIcon.sprite = null;
+                nextEquipmentIcon.sprite = current != null ? current.icon : null;
 
             if (beforeStatsText != null)
                 beforeStatsText.text = "Bậc " + tier + "\n" + FormatStats(current);
             if (afterStatsText != null)
-                afterStatsText.text = "Bậc " + (tier + 1) + "\nChỉ số sau nâng cấp";
+                afterStatsText.text = "Bậc " + (tier + 1) + "\n" + FormatUpgradeStat(current);
         }
 
         public void RefreshRequirement()
         {
-            int tier = GetSelectedTier() + 1;
-            int gold = BlacksmithCraftingSystem.TIER1_GOLD_COST * tier;
-            int ore = BlacksmithCraftingSystem.TIER1_ORE_COST * tier;
-            int leather = BlacksmithCraftingSystem.TIER1_LEATHER_COST * tier;
+            UpgradeRecipeData recipe = selectedRecipe ?? BlacksmithCraftingSystem.Instance?.GetRecipe(selectedSlot);
             GoldSystem resources = GoldSystem.Instance;
+            int gold = recipe != null ? recipe.goldCost : 0;
+            int ore = GetRequirement(recipe, MaterialType.Ore);
+            int leather = GetRequirement(recipe, MaterialType.Leather);
+            int wood = GetRequirement(recipe, MaterialType.Wood);
 
             if (goldAmountText != null)
             {
@@ -188,11 +316,28 @@ namespace EternalClash.UI
 
             materialSlots[0]?.Refresh("Ore", resources != null ? resources.OreMaterial : 0, ore);
             materialSlots[1]?.Refresh("Leather", resources != null ? resources.LeatherMaterial : 0, leather);
-            materialSlots[2]?.Refresh("Wood", resources != null ? resources.WoodMaterial : 0, 0);
+            materialSlots[2]?.Refresh("Wood", resources != null ? resources.WoodMaterial : 0, wood);
+            if (upgradeButton != null)
+                upgradeButton.interactable = BlacksmithCraftingSystem.Instance?.CanUpgrade(selectedSlot) == true;
+        }
+
+        private static int GetRequirement(UpgradeRecipeData recipe, MaterialType type)
+        {
+            if (recipe == null || recipe.requiredMaterials == null)
+                return 0;
+            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials)
+                if (requirement.materialType == type)
+                    return requirement.amount;
+            return 0;
         }
 
         private int GetSelectedTier()
         {
+            if (!string.IsNullOrEmpty(selectedItemId))
+                return GetSavedItemLevel(selectedItemId, selectedItem);
+            ItemData item = ResolveItem(selectedSlot);
+            if (item != null)
+                return GetSavedItemLevel(item.itemId, item);
             BlacksmithCraftingSystem smith = BlacksmithCraftingSystem.Instance;
             if (smith == null) return 0;
             return selectedSlot == ItemSlot.Weapon ? smith.WeaponTier : smith.ArmorTier;
@@ -200,7 +345,7 @@ namespace EternalClash.UI
 
         private string GetEquipmentLabel()
         {
-            return selectedSlot == ItemSlot.Weapon ? "Vũ khí" : "Áo giáp";
+            return selectedSlot == ItemSlot.Weapon ? "Vũ khí" : selectedSlot == ItemSlot.Armor ? "Áo giáp" : "Khiên";
         }
 
         private static string FormatStats(ItemData item)
@@ -208,6 +353,222 @@ namespace EternalClash.UI
             if (item == null) return "Chưa trang bị";
             return "STR +" + item.strBonus + " | INT +" + item.intBonus +
                    " | VIT +" + item.vitBonus + " | LUCK +" + item.luckBonus;
+        }
+
+        private string FormatUpgradeStat(ItemData item)
+        {
+            UpgradeRecipeData recipe = selectedRecipe ?? BlacksmithCraftingSystem.Instance?.GetRecipe(selectedSlot);
+            int value = recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 0;
+            if (selectedSlot == ItemSlot.Weapon)
+                return "STR +" + value;
+            if (selectedSlot == ItemSlot.Armor || selectedSlot == ItemSlot.Accessory)
+                return "VIT +" + value;
+            return "No upgrade data";
+        }
+
+        private void BindInventoryLists()
+        {
+            weaponListRoot = FindChildRecursive(transform, "List_Kiem");
+            shieldListRoot = FindChildRecursive(transform, "List_Khien");
+            armorListRoot = FindChildRecursive(transform, "List_Armor") ?? FindChildRecursive(transform, "List_SetAoGiap");
+        }
+
+        private static Transform FindChildRecursive(Transform root, string childName)
+        {
+            if (root == null)
+                return null;
+            if (root.name == childName)
+                return root;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindChildRecursive(root.GetChild(i), childName);
+                if (found != null)
+                    return found;
+            }
+            return null;
+        }
+
+        private void RefreshInventory()
+        {
+            ClearGeneratedSlots(weaponListRoot);
+            ClearGeneratedSlots(shieldListRoot);
+            ClearGeneratedSlots(armorListRoot);
+
+            UpgradeRecipeData[] recipes = Resources.LoadAll<UpgradeRecipeData>("UpgradeRecipes");
+            int weaponIndex = 0;
+            int shieldIndex = 0;
+            int armorIndex = 0;
+            foreach (UpgradeRecipeData recipe in recipes)
+            {
+                if (recipe == null || string.IsNullOrEmpty(recipe.itemId))
+                    continue;
+                ItemData item = FindItemData(recipe.itemId);
+                EquipmentSlot equipmentSlot = item != null ? item.equipmentSlot : InferEquipmentSlot(recipe.itemId);
+                if (equipmentSlot == EquipmentSlot.None)
+                    continue;
+                Transform list = GetListRoot(equipmentSlot);
+                if (list == null)
+                    continue;
+                int index = equipmentSlot == EquipmentSlot.Weapon ? weaponIndex++
+                    : equipmentSlot == EquipmentSlot.Shield ? shieldIndex++ : armorIndex++;
+                CreateRecipeSlot(list, recipe, item, index);
+            }
+        }
+
+        private static void ClearGeneratedSlots(Transform root)
+        {
+            if (root == null)
+                return;
+            for (int i = root.childCount - 1; i >= 0; i--)
+                if (root.GetChild(i).name.StartsWith("BlacksmithRecipe_", StringComparison.Ordinal))
+                    Destroy(root.GetChild(i).gameObject);
+        }
+
+        private Transform GetListRoot(EquipmentSlot slot) => slot == EquipmentSlot.Weapon ? weaponListRoot
+            : slot == EquipmentSlot.Shield ? shieldListRoot : slot == EquipmentSlot.Armor ? armorListRoot : null;
+
+        private void CreateRecipeSlot(Transform parent, UpgradeRecipeData recipe, ItemData item, int index)
+        {
+            GameObject slotObject = new GameObject("BlacksmithRecipe_" + recipe.itemId,
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            slotObject.transform.SetParent(parent, false);
+            RectTransform rect = slotObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(index * 150f, -8f);
+            rect.sizeDelta = new Vector2(135f, 115f);
+            slotObject.GetComponent<Image>().color = new Color(0.18f, 0.18f, 0.18f, 0.95f);
+            EquipmentSlot equipmentSlot = item != null ? item.equipmentSlot : InferEquipmentSlot(recipe.itemId);
+            ItemSlot slot = ToItemSlot(equipmentSlot);
+            slotObject.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                selectedItemId = recipe.itemId;
+                selectedItem = FindItemData(recipe.itemId);
+                selectedRecipe = recipe;
+                detailShown = true;
+                ShowDetail(slot);
+            });
+            CreateInventoryIcon(slotObject.transform, item != null ? item.icon : null);
+            CreateInventoryLabel(slotObject.transform, string.Format("{0}\n+{1}",
+                item != null ? item.itemName : NewGameEquipmentDefaults.GetDisplayName(recipe.itemId),
+                GetSavedUpgradeLevel(recipe.itemId, item)));
+        }
+
+        private static ItemSlot ToItemSlot(EquipmentSlot slot) => slot == EquipmentSlot.Weapon ? ItemSlot.Weapon
+            : slot == EquipmentSlot.Armor ? ItemSlot.Armor : ItemSlot.Accessory;
+
+        private static EquipmentSlot InferEquipmentSlot(string itemId)
+        {
+            if (itemId.IndexOf("shield", StringComparison.OrdinalIgnoreCase) >= 0)
+                return EquipmentSlot.Shield;
+            if (itemId.IndexOf("armor", StringComparison.OrdinalIgnoreCase) >= 0)
+                return EquipmentSlot.Armor;
+            if (string.Equals(itemId, NewGameEquipmentDefaults.IronSwordId, StringComparison.OrdinalIgnoreCase))
+                return EquipmentSlot.Weapon;
+            return EquipmentSlot.None;
+        }
+
+        private static ItemData FindItemData(string itemId)
+        {
+            foreach (ItemData item in Resources.FindObjectsOfTypeAll<ItemData>())
+                if (item != null && string.Equals(item.itemId, itemId, StringComparison.Ordinal))
+                    return item;
+            return NewGameEquipmentDefaults.CreateItemData(itemId);
+        }
+
+        private static int GetSavedUpgradeLevel(string itemId, ItemData fallback)
+        {
+            SaveData data = SaveManager.Instance?.Data;
+            if (data?.equipment != null)
+            {
+                EquipmentItemSaveData[] equipped = { data.equipment.weapon, data.equipment.armor, data.equipment.shield };
+                foreach (EquipmentItemSaveData item in equipped)
+                    if (item != null && item.itemId == itemId)
+                        return item.upgradeLevel;
+            }
+            if (data?.equipmentInventory != null)
+                foreach (EquipmentItemSaveData item in data.equipmentInventory)
+                    if (item != null && item.itemId == itemId)
+                        return item.upgradeLevel;
+            return fallback != null ? fallback.upgradeLevel : 0;
+        }
+
+        private static int GetSavedItemLevel(string itemId, ItemData fallback)
+        {
+            SaveData data = SaveManager.Instance?.Data;
+            if (data?.equipment != null)
+            {
+                EquipmentItemSaveData[] equipped = { data.equipment.weapon, data.equipment.armor, data.equipment.shield };
+                foreach (EquipmentItemSaveData item in equipped)
+                    if (item != null && item.itemId == itemId)
+                        return Mathf.Max(1, item.level);
+            }
+            return fallback != null ? Mathf.Max(1, fallback.level) : 1;
+        }
+
+        private static string GetEquipmentLabelFor(ItemSlot slot) =>
+            slot == ItemSlot.Weapon ? "Weapon" : slot == ItemSlot.Armor ? "Armor" : "Shield";
+
+        private static void CreateInventoryIcon(Transform parent, Sprite sprite)
+        {
+            GameObject icon = new GameObject("Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            icon.transform.SetParent(parent, false);
+            RectTransform rect = icon.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 0.5f);
+            rect.anchorMax = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = new Vector2(24f, 0f);
+            rect.sizeDelta = new Vector2(32f, 32f);
+            icon.GetComponent<Image>().sprite = sprite;
+            icon.GetComponent<Image>().preserveAspect = true;
+        }
+
+        private static ItemData ResolveItem(ItemSlot slot)
+        {
+            ItemData item = EquipmentSystem.Instance?.GetEquippedItem(slot);
+            string itemId = SaveItemId(slot);
+            if (item != null && !string.IsNullOrEmpty(item.itemId))
+                itemId = item.itemId;
+            if (string.IsNullOrEmpty(itemId))
+                return item;
+            foreach (ItemData candidate in Resources.FindObjectsOfTypeAll<ItemData>())
+                if (candidate != null && candidate.itemId == itemId)
+                {
+                    if (item == null)
+                        return candidate;
+                    item.icon = candidate.icon;
+                    if (string.IsNullOrEmpty(item.itemName) || item.itemName == item.itemId)
+                        item.itemName = candidate.itemName;
+                    return item;
+                }
+            if (item != null && (string.IsNullOrEmpty(item.itemName) || item.itemName == item.itemId))
+                item.itemName = NewGameEquipmentDefaults.GetDisplayName(item.itemId);
+            return item;
+        }
+
+        private static string SaveItemId(ItemSlot slot)
+        {
+            SaveData data = SaveManager.Instance?.Data;
+            EquipmentItemSaveData saved = slot == ItemSlot.Weapon ? data?.equipment?.weapon
+                : slot == ItemSlot.Armor ? data?.equipment?.armor : data?.equipment?.shield;
+            return saved?.itemId;
+        }
+
+        private static void CreateInventoryLabel(Transform parent, string value)
+        {
+            GameObject label = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            label.transform.SetParent(parent, false);
+            RectTransform rect = label.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(12f, 0f);
+            rect.offsetMax = Vector2.zero;
+            Text text = label.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 17;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = Color.white;
+            text.text = value;
         }
     }
 }

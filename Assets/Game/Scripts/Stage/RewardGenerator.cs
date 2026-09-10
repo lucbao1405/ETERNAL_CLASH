@@ -58,16 +58,17 @@ namespace EternalClash.Stage
             int tier = Mathf.Clamp((int)rarity, 0, 4);
             bool isWeapon = Random.value > 0.5f;
 
-            ItemData item = new ItemData
-            {
-                itemId = isWeapon ? "weapon_" + tier : "armor_" + tier,
-                itemName = isWeapon ? WeaponNames[tier] : ArmorNames[tier],
-                rarity = rarity,
-                stars = Mathf.Clamp(tier + 1, 1, 5),
-                weaponTier = isWeapon ? tier : 0,
-                armorTier = isWeapon ? 0 : tier,
-                description = Descriptions[tier]
-            };
+            ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.itemId = isWeapon ? "weapon_" + tier : "armor_" + tier;
+            item.itemName = isWeapon ? WeaponNames[tier] : ArmorNames[tier];
+            item.itemType = isWeapon ? "Weapon" : "Armor";
+            item.equipmentSlot = isWeapon ? EquipmentSlot.Weapon : EquipmentSlot.Armor;
+            item.rarity = rarity;
+            item.stars = Mathf.Clamp(tier + 1, 1, 5);
+            item.weaponTier = isWeapon ? tier : 0;
+            item.armorTier = isWeapon ? 0 : tier;
+            item.level = Mathf.Max(1, tier);
+            item.description = Descriptions[tier];
 
             int statBudget = 1 + tier * 2 + stageLevel;
             int str = 0, intel = 0, vit = 0, luck = 0;

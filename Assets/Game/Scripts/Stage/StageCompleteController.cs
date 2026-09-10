@@ -208,27 +208,14 @@ namespace EternalClash.Stage
 
         private void SpawnChest()
         {
-            ChestController chest = null;
-            if (ChestSpawnFlow.Instance != null)
-                chest = ChestSpawnFlow.Instance.SpawnChest();
-
-            if (chest != null && currentReward != null)
+            if (BattleResult.BattleResultFlowController.Instance != null)
             {
-                chest.SetRewardData(currentReward);
-            }
-
-            // Khong sinh duoc ruong va cung khong co panel "Open Chest": khong con
-            // ai co the goi OnChestOpened(), luong se dung tai day va popup ket qua
-            // khong bao gio hien. Truong hop do di thang toi trao thuong + popup.
-            // Khi scene co du ruong/panel thi duong cu van chay nhu thiet ke.
-            if (chest == null && chestRewardPanel == null)
-            {
-                GrantReward();
-                ContinueAfterReward();
+                BattleResult.BattleResultFlowController.Instance.StartWinFlow();
                 return;
             }
 
-            ShowChestRewardUI();
+            GrantReward();
+            ContinueAfterReward();
         }
 
         /// <summary>
@@ -411,7 +398,7 @@ namespace EternalClash.Stage
                 }
             }
 
-            SaveManager.Instance?.Save();
+            SaveCoordinator.RequestSave();
             EternalClash.Core.SceneLoader.LoadTown();
         }
 

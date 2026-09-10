@@ -126,6 +126,9 @@ namespace EternalClash.BattleResult
             {
                 itemId = itemId ?? string.Empty,
                 itemName = itemName ?? itemId,
+                itemType = string.Equals(itemId, "Gold", System.StringComparison.OrdinalIgnoreCase)
+                    ? "Currency"
+                    : "Material",
                 iconSpriteName = iconSpriteName ?? string.Empty
             };
 

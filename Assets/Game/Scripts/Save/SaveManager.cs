@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 using EternalClash.Core.Services;
@@ -26,6 +27,11 @@ namespace EternalClash.Core.Save
 
 
         private bool hasSaveData;
+        private ISaveRepository repository;
+
+        public event Action<SaveData> SaveLoaded;
+        public event Action<SaveData> SaveChanged;
+        public event Action<Exception> SaveFailed;
 
 
 
@@ -43,6 +49,8 @@ namespace EternalClash.Core.Save
 
 
             DontDestroyOnLoad(gameObject);
+
+            repository = new PlayerPrefsSaveRepository();
 
 
             RegisterService();
@@ -75,39 +83,49 @@ namespace EternalClash.Core.Save
 
         public void Save()
         {
-
-            if(Data == null)
+            try
             {
-                Data = new SaveData();
+                Data ??= new SaveData();
+                SaveMigrationManager.SynchronizeDtosFromLegacy(Data);
+                repository.Save(Data);
+                hasSaveData = true;
+                SaveChanged?.Invoke(Data);
             }
-
-
-            hasSaveData = true;
-
-
-            string json = JsonUtility.ToJson(Data);
-            PlayerPrefs.SetString("SAVE_DATA", json);
-            PlayerPrefs.Save();
+            catch (Exception exception)
+            {
+                Debug.LogError($"[SAVE] Failed to save game. {exception}");
+                SaveFailed?.Invoke(exception);
+            }
         }
 
 
 
         public void Load()
         {
-
-            string json = PlayerPrefs.GetString("SAVE_DATA", "");
-
-
-            if(string.IsNullOrEmpty(json))
+            try
             {
-                Data = new SaveData();
-                hasSaveData = false;
-                return;
+                Data = repository.Load();
+                bool failedToLoad = repository is PlayerPrefsSaveRepository playerPrefsRepository && playerPrefsRepository.LastLoadFailed;
+                hasSaveData = Data != null;
+                Data = SaveMigrationManager.Migrate(Data);
+
+                if (failedToLoad)
+                {
+                    // Replace corrupt data with a valid fallback payload immediately.
+                    hasSaveData = true;
+                    Save();
+                }
+
+                SaveLoaded?.Invoke(Data);
             }
-
-
-            Data = JsonUtility.FromJson<SaveData>(json);
-            hasSaveData = true;
+            catch (Exception exception)
+            {
+                Debug.LogError($"[SAVE] Unexpected load failure. Using a new save. {exception}");
+                Data = SaveMigrationManager.Migrate(new SaveData());
+                hasSaveData = false;
+                SaveFailed?.Invoke(exception);
+                SaveLoaded?.Invoke(Data);
+            }
         }
 
 
@@ -148,8 +166,7 @@ namespace EternalClash.Core.Save
             hasSaveData = false;
 
 
-            PlayerPrefs.DeleteKey("SAVE_DATA");
-            PlayerPrefs.Save();
+            repository.Delete();
         }
 
 

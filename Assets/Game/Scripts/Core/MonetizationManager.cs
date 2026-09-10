@@ -65,7 +65,7 @@ namespace EternalClash.Core
             if (Data != null)
             {
                 Data.hasRemovedAds = true;
-                SaveManager.Instance?.Save();
+                SaveCoordinator.RequestSave();
             }
             OnPurchaseCompleted?.Invoke("no_ads");
         }
@@ -82,7 +82,7 @@ namespace EternalClash.Core
                 // Daily materials bonus
                 Data.oreMaterial += 10;
                 Data.leatherMaterial += 10;
-                SaveManager.Instance?.Save();
+                SaveCoordinator.RequestSave();
             }
             OnPurchaseCompleted?.Invoke("vip_monthly");
         }
