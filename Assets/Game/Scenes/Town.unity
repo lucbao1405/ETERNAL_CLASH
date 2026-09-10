@@ -25927,6 +25927,8 @@ GameObject:
   - component: {fileID: 1605854830}
   - component: {fileID: 1605854829}
   - component: {fileID: 1605854828}
+  - component: {fileID: 1605854831}
+  - component: {fileID: 1605854832}
   m_Layer: 5
   m_Name: Bag
   m_TagString: Untagged
@@ -26012,6 +26014,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1605854826}
   m_CullTransparentMesh: 1
+--- !u!114 &1605854831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605854826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae970cacf041d8e46a20f0056d3ae6a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1605854832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605854826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae970cacf041d8e46a20f0056d3ae6a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1614426337
 GameObject:
   m_ObjectHideFlags: 0

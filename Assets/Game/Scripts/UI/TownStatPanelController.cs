@@ -65,6 +65,7 @@ namespace EternalClash.UI
 
         private bool initialized;
         private bool subscribed;
+        private SaveManager subscribedSaveManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallSceneHook()
@@ -142,6 +143,10 @@ namespace EternalClash.UI
 
         private void OnDisable()
         {
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+            subscribedSaveManager = null;
+
             if (PlayerStatSystem.Instance != null)
                 PlayerStatSystem.Instance.OnStatsChanged -= Refresh;
 
@@ -175,6 +180,7 @@ namespace EternalClash.UI
 
         private void Subscribe()
         {
+            SubscribeToSaveChanges();
             if (PlayerStatSystem.Instance == null)
                 return;
 
@@ -203,6 +209,22 @@ namespace EternalClash.UI
 
             subscribed = true;
         }
+
+        private void SubscribeToSaveChanges()
+        {
+            SaveManager saveManager = SaveManager.Instance;
+            if (saveManager == subscribedSaveManager)
+                return;
+
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+
+            subscribedSaveManager = saveManager;
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged += OnSaveDataChanged;
+        }
+
+        private void OnSaveDataChanged(SaveData _) => Refresh();
 
         private void OnRecoveredHpChanged(int current, int max) => Refresh();
 

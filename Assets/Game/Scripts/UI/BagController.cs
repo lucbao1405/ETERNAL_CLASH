@@ -12,6 +12,7 @@ namespace EternalClash.UI
     {
         private readonly List<BagSlot> slots = new List<BagSlot>(12);
         private readonly Dictionary<string, ItemData> itemLookup = new Dictionary<string, ItemData>(StringComparer.OrdinalIgnoreCase);
+        private SaveManager subscribedSaveManager;
 
         private void Awake()
         {
@@ -26,7 +27,37 @@ namespace EternalClash.UI
             if (itemLookup.Count == 0)
                 BuildItemLookup();
             Refresh();
+            SubscribeToSaveChanges();
         }
+
+        private void Start()
+        {
+            SubscribeToSaveChanges();
+            Refresh();
+        }
+
+        private void OnDisable()
+        {
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+            subscribedSaveManager = null;
+        }
+
+        private void SubscribeToSaveChanges()
+        {
+            SaveManager saveManager = SaveManager.Instance;
+            if (saveManager == subscribedSaveManager)
+                return;
+
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+
+            subscribedSaveManager = saveManager;
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged += OnSaveDataChanged;
+        }
+
+        private void OnSaveDataChanged(SaveData _) => Refresh();
 
         public bool AddItem(string itemId, int amount)
         {

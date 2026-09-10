@@ -30,6 +30,7 @@ namespace EternalClash.Village
         private ItemData equippedAccessory;
         private readonly System.Collections.Generic.List<EquipmentItemSaveData> inventory =
             new System.Collections.Generic.List<EquipmentItemSaveData>();
+        private SaveManager subscribedSaveManager;
 
         private void Awake()
         {
@@ -42,6 +43,33 @@ namespace EternalClash.Village
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
+
+        private void Start()
+        {
+            SubscribeToSaveChanges();
+        }
+
+        private void OnDestroy()
+        {
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+        }
+
+        private void SubscribeToSaveChanges()
+        {
+            SaveManager saveManager = SaveManager.Instance;
+            if (saveManager == subscribedSaveManager)
+                return;
+
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+
+            subscribedSaveManager = saveManager;
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged += OnSaveDataChanged;
+        }
+
+        private void OnSaveDataChanged(SaveData _) => RefreshFromSave();
 
         public ItemData GetEquippedItem(ItemSlot slot)
         {

@@ -5,6 +5,7 @@ using System.Linq;
 using EternalClash.Core.Save;
 using EternalClash.Data;
 using EternalClash.UI;
+using EternalClash.Village;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ namespace EternalClash.EditorTools
         {
             EditorGUILayout.LabelField("Item Cheat", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Changes the active game's existing SaveData.inventory.items. Enter Play Mode before adding or removing items.",
+                "Gold and Diamond change SaveData.currency. Materials and consumables change SaveData.inventory.items. Enter Play Mode before modifying data.",
                 MessageType.Info);
 
             using (new EditorGUILayout.HorizontalScope())
@@ -92,6 +93,9 @@ namespace EternalClash.EditorTools
             if (!TryGetSelection(out ItemData item, out InventorySaveData inventory))
                 return;
 
+            if (TryModifyCurrency(item, quantity))
+                return;
+
             ItemStackSaveData stack = inventory.items.FirstOrDefault(value =>
                 value != null && string.Equals(value.itemId, item.itemId, StringComparison.OrdinalIgnoreCase));
             if (stack == null)
@@ -108,6 +112,9 @@ namespace EternalClash.EditorTools
         private void RemoveSelectedItem()
         {
             if (!TryGetSelection(out ItemData item, out InventorySaveData inventory))
+                return;
+
+            if (TryModifyCurrency(item, -quantity))
                 return;
 
             ItemStackSaveData stack = inventory.items.FirstOrDefault(value =>
@@ -150,6 +157,45 @@ namespace EternalClash.EditorTools
                 !string.Equals(item.itemType, "Armor", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(item.itemType, "Shield", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(item.itemType, "Equipment", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool TryModifyCurrency(ItemData item, int delta)
+        {
+            if (!IsCurrency(item, out bool isGem))
+                return false;
+
+            SaveData data = SaveManager.Instance.Data;
+            data.currency ??= new CurrencySaveData();
+            if (isGem)
+            {
+                data.currency.gem = Mathf.Max(0, data.currency.gem + delta);
+                data.gem = data.currency.gem;
+            }
+            else
+            {
+                data.currency.gold = Mathf.Max(0, data.currency.gold + delta);
+                data.gold = data.currency.gold;
+            }
+
+            GoldSystem.Instance?.LoadFromSave(data);
+            SaveCoordinator.RequestSave();
+            RefreshBags();
+            return true;
+        }
+
+        private static bool IsCurrency(ItemData item, out bool isGem)
+        {
+            isGem = false;
+            if (item == null || !string.Equals(item.itemType, "Currency", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            string id = item.itemId ?? string.Empty;
+            string name = item.itemName ?? string.Empty;
+            isGem = id.IndexOf("gem", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                id.IndexOf("diamon", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("gem", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("diamond", StringComparison.OrdinalIgnoreCase) >= 0;
+            return true;
         }
 
         private static void RefreshBags()

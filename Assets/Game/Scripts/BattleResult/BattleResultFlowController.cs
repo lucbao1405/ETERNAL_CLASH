@@ -280,7 +280,7 @@ namespace EternalClash.BattleResult
                     currency?.AddGem(pendingChestReward.amount);
                     break;
                 case RewardType.Material:
-                    currency?.AddMaterials(pendingChestReward.amount, 0);
+                    AddNormalItemReward(ItemCatalog.Find("Ore"), pendingChestReward.amount);
                     break;
                 case RewardType.Equipment:
                     EquipIfUpgrade(pendingChestReward.item);
@@ -326,6 +326,50 @@ namespace EternalClash.BattleResult
 
             if (entry != null)
                 BattleRewardData.AddOrMerge(battleLoot, entry);
+        }
+
+        private static void AddNormalItemReward(ItemData rewardItem, int amount)
+        {
+            if (rewardItem == null || amount <= 0 || IsCurrencyReward(rewardItem))
+                return;
+
+            ItemData item = ItemCatalog.Find(rewardItem.itemId) ?? rewardItem;
+            if (item == null || string.IsNullOrWhiteSpace(item.itemId) || IsCurrencyReward(item))
+                return;
+
+            SaveData data = SaveManager.Instance?.Data;
+            if (data == null)
+                return;
+
+            data.inventory ??= new InventorySaveData();
+            data.inventory.items ??= new List<ItemStackSaveData>();
+
+            ItemStackSaveData stack = data.inventory.items.Find(value =>
+                value != null && string.Equals(value.itemId, item.itemId, StringComparison.OrdinalIgnoreCase));
+            if (stack == null)
+            {
+                stack = new ItemStackSaveData { itemId = item.itemId };
+                data.inventory.items.Add(stack);
+            }
+
+            stack.amount += amount;
+            SaveCoordinator.RequestSave();
+        }
+
+        private static bool IsCurrencyReward(ItemData item)
+        {
+            if (item == null)
+                return true;
+
+            if (string.Equals(item.itemType, "Currency", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            string itemId = item.itemId ?? string.Empty;
+            return string.Equals(itemId, "gold", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(itemId, "coin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(itemId, "gem", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(itemId, "diamond", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(itemId, "diamon", StringComparison.OrdinalIgnoreCase);
         }
 
         private BattleRewardData BuildResultData(bool includeChest)

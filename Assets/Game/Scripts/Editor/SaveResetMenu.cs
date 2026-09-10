@@ -27,13 +27,10 @@ namespace EternalClash.EditorTools
             if (!confirmed)
                 return;
 
-            new PlayerPrefsSaveRepository().Delete();
-
-            // Neu dang chay game, cac he thong deu la DontDestroyOnLoad va van giu
-            // gia tri cu trong bo nho - xoa moi PlayerPrefs thoi thi lan thay doi
-            // ke tiep se ghi de nguoc lai. Phai nap lai du lieu rong vao chung.
             if (Application.isPlaying)
                 ResetRuntimeSystems();
+            else
+                new PlayerPrefsSaveRepository().Delete();
 
             Debug.Log("[SAVE] Da xoa save. " +
                       (Application.isPlaying
@@ -112,15 +109,13 @@ namespace EternalClash.EditorTools
                 return;
             }
 
-            // DeleteSave() tu tao SaveData moi ben trong SaveManager.
-            saveManager.DeleteSave();
+            // ResetSave deletes both persisted payloads, creates a fresh runtime save,
+            // applies new-game defaults, and publishes the new state to listeners.
+            saveManager.ResetSave();
 
             SaveData data = saveManager.Data;
             if (data == null)
                 return;
-
-            NewGameEquipmentDefaults.Apply(data);
-            saveManager.Save();
 
             PlayerStatSystem.Instance?.LoadFromSave(data);
             GoldSystem.Instance?.LoadFromSave(data);

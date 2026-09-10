@@ -1,23 +1,34 @@
 using System.Collections.Generic;
+using EternalClash.Data;
 
 namespace EternalClash.Core.Save
 {
     public static class SaveMigrationManager
     {
-        public static SaveData Migrate(SaveData oldData)
+        public static SaveData Migrate(SaveData oldData, out bool changed)
         {
             SaveData data = oldData ?? new SaveData();
+            changed = oldData == null;
             if (data.version < SaveVersion.CurrentVersion)
             {
                 if (data.version < 1)
                     MigrateToVersion1(data);
                 if (data.version < 2)
                     MigrateToVersion2(data);
+                if (data.version < 3)
+                    MigrateToVersion3(data);
                 data.version = SaveVersion.CurrentVersion;
+                changed = true;
             }
 
             EnsureDtoContainers(data);
+            changed |= RemoveCurrencyInventoryEntries(data);
             return data;
+        }
+
+        public static SaveData Migrate(SaveData oldData)
+        {
+            return Migrate(oldData, out _);
         }
 
         public static void SynchronizeDtosFromLegacy(SaveData data)
@@ -73,6 +84,57 @@ namespace EternalClash.Core.Save
             data.inventory.items ??= new List<ItemStackSaveData>();
             data.equipment ??= new EquipmentSaveData(); data.progress ??= new ProgressSaveData(); data.settings ??= new SettingsSaveData();
             data.equipmentInventory ??= new List<EquipmentItemSaveData>(); data.unlockedLetters ??= new List<string>(); data.abilities ??= new AbilitySaveData();
+        }
+
+        private static void MigrateToVersion3(SaveData data)
+        {
+            // Preserve all equipment and upgrade levels while replacing only the old,
+            // overtuned starting-iron snapshot bonuses with their GDD progression.
+            RebalanceIronEquipment(data.equipment?.weapon);
+            RebalanceIronEquipment(data.equipment?.armor);
+            RebalanceIronEquipment(data.equipment?.shield);
+
+            foreach (EquipmentItemSaveData item in data.equipmentInventory ?? new List<EquipmentItemSaveData>())
+                RebalanceIronEquipment(item);
+        }
+
+        private static void RebalanceIronEquipment(EquipmentItemSaveData item)
+        {
+            if (item == null || !NewGameEquipmentDefaults.TryGetIronProgressionBonuses(
+                    item.itemId, item.upgradeLevel, out int strength, out int vitality))
+                return;
+
+            if (string.Equals(item.itemId, NewGameEquipmentDefaults.IronArmorId,
+                    System.StringComparison.OrdinalIgnoreCase))
+                item.itemId = NewGameEquipmentDefaults.IronArmorId;
+
+            item.strength = strength;
+            item.intelligence = 0;
+            item.vitality = vitality;
+            item.luck = 0;
+        }
+
+        private static bool RemoveCurrencyInventoryEntries(SaveData data)
+        {
+            List<ItemStackSaveData> items = data.inventory.items;
+            int initialCount = items.Count;
+            items.RemoveAll(item => item == null || item.amount <= 0 || IsCurrencyItem(item.itemId));
+            return items.Count != initialCount;
+        }
+
+        private static bool IsCurrencyItem(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId))
+                return true;
+
+            ItemData item = ItemCatalog.Find(itemId);
+            if (item != null && string.Equals(item.itemType, "Currency", System.StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            string normalized = itemId.Trim().ToLowerInvariant();
+            return normalized == "coin" || normalized == "gold" || normalized == "diamond" ||
+                normalized == "diamon" || normalized == "gem" || normalized == "gems" ||
+                normalized.Contains("currency");
         }
     }
 }

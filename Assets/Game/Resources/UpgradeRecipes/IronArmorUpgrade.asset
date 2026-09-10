@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Name: Iron Armor Upgrade
   m_EditorClassIdentifier: 
   m_Script: {fileID: 11500000, guid: 9f0f4d7f6d0d4e3aa84bc1b2d3e4f501, type: 3}
-  itemId: Iron_armor
+  itemId: iron_armor
   requiredMaterials:
   - materialType: 0
     amount: 8
@@ -18,4 +18,4 @@ MonoBehaviour:
   - materialType: 2
     amount: 0
   goldCost: 150
-  upgradeValue: 1
+  upgradeValue: 3
