@@ -7,6 +7,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class DialogueManager : MonoBehaviour
 {
+    public event System.Action DialogueCompleted;
     [Header("UI References")]
     [SerializeField] private GameObject dialoguePanel;
     [SerializeField] private Image avatarImage;
@@ -272,9 +273,20 @@ public class DialogueManager : MonoBehaviour
 
         dialoguePanel.SetActive(false);
 
+        DialogueCompleted?.Invoke();
+
+        SwipePageCharacterTravel player = FindObjectOfType<SwipePageCharacterTravel>();
+        if (player != null)
+            player.FaceDefaultDirection();
+
         if (panelToActivate != null)
         {
-            panelToActivate.SetActive(true);
+            ShopPanelAnimator shopPanelAnimator = panelToActivate.GetComponent<ShopPanelAnimator>();
+            if (shopPanelAnimator != null)
+                shopPanelAnimator.Open();
+            else
+                panelToActivate.SetActive(true);
+
             panelToActivate.transform.SetAsLastSibling();
 
             if (panelToActivate.name.StartsWith("Shop"))

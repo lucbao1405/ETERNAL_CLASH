@@ -240,6 +240,8 @@ public class SwipePageCharacterTravel : MonoBehaviour,
 
     private void PlayStand()
     {
+        FaceDefaultDirection();
+
         character.AnimationState.SetAnimation(
             0,
             standAnimation,
@@ -260,5 +262,17 @@ public class SwipePageCharacterTravel : MonoBehaviour,
                       : -originalDirection);
 
         characterRect.localScale = scale;
+    }
+
+    public void FaceDefaultDirection()
+    {
+        if (character == null)
+            return;
+
+        characterRect ??= character.rectTransform;
+        if (originalCharacterScaleX <= 0f)
+            originalCharacterScaleX = Mathf.Abs(characterRect.localScale.x);
+
+        SetFacingDirection(true);
     }
 }

@@ -24,6 +24,12 @@ public class SmoothSlide : MonoBehaviour
 
     void Start()
     {
+        ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
+        if (animator != null)
+        {
+            enabled = false;
+            return;
+        }
         if (panelRect == null)
             panelRect = GetComponent<RectTransform>();
 
