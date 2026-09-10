@@ -177,6 +177,20 @@ namespace EternalClash.Village
 
         public void RefreshFromSave()
         {
+            RefreshFromSave(true);
+        }
+
+        /// <summary>
+        /// Reloads persistent equipment data and recalculates player stats.
+        /// Visual tier sprites are only refreshed for equip/load flows, never upgrades.
+        /// </summary>
+        public void RefreshFromSaveWithoutVisuals()
+        {
+            RefreshFromSave(false);
+        }
+
+        private void RefreshFromSave(bool refreshVisuals)
+        {
             var data = SaveManager.Instance?.Data;
             if (data == null) return;
             inventory.Clear();
@@ -187,8 +201,11 @@ namespace EternalClash.Village
             equippedWeapon = CreateItemFromSave(data.equipment.weapon, EquipmentSlot.Weapon, data.weaponTier);
             equippedArmor = CreateItemFromSave(data.equipment.armor, EquipmentSlot.Armor, data.armorTier);
             equippedAccessory = CreateItemFromSave(data.equipment.shield, EquipmentSlot.Shield, 0);
-            ApplyWeaponTier(data.weaponTier);
-            ApplyArmorTier(data.armorTier);
+            if (refreshVisuals)
+            {
+                ApplyWeaponTier(data.weaponTier);
+                ApplyArmorTier(data.armorTier);
+            }
             ApplyEquipmentStats();
         }
 

@@ -14,8 +14,8 @@ MonoBehaviour:
   - materialType: 0
     amount: 5
   - materialType: 1
-    amount: 3
-  - materialType: 2
     amount: 0
-  goldCost: 100
+  - materialType: 2
+    amount: 5
+  goldCost: 120
   upgradeValue: 1

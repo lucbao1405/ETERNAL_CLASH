@@ -70,8 +70,8 @@ namespace EternalClash.Village
             else if (slot == ItemSlot.Armor)
                 ArmorTier = Mathf.Max(ArmorTier, savedItem.level);
 
-            EquipmentSystem.Instance?.RefreshFromSave();
-            EquipmentSystem.Instance?.SyncEquipmentSave();
+            // Upgrade only reloads persistent item data and stats. It must not refresh player visuals.
+            EquipmentSystem.Instance?.RefreshFromSaveWithoutVisuals();
             SaveCoordinator.RequestSave();
             Debug.Log($"[BLACKSMITH] {savedItem.itemId} upgraded to +{savedItem.upgradeLevel}");
             return true;

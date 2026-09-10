@@ -12,10 +12,10 @@ MonoBehaviour:
   itemId: Iron_armor
   requiredMaterials:
   - materialType: 0
-    amount: 5
+    amount: 8
   - materialType: 1
-    amount: 3
+    amount: 5
   - materialType: 2
     amount: 0
-  goldCost: 100
+  goldCost: 150
   upgradeValue: 1
