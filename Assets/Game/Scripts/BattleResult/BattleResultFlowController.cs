@@ -7,6 +7,7 @@ using EternalClash.Player;
 using EternalClash.Stage;
 using EternalClash.UI;
 using EternalClash.Village;
+using EternalClash.Core.Save;
 using UnityEngine;
 
 namespace EternalClash.BattleResult
@@ -15,11 +16,6 @@ namespace EternalClash.BattleResult
     public sealed class BattleResultFlowController : MonoBehaviour
     {
         public static BattleResultFlowController Instance { get; private set; }
-
-        [Header("Battle Chest Transition")]
-        [SerializeField] private GameObject chestPrefab;
-        [SerializeField] private Transform chestSpawnPoint;
-        [SerializeField, Min(0.01f)] private float chestTravelDuration = 0.8f;
 
         [Header("Chest Reward Popup")]
         [SerializeField] private GameObject chestRewardPopup;
@@ -42,7 +38,6 @@ namespace EternalClash.BattleResult
         private readonly List<ItemReward> battleLoot = new List<ItemReward>();
         private readonly List<ItemReward> chestRewards = new List<ItemReward>();
         private RewardData pendingChestReward;
-        private GameObject visualChest;
         private bool flowActive;
         private bool battleFinished;
         private bool returnRequested;
@@ -109,12 +104,6 @@ namespace EternalClash.BattleResult
         // Compatibility with the existing StageCompleteController integration.
         public bool StartVictoryFlow() => StartWinFlow();
         public bool StartDefeatFlow() => StartLoseFlow();
-
-        public void SpawnChest()
-        {
-            ResolveChestRewardController();
-            chestRewardController?.SpawnChest();
-        }
 
         public void OpenChestRewardPopup()
         {
@@ -192,26 +181,6 @@ namespace EternalClash.BattleResult
                 ReturnToVillage();
             else
                 EndFlow();
-        }
-
-        private IEnumerator MoveVisualChestToCenter()
-        {
-            if (visualChest == null)
-                yield break;
-
-            Vector3 start = visualChest.transform.position;
-            Vector3 target = GetScreenCenterPosition(start.z);
-            float elapsed = 0f;
-            while (elapsed < chestTravelDuration && visualChest != null)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / chestTravelDuration));
-                visualChest.transform.position = Vector3.Lerp(start, target, t);
-                yield return null;
-            }
-
-            if (visualChest != null)
-                visualChest.transform.position = target;
         }
 
         private IEnumerator PlayChestRewardPopup()
@@ -326,15 +295,11 @@ namespace EternalClash.BattleResult
             if (item == null || EquipmentSystem.Instance == null)
                 return;
 
-            var saveData = EternalClash.Core.Save.SaveManager.Instance?.Data;
-            bool improves = saveData == null;
-            if (saveData != null && item.weaponTier > 0)
-                improves = item.weaponTier > saveData.weaponTier;
-            else if (saveData != null && item.armorTier > 0)
-                improves = item.armorTier > saveData.armorTier;
-
-            if (improves)
-                EquipmentSystem.Instance.EquipItem(item);
+            // Equipment is selected only in Town's Blacksmith. Battle rewards
+            // always enter persistent inventory and never replace equipped gear.
+            EquipmentSystem.Instance.AddToInventory(item);
+            EquipmentSystem.Instance.SyncEquipmentSave();
+            SaveCoordinator.RequestSave();
         }
 
         private void HandleItemCollected(ItemPickup pickup, int amount)
@@ -423,37 +388,10 @@ namespace EternalClash.BattleResult
                 chestRewardController = GetComponent<ChestRewardController>();
             if (chestRewardController == null)
                 chestRewardController = gameObject.AddComponent<ChestRewardController>();
-            chestRewardController.Configure(chestPrefab, chestSpawnPoint, chestRewardPopup);
+            chestRewardController.Configure(null, null, chestRewardPopup);
         }
 
-        private Vector3 GetRightScreenPosition()
-        {
-            Camera camera = Camera.main;
-            if (camera == null)
-                return Vector3.right * 10f;
-            float z = 0f;
-            float distance = Mathf.Abs(camera.transform.position.z - z);
-            Vector3 point = camera.ViewportToWorldPoint(new Vector3(1.15f, 0.5f, distance));
-            point.z = z;
-            return point;
-        }
-
-        private Vector3 GetScreenCenterPosition(float z)
-        {
-            Camera camera = Camera.main;
-            if (camera == null)
-                return new Vector3(0f, 0f, z);
-            Vector3 point = camera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, Mathf.Abs(camera.transform.position.z - z)));
-            point.z = z;
-            return point;
-        }
-
-        private void DestroyVisualChest()
-        {
-            if (visualChest != null)
-                Destroy(visualChest);
-            visualChest = null;
-        }
+        private void DestroyVisualChest() { }
 
         private void StopCombat()
         {

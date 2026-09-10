@@ -53,6 +53,12 @@ namespace EternalClash.Player
                 Quaternion.identity
             );
 
+            EternalClash.Village.EquipmentVisualBinder visualBinder =
+                currentPlayer.GetComponent<EternalClash.Village.EquipmentVisualBinder>();
+            if (visualBinder == null)
+                visualBinder = currentPlayer.AddComponent<EternalClash.Village.EquipmentVisualBinder>();
+            visualBinder.ApplySavedEquipment();
+
             PlayerIntroController intro = currentPlayer.GetComponent<PlayerIntroController>();
             if (intro == null)
                 intro = currentPlayer.AddComponent<PlayerIntroController>();

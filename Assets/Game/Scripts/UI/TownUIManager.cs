@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using EternalClash.Village;
 using EternalClash.Core;
+using EternalClash.Upgrade;
 
 namespace EternalClash.UI
 {
@@ -43,11 +44,13 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text battleButtonLabel;
         [SerializeField] private GameObject injuredNoticeRoot;
         [SerializeField] private TMP_Text injuredNoticeText;
+        private GameObject equipmentGuide;
 
         private void Start()
         {
             ShowMainHall();
             RefreshAllUI();
+            ShowEquipmentGuideIfNeeded();
 
             if (PlayerStatSystem.Instance != null)
                 PlayerStatSystem.Instance.OnStatsChanged += RefreshAllUI;
@@ -92,6 +95,7 @@ namespace EternalClash.UI
             blacksmithPanel?.SetActive(false);
             mailboxPanel?.SetActive(false);
             RefreshAllUI();
+            equipmentGuide?.SetActive(false);
         }
 
         public void ShowBlacksmith()
@@ -149,16 +153,18 @@ namespace EternalClash.UI
                 if (weaponTierText != null) weaponTierText.text = $"Vũ Khí: Bậc {smith.WeaponTier}";
                 if (armorTierText != null) armorTierText.text = $"Áo Giáp: Bậc {smith.ArmorTier}";
 
-                int nextWpCost = BlacksmithCraftingSystem.TIER1_GOLD_COST * (smith.WeaponTier + 1);
-                int nextWpOre = BlacksmithCraftingSystem.TIER1_ORE_COST * (smith.WeaponTier + 1);
-                int nextWpLeather = BlacksmithCraftingSystem.TIER1_LEATHER_COST * (smith.WeaponTier + 1);
+                UpgradeRecipeData weaponRecipe = smith.GetRecipe(ItemSlot.Weapon);
+                int nextWpCost = weaponRecipe != null ? weaponRecipe.goldCost : 0;
+                int nextWpOre = GetRequirement(weaponRecipe, MaterialType.Ore);
+                int nextWpLeather = GetRequirement(weaponRecipe, MaterialType.Leather);
 
                 if (weaponUpgradeCostText != null)
                     weaponUpgradeCostText.text = $"Phí: {nextWpCost} Vàng, {nextWpOre} Quặng, {nextWpLeather} Da";
 
-                int nextArmCost = BlacksmithCraftingSystem.TIER1_GOLD_COST * (smith.ArmorTier + 1);
-                int nextArmOre = BlacksmithCraftingSystem.TIER1_ORE_COST * (smith.ArmorTier + 1);
-                int nextArmLeather = BlacksmithCraftingSystem.TIER1_LEATHER_COST * (smith.ArmorTier + 1);
+                UpgradeRecipeData armorRecipe = smith.GetRecipe(ItemSlot.Armor);
+                int nextArmCost = armorRecipe != null ? armorRecipe.goldCost : 0;
+                int nextArmOre = GetRequirement(armorRecipe, MaterialType.Ore);
+                int nextArmLeather = GetRequirement(armorRecipe, MaterialType.Leather);
 
                 if (armorUpgradeCostText != null)
                     armorUpgradeCostText.text = $"Phí: {nextArmCost} Vàng, {nextArmOre} Quặng, {nextArmLeather} Da";
@@ -193,6 +199,16 @@ namespace EternalClash.UI
 
         public void OnClick_UpgradeWeapon() => BlacksmithCraftingSystem.Instance?.UpgradeWeapon();
         public void OnClick_UpgradeArmor() => BlacksmithCraftingSystem.Instance?.UpgradeArmor();
+
+        private static int GetRequirement(UpgradeRecipeData recipe, MaterialType type)
+        {
+            if (recipe?.requiredMaterials == null)
+                return 0;
+            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials)
+                if (requirement.materialType == type)
+                    return requirement.amount;
+            return 0;
+        }
 
         public void OnClick_StartBattle()
         {
@@ -232,6 +248,47 @@ namespace EternalClash.UI
             {
                 injuredNoticeText.text = condition.GetInjuredBlockReason();
             }
+        }
+
+        private void ShowEquipmentGuideIfNeeded()
+        {
+            if (EquipmentSystem.Instance == null || !EquipmentSystem.Instance.HasNewEquipment)
+                return;
+
+            if (equipmentGuide == null)
+            {
+                Canvas canvas = GetComponentInParent<Canvas>();
+                if (canvas == null)
+                    return;
+                equipmentGuide = new GameObject("NewEquipmentGuide", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+                equipmentGuide.transform.SetParent(canvas.transform, false);
+                RectTransform rect = equipmentGuide.GetComponent<RectTransform>();
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = new Vector2(0f, 260f);
+                rect.sizeDelta = new Vector2(620f, 70f);
+                equipmentGuide.GetComponent<Image>().color = new Color(0.2f, 0.45f, 0.25f, 0.96f);
+                equipmentGuide.GetComponent<Button>().onClick.AddListener(ShowBlacksmith);
+                CreateGuideLabel(equipmentGuide.transform);
+            }
+
+            equipmentGuide.SetActive(true);
+            equipmentGuide.transform.SetAsLastSibling();
+        }
+
+        private static void CreateGuideLabel(Transform parent)
+        {
+            GameObject label = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            label.transform.SetParent(parent, false);
+            RectTransform rect = label.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            Text text = label.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.fontSize = 22;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Color.white;
+            text.text = "New equipment found. Visit the Blacksmith to equip it.";
         }
 }
 

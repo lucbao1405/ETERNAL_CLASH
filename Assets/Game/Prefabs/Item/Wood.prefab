@@ -76,12 +76,12 @@ SpriteRenderer:
   m_SortingLayerID: -1549686393
   m_SortingLayer: 9
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: b6c5214a45d3f964ca07835831b95306, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b5ed8217368f82e4685aa9c54ca10bd6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 33.329998, y: 33.329998}
+  m_Size: {x: 3.81, y: 4.87}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -165,3 +165,4 @@ MonoBehaviour:
   amount: 1
   magnetRange: 4
   moveSpeed: 8
+  magnetDelay: 0

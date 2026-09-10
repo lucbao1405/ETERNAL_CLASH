@@ -15,10 +15,11 @@ namespace EternalClash.Village
         public int CurrentExp { get; private set; }
         public int RequiredExp { get; private set; }
         public int StatPoints { get; private set; }
-        public int Strength { get; private set; }
-        public int Intelligence { get; private set; }
-        public int Vitality { get; private set; }
-        public int Luck { get; private set; }
+        // Public stats are always the calculated values consumed by UI and gameplay.
+        public int Strength => baseStrength + equipmentStrength;
+        public int Intelligence => baseIntelligence + equipmentIntelligence;
+        public int Vitality => baseVitality + equipmentVitality;
+        public int Luck => baseLuck + equipmentLuck;
         public float RareDropRate { get; private set; }
 
         /// <summary>Ti le chi mang hien tai, 0..1. Tang theo LUCK.</summary>
@@ -63,6 +64,14 @@ namespace EternalClash.Village
         private const int FALLBACK_PLAYER_MAX_HEALTH = 100;
 
         private int registeredBaseMaxHealth = -1;
+        private int baseStrength;
+        private int baseIntelligence;
+        private int baseVitality;
+        private int baseLuck;
+        private int equipmentStrength;
+        private int equipmentIntelligence;
+        private int equipmentVitality;
+        private int equipmentLuck;
 
         /// <summary>Max HP goc dang dung (da hieu chinh neu tung gap Player that).</summary>
         public int BasePlayerMaxHealth =>
@@ -174,7 +183,7 @@ namespace EternalClash.Village
         {
             if (!CanAllocate) return;
             StatPoints -= STAT_POINT_COST;
-            Strength++;
+            baseStrength++;
             RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
@@ -184,7 +193,7 @@ namespace EternalClash.Village
         {
             if (!CanAllocate) return;
             StatPoints -= STAT_POINT_COST;
-            Intelligence++;
+            baseIntelligence++;
             RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
@@ -194,7 +203,7 @@ namespace EternalClash.Village
         {
             if (!CanAllocate) return;
             StatPoints -= STAT_POINT_COST;
-            Vitality++;
+            baseVitality++;
             RecalculateDerivedStats();
 
             // Neu dang o Battle va Player dang song thi cap nhat ngay. Con o Town
@@ -226,7 +235,7 @@ namespace EternalClash.Village
         {
             if (!CanAllocate) return;
             StatPoints -= STAT_POINT_COST;
-            Luck++;
+            baseLuck++;
             RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
@@ -252,11 +261,11 @@ namespace EternalClash.Village
             int cost = GetResetCost();
             if (cost > 0) GoldSystem.Instance.SpendGold(cost);
 
-            StatPoints += Strength + Intelligence + Vitality + Luck;
-            Strength = 0;
-            Intelligence = 0;
-            Vitality = 0;
-            Luck = 0;
+            StatPoints += baseStrength + baseIntelligence + baseVitality + baseLuck;
+            baseStrength = 0;
+            baseIntelligence = 0;
+            baseVitality = 0;
+            baseLuck = 0;
 
             RecalculateDerivedStats();
 
@@ -286,7 +295,7 @@ namespace EternalClash.Village
 
         public void AddIntelligence(int amount)
         {
-            Intelligence += amount;
+            baseIntelligence += amount;
             RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
@@ -294,7 +303,7 @@ namespace EternalClash.Village
 
         public void AddStrength(int amount)
         {
-            Strength += amount;
+            baseStrength += amount;
             RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
@@ -302,19 +311,17 @@ namespace EternalClash.Village
 
         public void AddVitality(int amount)
         {
-            Vitality += amount;
-            var player = GameObject.FindGameObjectWithTag("Player");
-            var health = player?.GetComponent<HealthSystem>();
-            if (health != null) health.IncreaseMaxHealth(15 * amount);
+            baseVitality += amount;
             RecalculateDerivedStats();
+            ApplyMaxHealthToLivePlayer();
             SyncToSave();
             OnStatsChanged?.Invoke();
         }
 
         public void AddLuck(int amount)
         {
-            Luck += amount;
-            RareDropRate = Luck * 0.01f;
+            baseLuck += amount;
+            RecalculateDerivedStats();
             SyncToSave();
             OnStatsChanged?.Invoke();
         }
@@ -326,10 +333,10 @@ namespace EternalClash.Village
             Level = Mathf.Max(1, data.level);
             CurrentExp = data.currentExp;
             StatPoints = data.statPoints;
-            Strength = data.strength;
-            Intelligence = data.intelligence;
-            Vitality = data.vitality;
-            Luck = data.luck;
+            baseStrength = data.strength;
+            baseIntelligence = data.intelligence;
+            baseVitality = data.vitality;
+            baseLuck = data.luck;
             RequiredExp = CalculateRequiredExp(Level);
             RecalculateDerivedStats();
         }
@@ -344,6 +351,21 @@ namespace EternalClash.Village
             // LUCK tang ti le chi mang (GDD 3.5). Chan tran o 50% de khong bien
             // moi don thanh chi mang khi cong nhieu diem LUCK.
             CritChance = Mathf.Min(BASE_CRIT_CHANCE + Luck * CRIT_CHANCE_PER_LUCK, MAX_CRIT_CHANCE);
+        }
+
+        /// <summary>
+        /// Replaces, rather than adds, the currently equipped item contribution.
+        /// This keeps repeated equip and save/load restoration idempotent.
+        /// </summary>
+        public void SetEquipmentBonuses(int strength, int intelligence, int vitality, int luck)
+        {
+            equipmentStrength = strength;
+            equipmentIntelligence = intelligence;
+            equipmentVitality = vitality;
+            equipmentLuck = luck;
+            RecalculateDerivedStats();
+            ApplyMaxHealthToLivePlayer();
+            OnStatsChanged?.Invoke();
         }
 
         /// <summary>
@@ -371,11 +393,11 @@ namespace EternalClash.Village
             data.level = Level;
             data.currentExp = CurrentExp;
             data.statPoints = StatPoints;
-            data.strength = Strength;
-            data.intelligence = Intelligence;
-            data.vitality = Vitality;
-            data.luck = Luck;
-            SaveManager.Instance.Save();
+            data.strength = baseStrength;
+            data.intelligence = baseIntelligence;
+            data.vitality = baseVitality;
+            data.luck = baseLuck;
+            SaveCoordinator.RequestSave();
         }
     }
 }

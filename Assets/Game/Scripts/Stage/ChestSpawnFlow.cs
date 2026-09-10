@@ -4,12 +4,10 @@ using EternalClash.Chest;
 using EternalClash.Stage;
 
 /// <summary>
-/// Spawns the reward chest after a stage clear and coordinates the
-/// chest interaction flow.
+    /// Coordinates the reward popup after a stage clear.
 ///
-/// Flow: chest spawns -> StageCompleteController enables the ChestRewardPanel
-/// ("Open Chest" prompt) -> player presses OPEN -> chest opening effect
-/// -> reward panel (Continue).
+    /// World chest spawning is intentionally disabled. BattleResultFlowController
+    /// owns the Canvas popup and its tap-driven reward sequence.
 ///
 /// The UI panels live in the Battle scene (disabled by default) and are managed
 /// via SetActive by StageCompleteController - nothing is created at runtime here.
@@ -17,9 +15,6 @@ using EternalClash.Stage;
 public class ChestSpawnFlow : MonoBehaviour
 {
     public static ChestSpawnFlow Instance { get; private set; }
-
-    [SerializeField] private GameObject chestPrefab;
-    [SerializeField] private Transform spawnPoint;
 
     private ChestController lastSpawnedChest;
 
@@ -42,25 +37,11 @@ public class ChestSpawnFlow : MonoBehaviour
             lastSpawnedChest.OnClicked -= OnChestClicked;
     }
 
-    public ChestController SpawnChest()
-    {
-        OnStageClear();
-        return lastSpawnedChest;
-    }
+    public ChestController SpawnChest() => null;
 
     public void OnStageClear()
     {
-        if (chestPrefab == null || spawnPoint == null)
-            return;
-
-        EnsureRuntimeInfrastructure();
         CleanupPreviousChest();
-
-        GameObject chestObj = Instantiate(chestPrefab, spawnPoint.position, Quaternion.identity);
-        lastSpawnedChest = chestObj.GetComponent<ChestController>();
-
-        if (lastSpawnedChest != null)
-            lastSpawnedChest.OnClicked += OnChestClicked;
     }
 
     private void CleanupPreviousChest()

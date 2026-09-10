@@ -36,6 +36,12 @@ namespace EternalClash.Core
         [SerializeField]
         private GoldSystem goldSystem;
 
+        [SerializeField]
+        private BlacksmithCraftingSystem blacksmithCraftingSystem;
+
+        [SerializeField]
+        private AlchemistUpgradeSystem alchemistUpgradeSystem;
+
 
 
         [SerializeField]
@@ -112,6 +118,12 @@ namespace EternalClash.Core
             if(equipmentSystem == null)
                 equipmentSystem = gameObject.AddComponent<EquipmentSystem>();
 
+            if(blacksmithCraftingSystem == null)
+                blacksmithCraftingSystem = gameObject.AddComponent<BlacksmithCraftingSystem>();
+
+            if(alchemistUpgradeSystem == null)
+                alchemistUpgradeSystem = gameObject.AddComponent<AlchemistUpgradeSystem>();
+
 
             if(PlayerConditionSystem.Instance == null && GetComponent<PlayerConditionSystem>() == null)
                 gameObject.AddComponent<PlayerConditionSystem>();
@@ -131,6 +143,12 @@ namespace EternalClash.Core
             if(data == null)
                 return;
 
+            if (saveManager != null && !saveManager.HasSaveData())
+            {
+                NewGameEquipmentDefaults.Apply(data);
+                saveManager.Save();
+            }
+
 
             if(playerStatSystem != null)
                 playerStatSystem.LoadFromSave(data);
@@ -139,12 +157,23 @@ namespace EternalClash.Core
             if(goldSystem != null)
                 goldSystem.LoadFromSave(data);
 
+            if(blacksmithCraftingSystem != null)
+                blacksmithCraftingSystem.LoadFromSave(data);
+
+            if(alchemistUpgradeSystem != null)
+                alchemistUpgradeSystem.LoadFromSave(data);
+
 
             PlayerConditionSystem.Instance?.LoadFromSave(data);
 
 
             if(equipmentSystem != null)
                 equipmentSystem.RefreshFromSave();
+
+            EternalClash.UI.BlacksmithShopUI[] blacksmithUis =
+                FindObjectsOfType<EternalClash.UI.BlacksmithShopUI>(true);
+            foreach(EternalClash.UI.BlacksmithShopUI blacksmithUi in blacksmithUis)
+                blacksmithUi.RefreshCurrentView();
 
         }
 

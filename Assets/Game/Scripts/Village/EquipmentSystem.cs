@@ -28,6 +28,8 @@ namespace EternalClash.Village
         private ItemData equippedWeapon;
         private ItemData equippedArmor;
         private ItemData equippedAccessory;
+        private readonly System.Collections.Generic.List<EquipmentItemSaveData> inventory =
+            new System.Collections.Generic.List<EquipmentItemSaveData>();
 
         private void Awake()
         {
@@ -54,26 +56,40 @@ namespace EternalClash.Village
 
         public void EquipItem(ItemData item)
         {
+            EquipItem(item, true);
+        }
+
+        private void EquipItem(ItemData item, bool addToInventory)
+        {
             if (item == null) return;
 
-            if (item.weaponTier > 0)
+            if (addToInventory)
+                AddToInventory(item);
+
+            if (GetEquipmentSlot(item) == ItemSlot.Weapon)
             {
                 equippedWeapon = item;
-                ApplyWeaponTier(item.weaponTier);
+                ApplyWeaponTier(item.weaponTier > 0 ? item.weaponTier : item.level);
                 if (SaveManager.Instance != null)
-                    SaveManager.Instance.Data.weaponTier = item.weaponTier;
+                    SaveManager.Instance.Data.weaponTier = item.weaponTier > 0 ? item.weaponTier : item.level;
             }
 
-            if (item.armorTier > 0)
+            if (GetEquipmentSlot(item) == ItemSlot.Armor)
             {
                 equippedArmor = item;
-                ApplyArmorTier(item.armorTier);
+                ApplyArmorTier(item.armorTier > 0 ? item.armorTier : item.level);
                 if (SaveManager.Instance != null)
-                    SaveManager.Instance.Data.armorTier = item.armorTier;
+                    SaveManager.Instance.Data.armorTier = item.armorTier > 0 ? item.armorTier : item.level;
+            }
+
+            if (GetEquipmentSlot(item) == ItemSlot.Accessory)
+            {
+                equippedAccessory = item;
             }
 
             ApplyEquipmentStats();
-            SaveManager.Instance?.Save();
+            SyncEquipmentSave();
+            SaveCoordinator.RequestSave();
         }
 
         public void UnequipItem(ItemSlot slot)
@@ -98,7 +114,8 @@ namespace EternalClash.Village
             }
 
             ApplyEquipmentStats();
-            SaveManager.Instance?.Save();
+            SyncEquipmentSave();
+            SaveCoordinator.RequestSave();
         }
 
         private void ApplyEquipmentStats()
@@ -135,10 +152,7 @@ namespace EternalClash.Village
                 totalLuck += equippedAccessory.luckBonus;
             }
 
-            stats.AddStrength(totalStr);
-            stats.AddIntelligence(totalInt);
-            stats.AddVitality(totalVit);
-            stats.AddLuck(totalLuck);
+            stats.SetEquipmentBonuses(totalStr, totalInt, totalVit, totalLuck);
         }
 
         public void ApplyWeaponTier(int tier)
@@ -165,8 +179,138 @@ namespace EternalClash.Village
         {
             var data = SaveManager.Instance?.Data;
             if (data == null) return;
+            inventory.Clear();
+            if (data.equipmentInventory != null)
+                inventory.AddRange(data.equipmentInventory);
+
+            data.equipment ??= new EquipmentSaveData();
+            equippedWeapon = CreateItemFromSave(data.equipment.weapon, EquipmentSlot.Weapon, data.weaponTier);
+            equippedArmor = CreateItemFromSave(data.equipment.armor, EquipmentSlot.Armor, data.armorTier);
+            equippedAccessory = CreateItemFromSave(data.equipment.shield, EquipmentSlot.Shield, 0);
             ApplyWeaponTier(data.weaponTier);
             ApplyArmorTier(data.armorTier);
+            ApplyEquipmentStats();
+        }
+
+        public void SyncEquipmentSave()
+        {
+            SaveData data = SaveManager.Instance?.Data;
+            if (data == null)
+                return;
+
+            data.equipment ??= new EquipmentSaveData();
+            WriteItemSave(data.equipment.weapon, equippedWeapon, data.weaponTier, equippedWeapon != null ? equippedWeapon.upgradeLevel : 0);
+            WriteItemSave(data.equipment.armor, equippedArmor, data.armorTier, equippedArmor != null ? equippedArmor.upgradeLevel : 0);
+            WriteItemSave(data.equipment.shield, equippedAccessory, 0, 0);
+            data.equipmentInventory = new System.Collections.Generic.List<EquipmentItemSaveData>(inventory);
+        }
+
+        /// <summary>Stores every obtained equipment drop, including items not equipped.</summary>
+        public void AddToInventory(ItemData item)
+        {
+            if (item == null)
+                return;
+
+            EquipmentItemSaveData snapshot = new EquipmentItemSaveData();
+            WriteItemSave(snapshot, item, item.level, item.upgradeLevel);
+            snapshot.slot = (int)item.equipmentSlot;
+            snapshot.isNew = true;
+            inventory.Add(snapshot);
+        }
+
+        public System.Collections.Generic.IReadOnlyList<EquipmentItemSaveData> Inventory => inventory;
+
+        public bool HasNewEquipment
+        {
+            get
+            {
+                foreach (EquipmentItemSaveData item in inventory)
+                    if (item.isNew)
+                        return true;
+                return false;
+            }
+        }
+
+        public bool TryEquipInventoryItem(int index)
+        {
+            if (index < 0 || index >= inventory.Count)
+                return false;
+
+            EquipmentItemSaveData saved = inventory[index];
+            ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.itemId = saved.itemId;
+            item.itemName = string.IsNullOrEmpty(saved.itemId) ? "Equipment" : saved.itemId;
+            item.equipmentSlot = (EquipmentSlot)saved.slot;
+            item.level = Mathf.Max(1, saved.level);
+            item.upgradeLevel = saved.upgradeLevel;
+            item.strBonus = saved.strength;
+            item.intBonus = saved.intelligence;
+            item.vitBonus = saved.vitality;
+            item.luckBonus = saved.luck;
+            if (item.equipmentSlot == EquipmentSlot.Weapon)
+                item.weaponTier = item.level;
+            else if (item.equipmentSlot == EquipmentSlot.Armor)
+                item.armorTier = item.level;
+
+            saved.isNew = false;
+            EquipItem(item, false);
+            return true;
+        }
+
+        public void MarkAllEquipmentReviewed()
+        {
+            foreach (EquipmentItemSaveData item in inventory)
+                item.isNew = false;
+            SyncEquipmentSave();
+            SaveCoordinator.RequestSave();
+        }
+
+        private static void WriteItemSave(EquipmentItemSaveData target, ItemData item, int level, int upgradeLevel)
+        {
+            if (target == null)
+                return;
+
+            target.itemId = item != null ? item.itemId : string.Empty;
+            target.slot = item != null ? (int)item.equipmentSlot : 0;
+            target.level = level;
+            target.upgradeLevel = upgradeLevel;
+            target.strength = item != null ? item.strBonus : 0;
+            target.intelligence = item != null ? item.intBonus : 0;
+            target.vitality = item != null ? item.vitBonus : 0;
+            target.luck = item != null ? item.luckBonus : 0;
+        }
+
+        private static ItemData CreateItemFromSave(EquipmentItemSaveData saved, EquipmentSlot slot, int legacyTier)
+        {
+            if (saved == null || (string.IsNullOrEmpty(saved.itemId) && saved.level <= 0))
+                return null;
+
+            ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.itemId = saved.itemId;
+            item.itemName = string.IsNullOrEmpty(saved.itemId) ? "Equipment" : saved.itemId;
+            item.equipmentSlot = slot;
+            item.level = Mathf.Max(1, saved.level > 0 ? saved.level : legacyTier);
+            item.upgradeLevel = Mathf.Max(0, saved.upgradeLevel);
+            item.strBonus = saved.strength;
+            item.intBonus = saved.intelligence;
+            item.vitBonus = saved.vitality;
+            item.luckBonus = saved.luck;
+
+            if (slot == EquipmentSlot.Weapon)
+                item.weaponTier = item.level;
+            else if (slot == EquipmentSlot.Armor)
+                item.armorTier = item.level;
+
+            return item;
+        }
+
+        private static ItemSlot GetEquipmentSlot(ItemData item)
+        {
+            if (item.equipmentSlot == EquipmentSlot.Weapon || item.weaponTier > 0)
+                return ItemSlot.Weapon;
+            if (item.equipmentSlot == EquipmentSlot.Armor || item.armorTier > 0)
+                return ItemSlot.Armor;
+            return item.equipmentSlot == EquipmentSlot.Shield ? ItemSlot.Accessory : ItemSlot.Accessory;
         }
     }
 }

@@ -14,8 +14,6 @@ namespace EternalClash.EditorTools
     /// </summary>
     public static class SaveResetMenu
     {
-        private const string SaveKey = "SAVE_DATA";
-
         [MenuItem("Tools/Eternal Clash/Xoa Save (choi lai tu dau)", false, 1)]
         private static void ClearSave()
         {
@@ -29,8 +27,7 @@ namespace EternalClash.EditorTools
             if (!confirmed)
                 return;
 
-            PlayerPrefs.DeleteKey(SaveKey);
-            PlayerPrefs.Save();
+            new PlayerPrefsSaveRepository().Delete();
 
             // Neu dang chay game, cac he thong deu la DontDestroyOnLoad va van giu
             // gia tri cu trong bo nho - xoa moi PlayerPrefs thoi thi lan thay doi
@@ -47,15 +44,14 @@ namespace EternalClash.EditorTools
         [MenuItem("Tools/Eternal Clash/Xem save hien tai", false, 2)]
         private static void ShowSave()
         {
-            string json = PlayerPrefs.GetString(SaveKey, "");
-
-            if (string.IsNullOrEmpty(json))
+            SaveData data = new PlayerPrefsSaveRepository().Load();
+            if (data == null)
             {
                 Debug.Log("[SAVE] Chua co save nao.");
                 return;
             }
 
-            Debug.Log("[SAVE] Noi dung hien tai:\n" + json);
+            Debug.Log("[SAVE] Noi dung hien tai:\n" + JsonUtility.ToJson(data));
         }
 
         /// <summary>
@@ -78,9 +74,13 @@ namespace EternalClash.EditorTools
             if (data == null)
                 return;
 
+            NewGameEquipmentDefaults.Apply(data);
+            saveManager.Save();
+
             PlayerStatSystem.Instance?.LoadFromSave(data);
             GoldSystem.Instance?.LoadFromSave(data);
             BlacksmithCraftingSystem.Instance?.LoadFromSave(data);
+            AlchemistUpgradeSystem.Instance?.LoadFromSave(data);
             AffinityManager.Instance?.LoadFromSave(data);
             EternalClash.Core.PlayerConditionSystem.Instance?.LoadFromSave(data);
             EquipmentSystem.Instance?.RefreshFromSave();

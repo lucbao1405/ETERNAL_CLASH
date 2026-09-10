@@ -8,7 +8,8 @@ namespace EternalClash.Village
     {
         Ore,
         Leather,
-        Wood
+        Wood,
+        Steel
     }
 
     public class GoldSystem : MonoBehaviour
@@ -23,6 +24,7 @@ namespace EternalClash.Village
         public int OreMaterial { get; private set; }
         public int LeatherMaterial { get; private set; }
         public int WoodMaterial { get; private set; }
+        public int SteelOreMaterial { get; private set; }
 
         public event System.Action<int> OnGoldChanged;
         public event System.Action<int> OnGemChanged;
@@ -107,6 +109,7 @@ namespace EternalClash.Village
                 case MaterialType.Ore: OreMaterial += amount; break;
                 case MaterialType.Leather: LeatherMaterial += amount; break;
                 case MaterialType.Wood: WoodMaterial += amount; break;
+                case MaterialType.Steel: SteelOreMaterial += amount; break;
             }
 
             OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
@@ -121,6 +124,7 @@ namespace EternalClash.Village
                 case MaterialType.Ore: return OreMaterial;
                 case MaterialType.Leather: return LeatherMaterial;
                 case MaterialType.Wood: return WoodMaterial;
+                case MaterialType.Steel: return SteelOreMaterial;
                 default: return 0;
             }
         }
@@ -135,6 +139,7 @@ namespace EternalClash.Village
                 case MaterialType.Ore: OreMaterial -= amount; break;
                 case MaterialType.Leather: LeatherMaterial -= amount; break;
                 case MaterialType.Wood: WoodMaterial -= amount; break;
+                case MaterialType.Steel: SteelOreMaterial -= amount; break;
             }
 
             OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
@@ -170,6 +175,7 @@ namespace EternalClash.Village
             OreMaterial = data.oreMaterial;
             LeatherMaterial = data.leatherMaterial;
             WoodMaterial = data.woodMaterial;
+            SteelOreMaterial = data.steelOre;
 
             // Bao cho UI biet gia tri vua duoc nap, neu khong thi man hinh van giu
             // chu placeholder cho toi lan thay doi dau tien.
@@ -187,7 +193,10 @@ namespace EternalClash.Village
                 SaveManager.Instance.Data.oreMaterial = OreMaterial;
                 SaveManager.Instance.Data.leatherMaterial = LeatherMaterial;
                 SaveManager.Instance.Data.woodMaterial = WoodMaterial;
-                SaveManager.Instance.Save();
+                SaveManager.Instance.Data.steelOre = SteelOreMaterial;
+                SaveManager.Instance.Data.copperOre = OreMaterial;
+                SaveManager.Instance.Data.wolfHide = LeatherMaterial;
+                SaveCoordinator.RequestSave();
             }
         }
     }

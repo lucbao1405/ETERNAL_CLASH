@@ -136,19 +136,8 @@ namespace EternalClash.UI
 
             if (itemListText != null)
             {
-                var builder = new StringBuilder();
-                for (int i = 0; i < count; i++)
-                {
-                    ItemReward reward = items[i];
-                    if (reward == null) continue;
-
-                    string name = reward.item != null
-                        ? (string.IsNullOrEmpty(reward.item.itemName) ? reward.item.itemId : reward.item.itemName)
-                        : "Item";
-                    builder.Append(name).Append(" x").Append(Mathf.Max(1, reward.quantity)).AppendLine();
-                }
-                itemListText.text = builder.ToString().TrimEnd('\r', '\n');
-                itemListText.gameObject.SetActive(hasItems && itemListText.text.Length > 0);
+                itemListText.text = string.Empty;
+                itemListText.gameObject.SetActive(false);
             }
 
             if (itemGrid != null)
@@ -165,6 +154,7 @@ namespace EternalClash.UI
                     slot.gameObject.SetActive(true);
                     slot.SetSprite(LoadIcon(reward));
                     slot.SetQuantity(reward.quantity);
+                    slot.SetItem(reward.item);
                 }
             }
         }

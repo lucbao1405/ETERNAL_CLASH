@@ -195,7 +195,7 @@ namespace EternalClash.Core
 
             currentHp = Mathf.Max(currentHp, Mathf.CeilToInt(maxHp * recoveryTargetPercent / 100f));
             SetCondition(PlayerCondition.Normal);
-            SaveManager.Instance?.Save();
+            SaveCoordinator.RequestSave();
             OnRecoveryCompleted?.Invoke();
             Debug.Log("[CONDITION] Player recovered from Injured.");
         }
