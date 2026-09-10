@@ -22,7 +22,13 @@ namespace EternalClash.Combat
             playerController = GetComponent<PlayerController>();
         }
 
-        public void TakeDamage(int damage)
+        /// <summary>
+        /// <paramref name="attacker"/> la doi tuong gay sat thuong. Can truyen vao de
+        /// Khien phan lai duoc 5 DMG (GDD 3.3) - truoc day cho nay goi BlockDamage()
+        /// khong kem attacker nen phan don chi hoat dong voi mui ten, khong hoat dong
+        /// voi don can chien. Tham so co gia tri mac dinh nen loi goi cu van bien dich.
+        /// </summary>
+        public void TakeDamage(int damage, GameObject attacker = null)
         {
             if (healthSystem == null || isDead)
                 return;
@@ -33,7 +39,7 @@ namespace EternalClash.Combat
 
             if (shieldSkill != null)
             {
-                dealtDamage = shieldSkill.BlockDamage(initialDamage);
+                dealtDamage = shieldSkill.BlockDamage(initialDamage, attacker);
 
                 int blocked = initialDamage - dealtDamage;
                 if (blocked > 0 && DamagePopupManager.Instance != null)

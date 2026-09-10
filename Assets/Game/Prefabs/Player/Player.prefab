@@ -379,7 +379,7 @@ MonoBehaviour:
   skillName: Charge
   cooldown: 3
   chargeMultiplier: 2.5
-  chargeDuration: 1.5
+  chargeDuration: 1
   baseDamage: 20
   knockbackForce: 2.5
   stunDuration: 1.5
@@ -523,7 +523,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalSpeed: 2.5
-  chargeDuration: 0.5
+  chargeDuration: 1
 --- !u!114 &564288618744635028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -684,7 +684,7 @@ MonoBehaviour:
   skillName: Charge
   cooldown: 5
   chargeMultiplier: 2.5
-  chargeDuration: 1.5
+  chargeDuration: 1
   baseDamage: 15
   knockbackForce: 2.5
   stunDuration: 1.5

@@ -13,7 +13,7 @@ namespace EternalClash.Skill
     {
         public float chargeMultiplier = 4.0f;
         [Header("Charge Timing")]
-        [SerializeField] private float chargeDuration = 0.5f;
+        [SerializeField] private float chargeDuration = 1f;
 
         public int baseDamage = 20;
         public float knockbackForce = 3.0f;
