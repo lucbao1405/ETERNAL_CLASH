@@ -170,7 +170,7 @@ namespace EternalClash.BattleResult
                 yield return FadeIn(losePopup);
 
                 bool clicked = false;
-                loseUI.ShowDefeat(data.exp, data.battleTime, data.battleLoot, () => clicked = true);
+                loseUI.ShowDefeat(data.exp, data.battleTime, data.GetDisplayItems(), () => clicked = true);
                 yield return WaitForResultClick(() => clicked);
                 loseUI.Close();
                 ReturnToVillage();
@@ -213,7 +213,7 @@ namespace EternalClash.BattleResult
                 yield return FadeIn(winPopup);
 
                 bool clicked = false;
-                winUI.ShowVictory(data.exp, data.gold, data.battleTime, data.GetWinDisplayItems(), () => clicked = true);
+                winUI.ShowVictory(data.exp, data.gold, data.battleTime, data.GetDisplayItems(), () => clicked = true);
                 yield return WaitForResultClick(() => clicked);
                 winUI.Close();
                 ReturnToVillage();
@@ -342,14 +342,13 @@ namespace EternalClash.BattleResult
             if (includeChest)
             {
                 for (int i = 0; i < chestRewards.Count; i++)
-                {
                     BattleRewardData.AddOrMerge(data.chestReward, chestRewards[i]);
-                    if (chestRewards[i] != null && chestRewards[i].item != null &&
-                        string.Equals(chestRewards[i].item.itemId, "Gold", StringComparison.OrdinalIgnoreCase))
-                    {
-                        data.gold += Mathf.Max(0, chestRewards[i].quantity);
-                    }
-                }
+
+                // Vang cua ruong: GrantChestReward() -> AddGold() da cong vao
+                // SessionGoldEarned roi. Chi cong them khi ruong chua duoc trao
+                // (pendingChestReward con), neu khong se bi tinh 2 lan.
+                if (pendingChestReward != null && pendingChestReward.type == RewardType.Gold)
+                    data.gold += Mathf.Max(0, pendingChestReward.amount);
             }
 
             return data;

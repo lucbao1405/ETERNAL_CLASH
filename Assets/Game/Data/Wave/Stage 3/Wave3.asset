@@ -16,10 +16,10 @@ MonoBehaviour:
   groups:
   - enemyPrefab: {fileID: 1333380701695965858, guid: affaa9f4e8e253140a3d0122e7d8fe71, type: 3}
     count: 2
-    spawnInterval: 0
+    spawnInterval: 1.2
     initialDelay: 0
   - enemyPrefab: {fileID: 1333380701695965858, guid: 039ffd4d4a16e2e4289060f13f69d87c, type: 3}
     count: 2
-    spawnInterval: 0
-    initialDelay: 0
+    spawnInterval: 1.2
+    initialDelay: 2.4
   delayAfterClear: 2

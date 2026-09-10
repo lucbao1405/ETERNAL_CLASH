@@ -70,6 +70,10 @@ namespace EternalClash.Stage
             item.level = Mathf.Max(1, tier);
             item.description = Descriptions[tier];
 
+            // Trang bi sinh ngau nhien khong co hinh rieng: muon icon cua trang bi
+            // cung o trong Data/Items de popup van hien duoc hinh.
+            item.icon = ItemCatalog.FindBySlot(item.equipmentSlot)?.icon;
+
             int statBudget = 1 + tier * 2 + stageLevel;
             int str = 0, intel = 0, vit = 0, luck = 0;
 
