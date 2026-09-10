@@ -38,12 +38,15 @@ namespace EternalClash.BattleResult
         }
 
         /// <summary>
-        /// Gộp để hiển thị ở Win Popup: giống GetMergedRewards nhưng bỏ các entry
-        /// Vàng (itemId "Gold") vì vàng được hiển thị riêng ở dòng Gold.
+        /// Gộp để hiển thị ở Win / Lose Popup. Vàng đứng ô đầu tiên với tổng số vàng
+        /// nhận được (gold = nhặt trong trận + rương nếu thắng); các entry Vàng lẻ trong
+        /// battleLoot / chestReward được bỏ qua để không hiện 2 ô Vàng.
         /// </summary>
-        public List<ItemReward> GetWinDisplayItems()
+        public List<ItemReward> GetDisplayItems()
         {
             var merged = new List<ItemReward>();
+            if (gold > 0)
+                merged.Add(CreateEntry("Gold", "Gold", gold));
             AddRangeDisplay(merged, battleLoot);
             AddRangeDisplay(merged, chestReward);
             return merged;
@@ -117,20 +120,25 @@ namespace EternalClash.BattleResult
         }
 
         /// <summary>
-        /// Tạo một ItemReward từ dữ liệu tối giản (dùng cho Ore/Leather/Wood/Gem
-        /// không có catalog riêng). ItemData này chỉ phục vụ hiển thị tên/số lượng.
+        /// Tạo một ItemReward cho Gold/Ore/Leather/Wood/Gem. Hình, tên và mô tả lấy
+        /// từ ItemData tương ứng trong Data/Items (qua ItemCatalog). itemId vẫn giữ
+        /// mã phần thưởng ("Gold", "Ore"...) vì logic gộp và lọc Vàng dựa vào nó.
         /// </summary>
         public static ItemReward CreateEntry(string itemId, string itemName, int quantity, string iconSpriteName = null)
         {
-            var data = new ItemData
-            {
-                itemId = itemId ?? string.Empty,
-                itemName = itemName ?? itemId,
-                itemType = string.Equals(itemId, "Gold", System.StringComparison.OrdinalIgnoreCase)
-                    ? "Currency"
-                    : "Material",
-                iconSpriteName = iconSpriteName ?? string.Empty
-            };
+            ItemData source = ItemCatalog.Find(itemId) ?? ItemCatalog.Find(itemName);
+
+            var data = UnityEngine.ScriptableObject.CreateInstance<ItemData>();
+            data.itemId = itemId ?? string.Empty;
+            data.itemName = source != null && !string.IsNullOrEmpty(source.itemName)
+                ? source.itemName
+                : itemName ?? itemId;
+            data.itemType = string.Equals(itemId, "Gold", System.StringComparison.OrdinalIgnoreCase)
+                ? "Currency"
+                : "Material";
+            data.description = source != null ? source.description : string.Empty;
+            data.icon = source != null ? source.icon : null;
+            data.iconSpriteName = iconSpriteName ?? string.Empty;
 
             return new ItemReward(data, quantity < 1 ? 1 : quantity);
         }
