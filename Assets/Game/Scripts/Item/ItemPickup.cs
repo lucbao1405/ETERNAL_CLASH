@@ -30,6 +30,12 @@ namespace EternalClash.Item
         public float moveSpeed = 8f;
         public float magnetDelay = 0f;
 
+        /// <summary>
+        /// Bat boi LootDropMotion (do roi tu quai): chuyen dong va thoi diem nhat do
+        /// LootDropMotion quyet dinh, nen tat nam cham va va cham trigger o day.
+        /// </summary>
+        [HideInInspector] public bool externallyDriven;
+
         private Transform player;
         private bool collected;
         private float magnetAvailableAt = -1f;
@@ -51,6 +57,9 @@ namespace EternalClash.Item
 
         private void Update()
         {
+            if (externallyDriven)
+                return;
+
             if (player == null)
             {
                 GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
@@ -77,12 +86,22 @@ namespace EternalClash.Item
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (collected || !other.CompareTag("Player"))
+            if (externallyDriven || collected || !other.CompareTag("Player"))
                 return;
 
             collected = true;
 
             Collect(other.gameObject);
+        }
+
+        /// <summary>Nhat ngay, dung khi item da bay toi nguoi Player.</summary>
+        public void CollectBy(GameObject playerObject)
+        {
+            if (collected || playerObject == null)
+                return;
+
+            collected = true;
+            Collect(playerObject);
         }
 
         private void Collect(GameObject playerObject)

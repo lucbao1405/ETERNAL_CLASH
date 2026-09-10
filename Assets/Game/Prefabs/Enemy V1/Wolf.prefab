@@ -525,11 +525,15 @@ MonoBehaviour:
     maxAmount: 1
     itemType: 4
   expReward: 25
-  safeSpawnOffset: 1
-  launchSpeed: 3
-  gravityScale: 0.35
-  physicsMaterial: {fileID: 6200000, guid: ad674b9c53494df47a428f584e00f554, type: 2}
-  magnetDelay: 0.4
+  burstHeight: 1.2
+  hopMinDistance: 0.8
+  hopMaxDistance: 1.6
+  screenMargin: 0.4
+  bounceCount: 2
+  groundOffsetY: 0
+  magnetDelay: 1
+  flyDuration: 0.35
+  flyArcHeight: 0.8
   itemSortingLayer: Item
 --- !u!114 &-6734242378752506702
 MonoBehaviour:
