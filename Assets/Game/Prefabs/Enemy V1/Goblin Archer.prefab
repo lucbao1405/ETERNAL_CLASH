@@ -163,7 +163,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 141949279
-  m_SortingLayer: 10
+  m_SortingLayer: 11
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: e1a18dd24665230428cef9abf58bafa1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -441,11 +441,15 @@ MonoBehaviour:
     maxAmount: 1
     itemType: 5
   expReward: 15
-  safeSpawnOffset: 1
-  launchSpeed: 3
-  gravityScale: 0.35
-  physicsMaterial: {fileID: 6200000, guid: ad674b9c53494df47a428f584e00f554, type: 2}
-  magnetDelay: 0.4
+  burstHeight: 1.2
+  hopMinDistance: 0.8
+  hopMaxDistance: 1.6
+  screenMargin: 0.4
+  bounceCount: 2
+  groundOffsetY: 0
+  magnetDelay: 1
+  flyDuration: 0.35
+  flyArcHeight: 0.8
   itemSortingLayer: Item
 --- !u!114 &-3013028137104058720
 MonoBehaviour:

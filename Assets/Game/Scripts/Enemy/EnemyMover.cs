@@ -1,21 +1,49 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace EternalClash.Enemy
 {
     public class EnemyMover : MonoBehaviour
     {
+        /// <summary>
+        /// Tat ca quai dang song tren map, dung de xep hang. Quai deu spawn cung 1 diem
+        /// va la Kinematic + trigger nen vat ly khong tach chung ra; khong xep hang thi
+        /// ca dot quai dung chong khit len nhau o cung mot cho truoc mat Player.
+        /// </summary>
+        private static readonly List<EnemyMover> activeMovers = new List<EnemyMover>();
+
         [SerializeField] private float archerStopDistance = 4.5f;
         [SerializeField] private bool isArcher = false;
         [SerializeField] private float playerStopDistance = 0.75f;
+
+        [Header("Queue")]
+        [Tooltip("Khoang cach giua 2 quai dung lien nhau trong hang.")]
+        [SerializeField] private float queueSpacing = 0.8f;
+        [Tooltip("Toc do lui ve cho cua minh khi dang dung lan vao cho cua con phia truoc.")]
+        [SerializeField] private float queueSettleSpeed = 3f;
+
         private EnemyController controller;
+        private EnemyHealthSystem health;
         private Rigidbody2D rb;
         private Transform player;
         private bool isPaused;
         private float lockedY;
 
+        private void OnEnable()
+        {
+            if (!activeMovers.Contains(this))
+                activeMovers.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            activeMovers.Remove(this);
+        }
+
         private void Awake()
         {
             controller = GetComponent<EnemyController>();
+            health = GetComponent<EnemyHealthSystem>();
             rb = GetComponent<Rigidbody2D>();
             GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
             player = playerObject != null ? playerObject.transform : null;
@@ -73,9 +101,53 @@ namespace EternalClash.Enemy
             if (Mathf.Abs(side) < 0.01f)
                 side = -1f;
 
-            float stopX = player.position.x + side * playerStopDistance;
+            // Xep hang: con dung dau dung sat Player, moi con sau lui them queueSpacing.
+            int queueIndex = GetQueueIndex(currentX, side);
+            float stopX = player.position.x + side * (playerStopDistance + queueIndex * queueSpacing);
+
+            // Con dau hang giu nguyen cach cu: khong bao gio duoc vuot qua cho dung.
+            // Con phia sau neu dang lan vao cho con truoc (vd sau khi bi day lui, hang
+            // bi xao tron) thi lui ve tu tu thay vi bi dich chuyen tuc thoi.
+            bool insideSlot = side > 0f ? currentX < stopX : currentX > stopX;
+            if (queueIndex > 0 && insideSlot)
+                return Mathf.MoveTowards(currentX, stopX, queueSettleSpeed * Time.fixedDeltaTime);
+
             return side > 0f ? Mathf.Max(nextX, stopX) : Mathf.Min(nextX, stopX);
         }
+
+        /// <summary>
+        /// So quai con song dung truoc minh (gan Player hon) o cung phia.
+        /// Hai con dung trung vi tri (vua spawn cung luc) thi xet theo InstanceID
+        /// de thu tu luon co dinh, khong doi qua doi lai giua cac frame.
+        /// </summary>
+        private int GetQueueIndex(float currentX, float side)
+        {
+            float myDistance = Mathf.Abs(currentX - player.position.x);
+            int myId = GetInstanceID();
+            int index = 0;
+
+            foreach (EnemyMover other in activeMovers)
+            {
+                if (other == null || other == this || other.IsDead)
+                    continue;
+
+                float otherX = other.rb != null ? other.rb.position.x : other.transform.position.x;
+                if (Mathf.Sign(otherX - player.position.x) != side)
+                    continue;
+
+                float otherDistance = Mathf.Abs(otherX - player.position.x);
+                bool ahead = Mathf.Abs(otherDistance - myDistance) < 0.001f
+                    ? other.GetInstanceID() < myId
+                    : otherDistance < myDistance;
+
+                if (ahead)
+                    index++;
+            }
+
+            return index;
+        }
+
+        private bool IsDead => health != null && health.IsDead;
 
         public void StopMovement() => isPaused = true;
         public void ResumeMovement() => isPaused = false;
