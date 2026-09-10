@@ -70,6 +70,7 @@ namespace EternalClash.Core.Save
         private static void EnsureDtoContainers(SaveData data)
         {
             data.player ??= new PlayerSaveData(); data.currency ??= new CurrencySaveData(); data.inventory ??= new InventorySaveData();
+            data.inventory.items ??= new List<ItemStackSaveData>();
             data.equipment ??= new EquipmentSaveData(); data.progress ??= new ProgressSaveData(); data.settings ??= new SettingsSaveData();
             data.equipmentInventory ??= new List<EquipmentItemSaveData>(); data.unlockedLetters ??= new List<string>(); data.abilities ??= new AbilitySaveData();
         }

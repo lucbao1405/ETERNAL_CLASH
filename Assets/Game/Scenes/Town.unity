@@ -1179,7 +1179,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 11
+  m_text: x8
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1561,8 +1561,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 20}
+  m_AnchoredPosition: {x: -13.024994, y: -1208.4}
+  m_SizeDelta: {x: -6.05, y: 2436.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &44990001
 MonoBehaviour:
@@ -1577,7 +1577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 0.49019608, a: 1}
+  m_Color: {r: 1, g: 1, b: 0.49019608, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2948,7 +2948,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 11
+  m_text: x5
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5126,7 +5126,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5955,7 +5955,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 2e5bd46dcf354414486f25316d9d5fd9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7190,7 +7190,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 11
+  m_text: x150
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11133,7 +11133,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 72729f597bf8e6f44a0ba9d2f857f52f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -14960,17 +14960,17 @@ MonoBehaviour:
   confirmButton: {fileID: 1417558420}
   closeButton: {fileID: 1739093539}
   vatPhamCan: {fileID: 359493283}
-  hienThiVatPham: {fileID: 1417140660}
+  equipmentPreviewIcon: {fileID: 1165567229}
   materialSlots:
   - root: {fileID: 0}
-    icon: {fileID: 0}
-    quantityText: {fileID: 0}
+    icon: {fileID: 681518526}
+    quantityText: {fileID: 27795073}
   - root: {fileID: 0}
-    icon: {fileID: 0}
-    quantityText: {fileID: 0}
+    icon: {fileID: 336955965}
+    quantityText: {fileID: 141835605}
   - root: {fileID: 0}
-    icon: {fileID: 0}
-    quantityText: {fileID: 0}
+    icon: {fileID: 297148319}
+    quantityText: {fileID: 425763759}
   copperOreItem: {fileID: 11400000, guid: 1000979ffb3e0f64bab8edbcd5820236, type: 2}
   woodItem: {fileID: 11400000, guid: cdd4ece71d9db4140ad46fdfc530fc8e, type: 2}
   leatherItem: {fileID: 11400000, guid: 31ed17a35fb9b1747b450dfe7aa47306, type: 2}
@@ -19239,7 +19239,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Iron Sword
+  m_text: Iron Armor
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -19773,7 +19773,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1b1beab946f44a64dbd468f7a92cc0d0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9fd897177e94be84cb4c330bb9657f6e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -24699,7 +24699,7 @@ MonoBehaviour:
 
     Level 1 -> Level 2
 
-    STR +5 -> STR +6'
+    VIT +10 -> VIT +11'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -33605,7 +33605,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "theo data c\u1EE7a v\u1EADt ph\u1EA9m"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 267819413}
