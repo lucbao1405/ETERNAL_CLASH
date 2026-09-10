@@ -54,6 +54,51 @@ namespace EternalClash.EditorTools
             Debug.Log("[SAVE] Noi dung hien tai:\n" + JsonUtility.ToJson(data));
         }
 
+        // Chon Stage de test: StageManager doc SaveData.stageLevel moi lan vao Battle
+        // de chon StageData (Data/Wave/Stage N). Thang man thi stageLevel tu tang,
+        // toi Stage cuoi thi dung lai do - nen sau vai tran la luon choi Stage cuoi.
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 1", false, 20)]
+        private static void PlayStage1() => SetStageLevel(1);
+
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 2", false, 21)]
+        private static void PlayStage2() => SetStageLevel(2);
+
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 3", false, 22)]
+        private static void PlayStage3() => SetStageLevel(3);
+
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 4", false, 23)]
+        private static void PlayStage4() => SetStageLevel(4);
+
+        /// <summary>
+        /// Chi doi stageLevel, giu nguyen moi tien trinh khac (Level, vang, trang bi...).
+        /// Co hieu luc tu lan vao Battle ke tiep.
+        /// </summary>
+        private static void SetStageLevel(int level)
+        {
+            if (Application.isPlaying && SaveManager.Instance != null && SaveManager.Instance.Data != null)
+            {
+                SaveManager.Instance.Data.stageLevel = level;
+                SaveManager.Instance.Save();
+            }
+            else
+            {
+                var repository = new PlayerPrefsSaveRepository();
+                SaveData data = repository.Load();
+                if (data == null)
+                {
+                    Debug.Log("[SAVE] Chua co save nao - game moi luon bat dau tu Stage 1.");
+                    return;
+                }
+
+                data.stageLevel = level;
+                if (data.progress != null)
+                    data.progress.stageLevel = level;
+                repository.Save(data);
+            }
+
+            Debug.Log($"[SAVE] Lan vao Battle ke tiep se choi Stage {level}.");
+        }
+
         /// <summary>
         /// Nap SaveData rong vao cac he thong dang song, theo dung thu tu ma
         /// GameBootstrap.LoadSavedData() dang dung.
