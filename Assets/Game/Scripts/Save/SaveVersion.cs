@@ -2,6 +2,6 @@ namespace EternalClash.Core.Save
 {
     public static class SaveVersion
     {
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
     }
 }

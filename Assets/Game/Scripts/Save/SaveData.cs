@@ -48,6 +48,12 @@ public class SaveData
     // Stage
     public int stageLevel = 1;
 
+    // First-game tutorial. These remain simple root fields so they travel through
+    // the existing SaveManager and PlayerPrefs payload without a second save path.
+    public bool tutorialInitialized;
+    public int tutorialStep;
+    public string playerName = string.Empty;
+
     // Affinity & Bonds
     public int affinityPoints = 0;
     public List<string> unlockedLetters = new List<string>();
