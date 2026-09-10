@@ -33,17 +33,15 @@ namespace EternalClash.Enemy
         {
             if (other.CompareTag("Player"))
             {
-                int finalDamage = damage;
-
-                // GDD 3.3: Shield (Giương Khiên) chặn hỏa lực tầm xa.
-                var shield = other.GetComponent<ShieldSkill>();
-                if (shield != null && shield.IsActive())
-                    finalDamage = shield.BlockDamage(finalDamage, gameObject);
-
+                // Khong tu goi ShieldSkill.BlockDamage() o day nua: DamageReceiver
+                // ben trong DealDamage() da lam viec do. Goi ca hai noi khien mui ten
+                // bi giam 80% HAI LAN (12 -> 2 -> 1) va phan don hai lan.
+                // Chi can truyen gameObject lam attacker de Khien phan lai 5 DMG.
                 CombatDamageResolver.Instance?.DealDamage(
                     other.gameObject,
-                    finalDamage,
-                    DamageSource.EnemyAttack
+                    damage,
+                    DamageSource.EnemyAttack,
+                    gameObject
                 );
 
                 Destroy(gameObject);
