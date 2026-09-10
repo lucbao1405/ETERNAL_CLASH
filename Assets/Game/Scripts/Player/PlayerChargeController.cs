@@ -6,7 +6,7 @@ namespace EternalClash.Player
     {
         [SerializeField] private float normalSpeed = 2.5f;
         [Header("Charge Settings")]
-        [SerializeField] private float chargeDuration = 0.5f;
+        [SerializeField] private float chargeDuration = 1f;
 
         private float lockedX;
         private float lockedY;

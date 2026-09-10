@@ -1,6 +1,7 @@
 using UnityEngine;
 using EternalClash.Player;
 using EternalClash.Combat;
+using EternalClash.World;
 
 namespace EternalClash.Skill
 {
@@ -14,6 +15,11 @@ namespace EternalClash.Skill
         public bool Active { get; private set; }
 
         private PlayerController playerController;
+        private WorldScroller worldScroller;
+
+        // Chi cho cuon lai neu chinh Khien la thu da dung no. Tranh truong hop man
+        // da ket thuc (StageCompleteController goi StopScroll) ma Khien lai bat len.
+        private bool stoppedScroll;
 
         protected override void Awake()
         {
@@ -36,6 +42,8 @@ namespace EternalClash.Skill
             if (playerController != null)
                 playerController.StopMovement();
 
+            StopWorld();
+
             CancelInvoke(nameof(DisableShield));
             Invoke(nameof(DisableShield), shieldDuration);
         }
@@ -47,6 +55,37 @@ namespace EternalClash.Skill
 
             if (playerController != null)
                 playerController.ResumeMovement();
+
+            ResumeWorld();
+        }
+
+        /// <summary>
+        /// "Khung lai 1s" cua GDD 3.3. Day la auto-scroller: nguoi choi dung yen con
+        /// NEN cuon, nen dung buoc chan = dung cuon nen. Truoc day chi goi
+        /// PlayerController.StopMovement(), ma chuoi do dan toi AutoRunner.isRunning -
+        /// mot co khong dieu khien chuyen dong nao, nen khien khong he lam cham tien do.
+        /// </summary>
+        private void StopWorld()
+        {
+            if (worldScroller == null)
+                worldScroller = FindObjectOfType<WorldScroller>();
+
+            if (worldScroller == null || !worldScroller.IsScrolling)
+                return;
+
+            worldScroller.StopScroll();
+            stoppedScroll = true;
+        }
+
+        private void ResumeWorld()
+        {
+            if (!stoppedScroll)
+                return;
+
+            stoppedScroll = false;
+
+            if (worldScroller != null)
+                worldScroller.ResumeScroll();
         }
 
         public int BlockDamage(int incomingDamage, GameObject attacker = null)

@@ -40,7 +40,13 @@ namespace EternalClash.Combat
                 Destroy(gameObject);
         }
 
-        public void DealDamage(GameObject target, int amount, DamageSource source)
+        /// <summary>
+        /// <paramref name="attacker"/> la doi tuong gay sat thuong. Chi can khi muon
+        /// Khien phan don ve nguoi danh (GDD 3.3). De trong thi khong phan.
+        /// Tham so co gia tri mac dinh nen moi loi goi cu van bien dich binh thuong.
+        /// </summary>
+        public void DealDamage(GameObject target, int amount, DamageSource source,
+                               GameObject attacker = null)
         {
             if (target == null || amount <= 0)
                 return;
@@ -62,7 +68,7 @@ namespace EternalClash.Combat
                 var receiver = target.GetComponent<DamageReceiver>();
                 if (receiver != null)
                 {
-                    receiver.TakeDamage(amount);
+                    receiver.TakeDamage(amount, attacker);
                     Debug.Log($"[DAMAGE] {source}: {amount}{(isCritical ? " (CRIT)" : "")}");
                     return;
                 }

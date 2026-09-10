@@ -57,10 +57,13 @@ namespace EternalClash.Combat
                 return;
             }
 
+            // Truyen gameObject lam attacker de Khien phan lai 5 DMG ve chinh con quai
+            // vua danh (GDD 3.3). Thieu tham so nay thi phan don khong kich hoat.
             CombatDamageResolver.Instance?.DealDamage(
                 player.gameObject,
                 damage,
-                DamageSource.EnemyAttack
+                DamageSource.EnemyAttack,
+                gameObject
             );
 
             ShieldSkill shield = player.GetComponent<ShieldSkill>();
