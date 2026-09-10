@@ -62,6 +62,11 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text beforeStatsText;
         [SerializeField] private TMP_Text afterStatsText;
 
+        [Header("Item Details")]
+        [SerializeField] private Transform itemDetailsRoot;
+        [SerializeField] private TMP_Text itemDetailsText;
+        [SerializeField] private Image itemDetailsIcon;
+
         [Header("Controls")]
         [SerializeField] private Button weaponButton;
         [SerializeField] private Button armorButton;
@@ -96,6 +101,9 @@ namespace EternalClash.UI
             Transform current = equipment?.Find("CurrentEquipment");
             Transform next = equipment?.Find("NextEquipment");
             Transform legacyPreview = FindChildRecursive(transform, "ThongTinNangCap");
+            itemDetailsRoot ??= FindChildRecursive(transform, "ThongTinVatPham");
+            itemDetailsText ??= itemDetailsRoot?.Find("TTVP_Text")?.GetComponent<TMP_Text>();
+            EnsureItemDetailsIcon();
             current ??= legacyPreview?.Find("Current") ?? legacyPreview?.Find("ThongTinVatPham");
             next ??= legacyPreview?.Find("Next");
             currentEquipmentIcon ??= current?.Find("ItemIcon")?.GetComponent<Image>();
@@ -226,7 +234,8 @@ namespace EternalClash.UI
 
         private void RefreshAfterUpgrade()
         {
-            selectedItem = null;
+            // Keep the recipe selection so the details panel stays on the upgraded item.
+            selectedItem = FindItemData(selectedItemId);
             RefreshEquipment();
             RefreshRequirement();
             RefreshInventory();
@@ -266,6 +275,13 @@ namespace EternalClash.UI
                 afterStatsText.text = string.Empty;
             if (goldAmountText != null)
                 goldAmountText.text = string.Empty;
+            if (itemDetailsText != null)
+                itemDetailsText.text = "Select an item";
+            if (itemDetailsIcon != null)
+            {
+                itemDetailsIcon.sprite = null;
+                itemDetailsIcon.gameObject.SetActive(false);
+            }
             if (upgradeButton != null)
                 upgradeButton.interactable = false;
         }
@@ -274,6 +290,8 @@ namespace EternalClash.UI
         {
             int tier = GetSelectedTier();
             ItemData current = selectedItem ?? ResolveItem(selectedSlot);
+
+            RefreshItemDetails(current, tier);
 
             if (currentEquipmentIcon != null)
                 currentEquipmentIcon.sprite = current != null ? current.icon : null;
@@ -447,12 +465,12 @@ namespace EternalClash.UI
                 selectedItem = FindItemData(recipe.itemId);
                 selectedRecipe = recipe;
                 detailShown = true;
+                LogSelectedItem(recipe.itemId, selectedItem);
                 ShowDetail(slot);
             });
             CreateInventoryIcon(slotObject.transform, item != null ? item.icon : null);
-            CreateInventoryLabel(slotObject.transform, string.Format("{0}\n+{1}",
-                item != null ? item.itemName : NewGameEquipmentDefaults.GetDisplayName(recipe.itemId),
-                GetSavedUpgradeLevel(recipe.itemId, item)));
+            CreateInventoryLabel(slotObject.transform,
+                item != null ? item.itemName : NewGameEquipmentDefaults.GetDisplayName(recipe.itemId));
         }
 
         private static ItemSlot ToItemSlot(EquipmentSlot slot) => slot == EquipmentSlot.Weapon ? ItemSlot.Weapon
@@ -471,10 +489,127 @@ namespace EternalClash.UI
 
         private static ItemData FindItemData(string itemId)
         {
+            ItemData bestMatch = null;
+            int bestScore = int.MinValue;
             foreach (ItemData item in Resources.FindObjectsOfTypeAll<ItemData>())
                 if (item != null && string.Equals(item.itemId, itemId, StringComparison.Ordinal))
-                    return item;
-            return NewGameEquipmentDefaults.CreateItemData(itemId);
+                {
+                    int score = 0;
+                    if (!string.IsNullOrEmpty(item.itemName) && item.itemName != item.itemId) score += 4;
+                    if (item.icon != null) score += 2;
+                    if (!string.IsNullOrEmpty(item.description)) score++;
+                    if (item.equipmentSlot != EquipmentSlot.None) score++;
+                    if (score > bestScore)
+                    {
+                        bestMatch = item;
+                        bestScore = score;
+                    }
+                }
+            return bestMatch ?? NewGameEquipmentDefaults.CreateItemData(itemId);
+        }
+
+        private void EnsureItemDetailsIcon()
+        {
+            if (itemDetailsRoot == null || itemDetailsIcon != null)
+                return;
+
+            Transform existing = itemDetailsRoot.Find("ItemIcon");
+            if (existing != null)
+            {
+                itemDetailsIcon = existing.GetComponent<Image>();
+                return;
+            }
+
+            GameObject iconObject = new GameObject("ItemIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(itemDetailsRoot, false);
+            RectTransform rect = iconObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-24f, -24f);
+            rect.sizeDelta = new Vector2(72f, 72f);
+            itemDetailsIcon = iconObject.GetComponent<Image>();
+            itemDetailsIcon.preserveAspect = true;
+            itemDetailsIcon.raycastTarget = false;
+            iconObject.SetActive(false);
+        }
+
+        private void RefreshItemDetails(ItemData item, int tier)
+        {
+            if (itemDetailsText == null)
+                return;
+
+            if (item == null)
+            {
+                itemDetailsText.text = "Missing ItemData";
+                if (itemDetailsIcon != null)
+                    itemDetailsIcon.gameObject.SetActive(false);
+                return;
+            }
+
+            if (itemDetailsIcon != null)
+            {
+                itemDetailsIcon.sprite = item.icon;
+                itemDetailsIcon.gameObject.SetActive(item.icon != null);
+            }
+
+            string description = string.IsNullOrEmpty(item.description) ? "-" : item.description;
+            itemDetailsText.text = string.Format(
+                "{0}\n{1} | Tier {2} | +{3}\n\nDescription\n{4}\n\nStats\nSTR bonus: +{5}\nINT bonus: +{6}\nVIT bonus: +{7}\nLUCK bonus: +{8}\n\nREQUIRES\n{9}",
+                item.itemName,
+                GetEquipmentLabelFor(selectedSlot),
+                tier,
+                GetSavedUpgradeLevel(selectedItemId ?? item.itemId, item),
+                description,
+                item.strBonus,
+                item.intBonus,
+                item.vitBonus,
+                item.luckBonus,
+                FormatRequirements(selectedRecipe));
+        }
+
+        private static string FormatRequirements(UpgradeRecipeData recipe)
+        {
+            if (recipe == null)
+                return "-";
+
+            string requirements = string.Empty;
+            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
+            {
+                if (requirement.amount <= 0)
+                    continue;
+                if (requirements.Length > 0)
+                    requirements += "\n";
+                requirements += GetMaterialLabel(requirement.materialType) + " x" + requirement.amount;
+            }
+
+            if (recipe.goldCost > 0)
+            {
+                if (requirements.Length > 0)
+                    requirements += "\n";
+                requirements += "Gold " + recipe.goldCost;
+            }
+            return requirements.Length > 0 ? requirements : "-";
+        }
+
+        private static string GetMaterialLabel(MaterialType materialType)
+        {
+            return materialType == MaterialType.Ore ? "Copper Ore"
+                : materialType == MaterialType.Leather ? "Leather"
+                : materialType == MaterialType.Wood ? "Wood"
+                : materialType == MaterialType.Steel ? "Steel Ore"
+                : materialType.ToString();
+        }
+
+        private static void LogSelectedItem(string itemId, ItemData item)
+        {
+            if (item == null)
+            {
+                Debug.Log("[Blacksmith Detail]\nMissing ItemData:\n" + itemId);
+                return;
+            }
+
+            Debug.Log("[Blacksmith Detail]\nItemId:\n" + itemId + "\n\nItemData:\n" + item.itemName);
         }
 
         private static int GetSavedUpgradeLevel(string itemId, ItemData fallback)

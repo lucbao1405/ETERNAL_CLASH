@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76283486c5a0d754f8881de1ee8fe007, type: 3}
   m_Name: ItemData
   m_EditorClassIdentifier: 
-  itemId: Iron_armor
+  itemId: Iron_armor_t1
   itemName: Iron Armor
   itemType: Equipment
   equipmentSlot: 3
