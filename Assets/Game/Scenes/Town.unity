@@ -485,6 +485,9 @@ MonoBehaviour:
   - {fileID: 1223688120}
   thongTinVatPham: {fileID: 1558483720}
   itemDetailsText: {fileID: 2061583408}
+  upgradeButton: {fileID: 0}
+  upgradeConfirmUI: {fileID: 0}
+  upgradeResultPopup: {fileID: 0}
 --- !u!114 &12087382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1973,7 +1976,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: www
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 267819413}
@@ -2038,7 +2041,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 0, w: -373.78946}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -14415,16 +14418,16 @@ RectTransform:
   - {fileID: 701092589}
   - {fileID: 1244347077}
   - {fileID: 931990565}
+  - {fileID: 451185820}
   - {fileID: 290433286}
   - {fileID: 603994516}
-  - {fileID: 451185820}
   - {fileID: 145010365}
   - {fileID: 1205434098}
   m_Father: {fileID: 2127649510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 2000}
+  m_AnchoredPosition: {x: 0, y: 692}
   m_SizeDelta: {x: -263.37, y: -1161.06}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &831664833
@@ -14516,6 +14519,7 @@ MonoBehaviour:
   cooldownSelectButton: {fileID: 0}
   thongTinNangCap: {fileID: 451185819}
   upgradePreviewText: {fileID: 0}
+  upgradePreviewScrollRect: {fileID: 0}
   upgradeButton: {fileID: 603994517}
   closeButton: {fileID: 1244347078}
   materialSlots: {fileID: 298963456}
@@ -14861,7 +14865,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000015258789}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &858852001

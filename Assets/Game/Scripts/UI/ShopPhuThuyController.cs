@@ -19,6 +19,7 @@ namespace EternalClash.UI
         [SerializeField] private Button cooldownSelectButton;
         [SerializeField] private GameObject thongTinNangCap;
         [SerializeField] private TMP_Text upgradePreviewText;
+        [SerializeField] private ScrollRect upgradePreviewScrollRect;
 
         [Header("Controls")]
         [SerializeField] private Button upgradeButton;
@@ -34,6 +35,7 @@ namespace EternalClash.UI
         private void Awake()
         {
             AutoWire();
+            ConfigureUpgradePreviewScroll();
             upgradeButton?.onClick.AddListener(HandleUpgrade);
             closeButton?.onClick.AddListener(Close);
             healingSelectButton?.onClick.AddListener(SelectHealingSkill);
@@ -44,6 +46,8 @@ namespace EternalClash.UI
 
         private void OnEnable()
         {
+            AutoWire();
+            ConfigureUpgradePreviewScroll();
             SelectHealingSkill();
             successPanel?.SetActive(false);
             failurePanel?.SetActive(false);
@@ -112,6 +116,7 @@ namespace EternalClash.UI
                 "%\n\nAfter:\n+" + (healingBonus + AlchemistUpgradeSystem.HealingBonusPerLevelPercent) +
                 "%\n\nCooldown:\n\nCurrent:\n" + cooldownSeconds + " sec\n\nAfter:\n" +
                 Mathf.Max(0, cooldownSeconds - AlchemistUpgradeSystem.CooldownReductionPerLevelSeconds) + " sec");
+            RefreshUpgradePreviewLayout();
             thongTinNangCap?.SetActive(true);
             RefreshMaterials(witchSkills);
 
@@ -152,7 +157,9 @@ namespace EternalClash.UI
             closeButton ??= transform.Find("X")?.GetComponent<Button>();
             materialSlots ??= transform.Find("Vat_Pham_Can/Hienthivp")?.gameObject;
             thongTinNangCap ??= transform.Find("ThongTinNangCap")?.gameObject;
+            upgradePreviewText ??= FindText("ThongTinNangCap/ContentArea/Content/TTNC_Text");
             upgradePreviewText ??= FindText("ThongTinNangCap/TTNC_Text") ?? FindText("ThongTinNangCap/Image/Text");
+            upgradePreviewScrollRect ??= thongTinNangCap?.transform.Find("ContentArea")?.GetComponent<ScrollRect>();
             successPanel ??= transform.Find("UpGradeSuccess")?.gameObject;
             failurePanel ??= transform.Find("UpGradeFail")?.gameObject;
             successText ??= FindText("UpGradeSuccess/Thong_bao/Chi_tiet/Chiso_tang") ?? FindFirstText(successPanel);
@@ -173,6 +180,72 @@ namespace EternalClash.UI
         {
             if (text != null)
                 text.text = value;
+        }
+
+        private void ConfigureUpgradePreviewScroll()
+        {
+            if (thongTinNangCap == null || upgradePreviewText == null)
+                return;
+
+            Transform contentArea = thongTinNangCap.transform.Find("ContentArea");
+            Transform content = contentArea?.Find("Content");
+            if (contentArea == null || content == null)
+                return;
+
+            upgradePreviewScrollRect ??= contentArea.GetComponent<ScrollRect>();
+            upgradePreviewScrollRect ??= contentArea.gameObject.AddComponent<ScrollRect>();
+            if (contentArea.GetComponent<RectMask2D>() == null)
+                contentArea.gameObject.AddComponent<RectMask2D>();
+
+            upgradePreviewScrollRect.viewport = contentArea as RectTransform;
+            upgradePreviewScrollRect.content = content as RectTransform;
+            upgradePreviewScrollRect.horizontal = false;
+            upgradePreviewScrollRect.vertical = true;
+            upgradePreviewScrollRect.movementType = ScrollRect.MovementType.Clamped;
+            upgradePreviewScrollRect.scrollSensitivity = 20f;
+
+            RectTransform contentRect = content as RectTransform;
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+
+            VerticalLayoutGroup layoutGroup = content.GetComponent<VerticalLayoutGroup>();
+            if (layoutGroup != null)
+                layoutGroup.enabled = false;
+
+            ContentSizeFitter fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
+                fitter.enabled = false;
+
+            RectTransform textRect = upgradePreviewText.rectTransform;
+            textRect.anchorMin = new Vector2(0f, 1f);
+            textRect.anchorMax = new Vector2(1f, 1f);
+            textRect.pivot = new Vector2(0.5f, 1f);
+            textRect.offsetMin = new Vector2(20f, textRect.offsetMin.y);
+            textRect.offsetMax = new Vector2(-20f, textRect.offsetMax.y);
+            upgradePreviewText.enableWordWrapping = true;
+            upgradePreviewText.overflowMode = TextOverflowModes.Overflow;
+            upgradePreviewText.alignment = TextAlignmentOptions.Top;
+        }
+
+        private void RefreshUpgradePreviewLayout()
+        {
+            if (upgradePreviewScrollRect == null)
+                return;
+
+            ConfigureUpgradePreviewScroll();
+            upgradePreviewText.ForceMeshUpdate();
+            Canvas.ForceUpdateCanvases();
+            RectTransform viewport = upgradePreviewScrollRect.viewport;
+            RectTransform content = upgradePreviewScrollRect.content;
+            RectTransform text = upgradePreviewText.rectTransform;
+            float textHeight = upgradePreviewText.preferredHeight;
+            float contentHeight = Mathf.Max(viewport.rect.height, textHeight);
+
+            text.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight);
+            content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+            upgradePreviewScrollRect.verticalNormalizedPosition = 1f;
         }
 
         private void RefreshMaterials(AlchemistUpgradeSystem witchSkills)
