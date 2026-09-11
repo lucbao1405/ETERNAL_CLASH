@@ -71,6 +71,7 @@ namespace EternalClash.Village
                 SaveCoordinator.RequestSave();
             }
 
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.ItemUpgrade);
             Debug.Log($"[WITCH] {ability} upgraded using {cost} {material}.");
             return true;
         }

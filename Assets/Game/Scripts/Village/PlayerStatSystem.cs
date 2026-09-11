@@ -166,14 +166,19 @@ namespace EternalClash.Village
             CurrentExp += finalExp;
             SessionExpEarned += finalExp;
 
+            bool leveledUp = false;
             while (CurrentExp >= RequiredExp)
             {
                 CurrentExp -= RequiredExp;
                 Level++;
                 StatPoints += STAT_POINTS_PER_LEVEL;
                 RequiredExp = CalculateRequiredExp(Level);
+                leveledUp = true;
                 Debug.Log($"[LEVEL UP] Level {Level}! +{STAT_POINTS_PER_LEVEL} Stat Points (can {RequiredExp} EXP cho cap sau)");
             }
+
+            if (leveledUp)
+                EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerLevelUp);
 
             SyncToSave();
             OnStatsChanged?.Invoke();

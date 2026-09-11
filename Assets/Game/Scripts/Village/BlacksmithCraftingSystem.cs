@@ -80,6 +80,7 @@ namespace EternalClash.Village
             // Upgrade only reloads persistent item data and stats. It must not refresh player visuals.
             EquipmentSystem.Instance?.RefreshFromSaveWithoutVisuals();
             SaveCoordinator.RequestSave();
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.ItemUpgrade);
             Debug.Log($"[BLACKSMITH] {savedItem.itemId} upgraded to +{savedItem.upgradeLevel}");
             return true;
         }

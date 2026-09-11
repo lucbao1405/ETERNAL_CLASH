@@ -132,6 +132,7 @@ namespace EternalClash.BattleResult
         {
             battleFinished = true;
             StopCombat();
+            PlayResultSound(EternalClash.Audio.SoundId.Win);
             HideAllPopups();
             PrepareChestReward();
 
@@ -154,6 +155,7 @@ namespace EternalClash.BattleResult
         {
             battleFinished = true;
             StopCombat();
+            PlayResultSound(EternalClash.Audio.SoundId.Lose);
             MarkPlayerInjured();
             HideAllPopups();
             DestroyVisualChest();
@@ -275,12 +277,15 @@ namespace EternalClash.BattleResult
             {
                 case RewardType.Gold:
                     currency?.AddGold(pendingChestReward.amount);
+                    EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PickupCoin);
                     break;
                 case RewardType.Gem:
                     currency?.AddGem(pendingChestReward.amount);
+                    EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PickupGem);
                     break;
                 case RewardType.Material:
                     AddNormalItemReward(ItemCatalog.Find("Ore"), pendingChestReward.amount);
+                    EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PickupMaterial);
                     break;
                 case RewardType.Equipment:
                     EquipIfUpgrade(pendingChestReward.item);
@@ -444,6 +449,13 @@ namespace EternalClash.BattleResult
         private void MarkPlayerInjured()
         {
             StageCompleteController.Instance?.MarkPlayerInjured();
+        }
+
+        /// <summary>Tat nhac tran dau va phat nhac thang / thua.</summary>
+        private static void PlayResultSound(EternalClash.Audio.SoundId id)
+        {
+            EternalClash.Core.AudioController.Instance?.StopMusic();
+            EternalClash.Audio.GameAudio.Play(id);
         }
 
         private void HideAllPopups()

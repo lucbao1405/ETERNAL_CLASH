@@ -45,6 +45,7 @@ namespace EternalClash.Combat
 
             // Animation-layer hook only (no gameplay impact).
             GetComponentInParent<EternalClash.Animation.IEnemyAnimationFeedback>()?.NotifyAttack();
+            EternalClash.Audio.GameAudio.PlayEnemy(gameObject, EternalClash.Audio.EnemySound.Attack);
 
             // Ranged enemy (Goblin Cung): spawn a projectile toward the player
             // instead of melee damage + knockback.

@@ -85,6 +85,10 @@ namespace EternalClash.Character
             {
                 Die();
             }
+            else if (CompareTag("Player"))
+            {
+                EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerHurt);
+            }
         }
 
         public void Heal(int amount)
@@ -115,6 +119,7 @@ namespace EternalClash.Character
             // The defeat result flow uses unscaled time. Disable combat through its
             // controller instead of freezing the process before LosePopup can appear.
             PlayerDead = true;
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerDeath);
             Debug.Log("[GAME] Player died - stop battle");
 
             OnDeath?.Invoke();

@@ -31,6 +31,7 @@ namespace EternalClash.Enemy
                 currentHealth = 0;
 
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            EternalClash.Audio.GameAudio.PlayEnemy(gameObject, EternalClash.Audio.EnemySound.Hit);
 
             if (currentHealth <= 0)
                 Die();
@@ -38,6 +39,7 @@ namespace EternalClash.Enemy
 
         private void Die()
         {
+            EternalClash.Audio.GameAudio.PlayEnemy(gameObject, EternalClash.Audio.EnemySound.Death);
             Debug.Log("[ENEMY] " + gameObject.name + " died");
 
             // Viec destroy GameObject do EnemyBase.Die() quyet dinh (qua EnemyDeathHandler neu co)
