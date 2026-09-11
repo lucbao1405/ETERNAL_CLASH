@@ -11,6 +11,13 @@ namespace EternalClash.UI
     public sealed class ShopThoRenController : MonoBehaviour
     {
         [Header("Item Slots")]
+        public ShopItemSlot[] weaponSlots;
+        public ShopItemSlot[] shieldSlots;
+        public ShopItemSlot[] armorSlots;
+
+        // Existing scenes still use ShopItemButton. These fields preserve their bindings
+        // while the Inspector is migrated to ShopItemSlot.
+        [Header("Legacy Item Slots")]
         [SerializeField] private ShopItemButton[] listKiem = new ShopItemButton[4];
         [SerializeField] private ShopItemButton[] listKhien = new ShopItemButton[4];
         [SerializeField] private ShopItemButton[] listSetAoGiap = new ShopItemButton[4];
@@ -18,37 +25,28 @@ namespace EternalClash.UI
         [Header("Item Details")]
         [SerializeField] private Transform thongTinVatPham;
         [SerializeField] private TMP_Text itemDetailsText;
-        [SerializeField] private UnityEngine.UI.Button previewUpgradeButton;
-
-        [Header("Upgrade Confirmation")]
-        [SerializeField] private BlacksmithUpgradeConfirmUI upgradeConfirmUI;
-        [SerializeField] private UpgradeResultPopup upgradeResultPopup;
 
         private ItemData selectedItem;
 
         private void Awake()
         {
             AutoWireDetails();
-            upgradeResultPopup ??= GetComponent<UpgradeResultPopup>();
-            previewUpgradeButton?.onClick.AddListener(OpenUpgradeConfirm);
+            BindSlots(weaponSlots);
+            BindSlots(shieldSlots);
+            BindSlots(armorSlots);
             BindSlots(listKiem);
             BindSlots(listKhien);
             BindSlots(listSetAoGiap);
-            ValidateShieldItemData();
         }
 
         private void OnEnable()
         {
+            RefreshSlots(weaponSlots);
+            RefreshSlots(shieldSlots);
+            RefreshSlots(armorSlots);
             RefreshSlots(listKiem);
             RefreshSlots(listKhien);
             RefreshSlots(listSetAoGiap);
-            ValidateShieldItemData();
-        }
-
-        private void OnDestroy()
-        {
-            if (previewUpgradeButton != null)
-                previewUpgradeButton.onClick.RemoveListener(OpenUpgradeConfirm);
         }
 
         public void SelectItem(ItemData itemData)
@@ -57,65 +55,17 @@ namespace EternalClash.UI
                 return;
 
             selectedItem = itemData;
-            UpdateStats(itemData);
+            UpdateItemDetails(itemData);
             thongTinVatPham?.gameObject.SetActive(true);
-            previewUpgradeButton?.gameObject.SetActive(true);
         }
 
-        public void OpenUpgradeConfirm()
-        {
-            if (selectedItem == null || upgradeConfirmUI == null)
-                return;
-
-            UpgradeRecipeData recipe = FindRecipe(selectedItem.itemId);
-            thongTinVatPham?.gameObject.SetActive(false);
-            previewUpgradeButton?.gameObject.SetActive(false);
-            upgradeConfirmUI.Show(selectedItem, recipe, Mathf.Max(1, selectedItem.upgradeLevel + 1),
-                recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1, ConfirmSelectedUpgrade, ReturnToItemPreview);
-        }
-
-        private bool ConfirmSelectedUpgrade()
-        {
-            if (selectedItem == null)
-            {
-                upgradeResultPopup?.ShowFailure("No item selected.");
-                return true;
-            }
-
-            ItemSlot slot = ToItemSlot(selectedItem.equipmentSlot);
-            int previousUpgradeLevel = selectedItem.upgradeLevel;
-            int previousStat = GetUpgradeableStat(selectedItem, slot);
-            UpgradeRecipeData recipe = FindRecipe(selectedItem.itemId);
-            int upgradeValue = recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1;
-            BlacksmithCraftingSystem blacksmith = BlacksmithCraftingSystem.Instance;
-            if (blacksmith == null || !blacksmith.TryUpgrade(slot))
-            {
-                upgradeResultPopup?.ShowFailure("Not enough material.");
-                return true;
-            }
-
-            string statName = slot == ItemSlot.Weapon ? "STR" : "VIT";
-            upgradeResultPopup?.ShowSuccess(selectedItem.itemName, previousUpgradeLevel,
-                previousUpgradeLevel + upgradeValue, statName, previousStat, previousStat + upgradeValue);
-            return true;
-        }
-
-        private static int GetUpgradeableStat(ItemData itemData, ItemSlot slot)
-        {
-            if (itemData == null)
-                return 0;
-
-            return slot == ItemSlot.Weapon ? itemData.strBonus : itemData.vitBonus;
-        }
-
-        public void UpdateStats(ItemData itemData)
+        private void UpdateItemDetails(ItemData itemData)
         {
             if (itemData == null)
                 return;
 
             if (itemDetailsText != null)
-                itemDetailsText.text = itemData.itemName + "\n\nCurrent:\n" + FormatStats(itemData) +
-                    "\n\nAfter Upgrade:\n" + FormatUpgradePreview(itemData);
+                itemDetailsText.text = FormatItemDetails(itemData, FindRecipe(itemData.itemId));
         }
 
         private void AutoWireDetails()
@@ -123,18 +73,8 @@ namespace EternalClash.UI
             if (thongTinVatPham == null)
                 return;
 
+            itemDetailsText ??= thongTinVatPham.Find("ContentArea/Content/TTVP_Text")?.GetComponent<TMP_Text>();
             itemDetailsText ??= thongTinVatPham.GetComponentInChildren<TMP_Text>(true);
-            previewUpgradeButton ??= transform.Find("UPGRADE")?.GetComponent<UnityEngine.UI.Button>();
-        }
-
-        private void ReturnToItemPreview()
-        {
-            if (selectedItem == null)
-                return;
-
-            UpdateStats(selectedItem);
-            thongTinVatPham?.gameObject.SetActive(true);
-            previewUpgradeButton?.gameObject.SetActive(true);
         }
 
         private void BindSlots(ShopItemButton[] slots)
@@ -147,6 +87,22 @@ namespace EternalClash.UI
                     slot.Bind(this);
         }
 
+        private void BindSlots(ShopItemSlot[] slots)
+        {
+            if (slots == null)
+                return;
+
+            for (int index = 0; index < slots.Length; index++)
+            {
+                ShopItemSlot slot = slots[index];
+                if (slot == null)
+                    continue;
+
+                slot.Bind(this);
+                slot.SetSlotNumber(index + 1);
+            }
+        }
+
         private static void RefreshSlots(ShopItemButton[] slots)
         {
             if (slots == null)
@@ -157,29 +113,14 @@ namespace EternalClash.UI
                     slot.RefreshDisplay();
         }
 
-        private void ValidateShieldItemData()
+        private static void RefreshSlots(ShopItemSlot[] slots)
         {
-            if (listKhien == null)
+            if (slots == null)
                 return;
 
-            foreach (ShopItemButton slot in listKhien)
-            {
-                ItemData itemData = slot != null ? slot.ItemData : null;
-                if (itemData != null &&
-                    itemData.itemType == "Equipment" &&
-                    itemData.equipmentSlot == EquipmentSlot.Shield &&
-                    string.Equals(itemData.itemId, "iron_shield_t1", StringComparison.OrdinalIgnoreCase))
-                    return;
-            }
-
-            Debug.LogWarning("Missing Shield ItemData", this);
-        }
-
-        private static ItemSlot ToItemSlot(EquipmentSlot equipmentSlot)
-        {
-            return equipmentSlot == EquipmentSlot.Weapon ? ItemSlot.Weapon
-                : equipmentSlot == EquipmentSlot.Armor ? ItemSlot.Armor
-                : ItemSlot.Accessory;
+            foreach (ShopItemSlot slot in slots)
+                if (slot != null)
+                    slot.RefreshDisplay();
         }
 
         private static UpgradeRecipeData FindRecipe(string itemId)
@@ -213,14 +154,34 @@ namespace EternalClash.UI
             return result.Length > 0 ? result.ToString() : "-";
         }
 
-        private static string FormatUpgradePreview(ItemData itemData)
+        private static string FormatItemDetails(ItemData itemData, UpgradeRecipeData recipe)
         {
-            UpgradeRecipeData recipe = FindRecipe(itemData.itemId);
-            int upgradeValue = recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1;
-            ItemSlot slot = ToItemSlot(itemData.equipmentSlot);
-            int current = GetUpgradeableStat(itemData, slot);
-            string statName = slot == ItemSlot.Weapon ? "STR" : "VIT";
-            return statName + " +" + current + " -> " + statName + " +" + (current + upgradeValue);
+            StringBuilder details = new StringBuilder();
+            details.AppendLine(itemData.itemName);
+            if (!string.IsNullOrWhiteSpace(itemData.description))
+                details.AppendLine().AppendLine(itemData.description);
+
+            details.AppendLine().AppendLine("Stats");
+            details.Append(FormatStats(itemData));
+            details.AppendLine().AppendLine().AppendLine("Requires:");
+
+            if (recipe == null)
+                return details.Append('-').ToString();
+
+            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? System.Array.Empty<UpgradeMaterialRequirement>())
+                if (requirement.amount > 0)
+                    details.AppendLine(GetMaterialName(requirement.materialType) + " x" + requirement.amount);
+
+            if (recipe.goldCost > 0)
+                details.AppendLine("Gold x" + recipe.goldCost);
+            return details.ToString();
+        }
+
+        private static string GetMaterialName(MaterialType materialType)
+        {
+            return materialType == MaterialType.Ore ? "Copper Ore"
+                : materialType == MaterialType.Steel ? "Steel Ore"
+                : materialType.ToString();
         }
 
         private static void AppendStat(StringBuilder result, string label, int amount)

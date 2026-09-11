@@ -44,6 +44,7 @@ namespace EternalClash.UI
 
         public void RefreshDisplay()
         {
+            EnsureIcon();
             if (icon != null)
             {
                 icon.sprite = itemData != null ? itemData.icon : null;
@@ -65,7 +66,11 @@ namespace EternalClash.UI
             Transform existingIcon = transform.Find("ItemIcon");
             if (existingIcon != null)
             {
-                icon = existingIcon.GetComponent<Image>();
+                // The town shop already contains an ItemIcon child. Add the missing
+                // Image component there instead of creating an icon elsewhere.
+                icon = existingIcon.GetComponent<Image>() ?? existingIcon.gameObject.AddComponent<Image>();
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
                 return;
             }
 
