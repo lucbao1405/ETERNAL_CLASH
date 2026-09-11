@@ -1,17 +1,14 @@
-using System;
 using EternalClash.Core.Save;
-using EternalClash.Upgrade;
 using UnityEngine;
 
 namespace EternalClash.Village
 {
-    /// <summary>Persistent alchemist upgrade state backed by UpgradeRecipeData.</summary>
+    /// <summary>Persistent material-only upgrade state for Witch abilities.</summary>
     public sealed class AlchemistUpgradeSystem : MonoBehaviour
     {
         public static AlchemistUpgradeSystem Instance { get; private set; }
         public int HealingLevel { get; private set; } = 1;
-
-        private UpgradeRecipeData[] recipes;
+        public int CooldownLevel { get; private set; } = 1;
 
         private void Awake()
         {
@@ -23,64 +20,71 @@ namespace EternalClash.Village
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            recipes = Resources.LoadAll<UpgradeRecipeData>("UpgradeRecipes");
         }
 
-        public UpgradeRecipeData GetRecipe(string upgradeId = "healing_ability")
+        public MaterialType GetRequiredMaterial(WitchAbility ability)
         {
-            foreach (UpgradeRecipeData recipe in recipes ?? Array.Empty<UpgradeRecipeData>())
-                if (recipe != null && recipe.itemId == upgradeId)
-                    return recipe;
-            return null;
+            return ability == WitchAbility.Healing ? MaterialType.Wood : MaterialType.Ore;
         }
 
-        public bool CanUpgradeHealing()
+        public int GetUpgradeCost(WitchAbility ability)
         {
-            UpgradeRecipeData recipe = GetRecipe();
-            GoldSystem gold = GoldSystem.Instance;
-            return recipe != null && gold != null && HasResources(gold, recipe);
+            int level = ability == WitchAbility.Healing ? HealingLevel : CooldownLevel;
+            int baseCost = ability == WitchAbility.Healing ? 3 : 2;
+            return Mathf.CeilToInt(baseCost * Mathf.Pow(1.25f, Mathf.Max(0, level - 1)));
         }
 
-        public bool TryUpgradeHealing() => TryUpgrade("healing_ability");
+        public bool CanUpgradeHealing() => CanUpgrade(WitchAbility.Healing);
+        public bool CanUpgradeCooldown() => CanUpgrade(WitchAbility.Cooldown);
+        public bool TryUpgradeHealing() => TryUpgrade(WitchAbility.Healing);
+        public bool TryUpgradeCooldown() => TryUpgrade(WitchAbility.Cooldown);
 
-        public bool TryUpgrade(string upgradeId)
+        public bool CanUpgrade(WitchAbility ability)
         {
-            UpgradeRecipeData recipe = GetRecipe(upgradeId);
-            GoldSystem gold = GoldSystem.Instance;
-            if (recipe == null || gold == null || !HasResources(gold, recipe))
+            GoldSystem resources = GoldSystem.Instance;
+            return resources != null && resources.GetMaterial(GetRequiredMaterial(ability)) >= GetUpgradeCost(ability);
+        }
+
+        public bool TryUpgrade(WitchAbility ability)
+        {
+            GoldSystem resources = GoldSystem.Instance;
+            MaterialType material = GetRequiredMaterial(ability);
+            int cost = GetUpgradeCost(ability);
+            if (resources == null || resources.GetMaterial(material) < cost)
                 return false;
 
-            gold.SpendGold(recipe.goldCost);
-            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
-                if (requirement.amount > 0)
-                    gold.SpendMaterial(requirement.materialType, requirement.amount);
+            // The pre-check keeps this material transaction atomic from the Witch flow's perspective.
+            if (!resources.SpendMaterial(material, cost))
+                return false;
 
-            HealingLevel += Mathf.Max(1, recipe.upgradeValue);
+            if (ability == WitchAbility.Healing)
+                HealingLevel++;
+            else
+                CooldownLevel++;
+
             SaveData data = SaveManager.Instance?.Data;
             if (data != null)
             {
                 data.abilities ??= new AbilitySaveData();
                 data.abilities.healingLevel = HealingLevel;
+                data.abilities.cooldownLevel = CooldownLevel;
                 SaveCoordinator.RequestSave();
             }
 
-            Debug.Log($"[ALCHEMIST] {upgradeId} upgraded to level {HealingLevel}");
+            Debug.Log($"[WITCH] {ability} upgraded using {cost} {material}.");
             return true;
         }
 
         public void LoadFromSave(SaveData data)
         {
             HealingLevel = Mathf.Max(1, data?.abilities?.healingLevel ?? 1);
+            CooldownLevel = Mathf.Max(1, data?.abilities?.cooldownLevel ?? 1);
         }
+    }
 
-        private static bool HasResources(GoldSystem gold, UpgradeRecipeData recipe)
-        {
-            if (gold.Gold < recipe.goldCost)
-                return false;
-            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
-                if (gold.GetMaterial(requirement.materialType) < requirement.amount)
-                    return false;
-            return true;
-        }
+    public enum WitchAbility
+    {
+        Healing,
+        Cooldown
     }
 }

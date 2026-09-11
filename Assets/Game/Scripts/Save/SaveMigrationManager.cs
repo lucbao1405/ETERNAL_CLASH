@@ -8,6 +8,7 @@ namespace EternalClash.Core.Save
         public static SaveData Migrate(SaveData oldData, out bool changed)
         {
             SaveData data = oldData ?? new SaveData();
+            bool hadPersistedSave = oldData != null;
             changed = oldData == null;
             if (data.version < SaveVersion.CurrentVersion)
             {
@@ -17,6 +18,8 @@ namespace EternalClash.Core.Save
                     MigrateToVersion2(data);
                 if (data.version < 3)
                     MigrateToVersion3(data);
+                if (data.version < 4)
+                    MigrateToVersion4(data, hadPersistedSave);
                 data.version = SaveVersion.CurrentVersion;
                 changed = true;
             }
@@ -96,6 +99,17 @@ namespace EternalClash.Core.Save
 
             foreach (EquipmentItemSaveData item in data.equipmentInventory ?? new List<EquipmentItemSaveData>())
                 RebalanceIronEquipment(item);
+        }
+
+        private static void MigrateToVersion4(SaveData data, bool hadPersistedSave)
+        {
+            if (!hadPersistedSave || data.tutorialInitialized)
+                return;
+
+            // Existing players have already passed the first-game experience. Do not
+            // restart it simply because the new tutorial fields did not exist yet.
+            data.tutorialInitialized = true;
+            data.tutorialStep = 10;
         }
 
         private static void RebalanceIronEquipment(EquipmentItemSaveData item)

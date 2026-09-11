@@ -18,8 +18,4 @@ MonoBehaviour:
     count: 2
     spawnInterval: 1.2
     initialDelay: 0
-  - enemyPrefab: {fileID: 1333380701695965858, guid: affaa9f4e8e253140a3d0122e7d8fe71, type: 3}
-    count: 1
-    spawnInterval: 1.2
-    initialDelay: 2.4
   delayAfterClear: 2

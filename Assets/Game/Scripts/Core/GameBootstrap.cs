@@ -3,6 +3,7 @@ using UnityEngine;
 using EternalClash.Core.Services;
 using EternalClash.Village;
 using EternalClash.Core.Save;
+using EternalClash.Tutorial;
 
 
 namespace EternalClash.Core
@@ -124,7 +125,6 @@ namespace EternalClash.Core
             if(alchemistUpgradeSystem == null)
                 alchemistUpgradeSystem = gameObject.AddComponent<AlchemistUpgradeSystem>();
 
-
             if(PlayerConditionSystem.Instance == null && GetComponent<PlayerConditionSystem>() == null)
                 gameObject.AddComponent<PlayerConditionSystem>();
 
@@ -169,6 +169,11 @@ namespace EternalClash.Core
 
             if(equipmentSystem != null)
                 equipmentSystem.RefreshFromSave();
+
+            // TutorialManager persists its initial checkpoint. It must be created only
+            // after the normal new-game defaults have been applied to this save.
+            if (GetComponent<TutorialManager>() == null)
+                gameObject.AddComponent<TutorialManager>();
 
             EternalClash.UI.BlacksmithShopUI[] blacksmithUis =
                 FindObjectsOfType<EternalClash.UI.BlacksmithShopUI>(true);

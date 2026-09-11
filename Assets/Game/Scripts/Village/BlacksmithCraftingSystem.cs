@@ -13,9 +13,9 @@ namespace EternalClash.Village
         public static BlacksmithCraftingSystem Instance { get; private set; }
 
         // Kept as compatibility constants for existing town UI callers.
-        public const int TIER1_GOLD_COST = 100;
-        public const int TIER1_ORE_COST = 5;
-        public const int TIER1_LEATHER_COST = 3;
+        public const int TIER1_GOLD_COST = 10;
+        public const int TIER1_ORE_COST = 2;
+        public const int TIER1_LEATHER_COST = 0;
 
         public int WeaponTier { get; private set; }
         public int ArmorTier { get; private set; }
@@ -44,7 +44,9 @@ namespace EternalClash.Village
         public bool CanUpgrade(ItemSlot slot)
         {
             UpgradeRecipeData recipe = GetRecipe(slot);
-            return recipe != null && HasResources(SaveManager.Instance?.Data, recipe, false);
+            EquipmentItemSaveData savedItem = GetSavedItem(SaveManager.Instance?.Data, slot);
+            return recipe != null && HasResources(SaveManager.Instance?.Data, recipe,
+                savedItem != null ? savedItem.upgradeLevel : 0, false);
         }
 
         public bool TryUpgrade(ItemSlot slot)
@@ -52,16 +54,17 @@ namespace EternalClash.Village
             SaveData data = SaveManager.Instance?.Data;
             UpgradeRecipeData recipe = GetRecipe(slot);
             EquipmentItemSaveData savedItem = GetSavedItem(data, slot);
-            if (recipe == null || savedItem == null || !HasResources(data, recipe, true))
+            if (recipe == null || savedItem == null || !HasResources(data, recipe, savedItem.upgradeLevel, true))
                 return false;
 
-            data.currency.gold -= recipe.goldCost;
+            data.currency.gold -= GetGoldCost(recipe, savedItem.upgradeLevel);
             // Save migration still mirrors legacy currency fields during persistence.
             data.gold = data.currency.gold;
             foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
             {
-                if (requirement.amount > 0)
-                    ConsumeMaterial(data.inventory.items, GetMaterialItemId(requirement.materialType), requirement.amount);
+                int cost = GetMaterialCost(requirement.amount, savedItem.upgradeLevel);
+                if (cost > 0)
+                    ConsumeMaterial(data.inventory.items, GetMaterialItemId(requirement.materialType), cost);
             }
 
             GoldSystem.Instance?.LoadFromSave(data);
@@ -96,30 +99,44 @@ namespace EternalClash.Village
             ArmorTier = data != null ? data.armorTier : 0;
         }
 
-        private static bool HasResources(SaveData data, UpgradeRecipeData recipe, bool logFailures)
+        public static int GetGoldCost(UpgradeRecipeData recipe, int upgradeLevel)
+        {
+            return recipe != null ? recipe.goldCost * (Mathf.Max(0, upgradeLevel) + 1) : 0;
+        }
+
+        public static int GetMaterialCost(int baseAmount, int upgradeLevel)
+        {
+            if (baseAmount <= 0)
+                return 0;
+            return Mathf.CeilToInt(baseAmount * Mathf.Pow(1.25f, Mathf.Max(0, upgradeLevel)));
+        }
+
+        private static bool HasResources(SaveData data, UpgradeRecipeData recipe, int upgradeLevel, bool logFailures)
         {
             if (data?.currency == null || data.inventory?.items == null)
                 return false;
 
-            if (data.currency.gold < recipe.goldCost)
+            int goldCost = GetGoldCost(recipe, upgradeLevel);
+            if (data.currency.gold < goldCost)
             {
                 if (logFailures)
-                    Debug.LogWarning($"[BLACKSMITH] Gold check failed: Required: gold {recipe.goldCost}; Actual: gold {data.currency.gold}");
+                    Debug.LogWarning($"[BLACKSMITH] Gold check failed: Required: gold {goldCost}; Actual: gold {data.currency.gold}");
                 return false;
             }
 
             foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
             {
-                if (requirement.amount <= 0)
+                int materialCost = GetMaterialCost(requirement.amount, upgradeLevel);
+                if (materialCost <= 0)
                     continue;
 
                 string itemId = GetMaterialItemId(requirement.materialType);
                 int actual = GetMaterialAmount(data.inventory.items, itemId);
-                if (actual < requirement.amount)
+                if (actual < materialCost)
                 {
                     if (logFailures)
                     {
-                        Debug.LogWarning($"[BLACKSMITH] Material check failed:\nRequired:\n{itemId} {requirement.amount}\nActual:\n{itemId} {actual}");
+                        Debug.LogWarning($"[BLACKSMITH] Material check failed:\nRequired:\n{itemId} {materialCost}\nActual:\n{itemId} {actual}");
                     }
                     return false;
                 }
@@ -171,9 +188,18 @@ namespace EternalClash.Village
             if (string.IsNullOrEmpty(itemId))
                 return null;
             foreach (UpgradeRecipeData recipe in recipes ?? Array.Empty<UpgradeRecipeData>())
-                if (recipe != null && recipe.itemId == itemId)
+                if (recipe != null && string.Equals(NormalizeItemId(recipe.itemId), NormalizeItemId(itemId),
+                    StringComparison.OrdinalIgnoreCase))
                     return recipe;
             return null;
+        }
+
+        private static string NormalizeItemId(string itemId)
+        {
+            int tierMarker = itemId.LastIndexOf("_t", StringComparison.OrdinalIgnoreCase);
+            if (tierMarker >= 0 && int.TryParse(itemId.Substring(tierMarker + 2), out _))
+                return itemId.Substring(0, tierMarker);
+            return itemId;
         }
 
         private static EquipmentItemSaveData GetSavedItem(SaveData data, ItemSlot slot)
