@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using EternalClash.Data;
 using EternalClash.Upgrade;
 using EternalClash.Village;
@@ -26,17 +27,28 @@ namespace EternalClash.UI
         [SerializeField] private Transform thongTinVatPham;
         [SerializeField] private TMP_Text itemDetailsText;
 
+        [Header("Upgrade Confirmation")]
+        [SerializeField] private Button upgradeButton;
+        [SerializeField] private BlacksmithUpgradeConfirmUI upgradeConfirmUI;
+        [SerializeField] private UpgradeResultPopup upgradeResultPopup;
+
         private ItemData selectedItem;
 
         private void Awake()
         {
             AutoWireDetails();
+            upgradeButton?.onClick.AddListener(OpenUpgradeConfirm);
             BindSlots(weaponSlots);
             BindSlots(shieldSlots);
             BindSlots(armorSlots);
             BindSlots(listKiem);
             BindSlots(listKhien);
             BindSlots(listSetAoGiap);
+        }
+
+        private void OnDestroy()
+        {
+            upgradeButton?.onClick.RemoveListener(OpenUpgradeConfirm);
         }
 
         private void OnEnable()
@@ -59,6 +71,41 @@ namespace EternalClash.UI
             thongTinVatPham?.gameObject.SetActive(true);
         }
 
+        public void OpenUpgradeConfirm()
+        {
+            if (selectedItem == null || upgradeConfirmUI == null)
+                return;
+
+            UpgradeRecipeData recipe = FindRecipe(selectedItem.itemId);
+            thongTinVatPham?.gameObject.SetActive(false);
+            upgradeConfirmUI.Show(selectedItem, recipe, Mathf.Max(1, selectedItem.upgradeLevel + 1),
+                recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1, ConfirmSelectedUpgrade, ReturnToItemPreview);
+        }
+
+        private bool ConfirmSelectedUpgrade()
+        {
+            if (selectedItem == null)
+                return false;
+
+            ItemSlot slot = ToItemSlot(selectedItem.equipmentSlot);
+            int previousUpgradeLevel = selectedItem.upgradeLevel;
+            int previousStat = slot == ItemSlot.Weapon ? selectedItem.strBonus : selectedItem.vitBonus;
+            UpgradeRecipeData recipe = FindRecipe(selectedItem.itemId);
+            int upgradeValue = recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1;
+            BlacksmithCraftingSystem blacksmith = BlacksmithCraftingSystem.Instance;
+
+            if (blacksmith == null || !blacksmith.TryUpgrade(slot))
+            {
+                upgradeResultPopup?.ShowFailure("Not enough material.");
+                return true;
+            }
+
+            string statName = slot == ItemSlot.Weapon ? "STR" : "VIT";
+            upgradeResultPopup?.ShowSuccess(selectedItem.itemName, previousUpgradeLevel,
+                previousUpgradeLevel + upgradeValue, statName, previousStat, previousStat + upgradeValue);
+            return true;
+        }
+
         private void UpdateItemDetails(ItemData itemData)
         {
             if (itemData == null)
@@ -75,6 +122,18 @@ namespace EternalClash.UI
 
             itemDetailsText ??= thongTinVatPham.Find("ContentArea/Content/TTVP_Text")?.GetComponent<TMP_Text>();
             itemDetailsText ??= thongTinVatPham.GetComponentInChildren<TMP_Text>(true);
+            upgradeButton ??= transform.Find("UPGRADE")?.GetComponent<Button>();
+            upgradeConfirmUI ??= transform.Find("XacNhan")?.GetComponent<BlacksmithUpgradeConfirmUI>();
+            upgradeResultPopup ??= GetComponent<UpgradeResultPopup>();
+        }
+
+        private void ReturnToItemPreview()
+        {
+            if (selectedItem == null)
+                return;
+
+            UpdateItemDetails(selectedItem);
+            thongTinVatPham?.gameObject.SetActive(true);
         }
 
         private void BindSlots(ShopItemButton[] slots)
@@ -134,6 +193,13 @@ namespace EternalClash.UI
                     StringComparison.OrdinalIgnoreCase))
                     return recipe;
             return null;
+        }
+
+        private static ItemSlot ToItemSlot(EquipmentSlot equipmentSlot)
+        {
+            return equipmentSlot == EquipmentSlot.Weapon ? ItemSlot.Weapon
+                : equipmentSlot == EquipmentSlot.Armor ? ItemSlot.Armor
+                : ItemSlot.Accessory;
         }
 
         private static string NormalizeItemId(string itemId)
