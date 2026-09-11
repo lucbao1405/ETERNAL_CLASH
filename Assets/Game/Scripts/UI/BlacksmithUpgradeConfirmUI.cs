@@ -71,7 +71,7 @@ namespace EternalClash.UI
                     chisoTang.text = statIncrease;
             }
 
-            RefreshMaterials(recipe);
+            RefreshMaterials(recipe, Mathf.Max(0, currentLevel - 1));
             gameObject.SetActive(true);
         }
 
@@ -95,20 +95,22 @@ namespace EternalClash.UI
                 Close(false);
         }
 
-        private void RefreshMaterials(UpgradeRecipeData recipe)
+        private void RefreshMaterials(UpgradeRecipeData recipe, int upgradeLevel)
         {
             int slotIndex = 0;
             if (recipe != null)
             {
                 foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
                 {
-                    if (requirement.amount <= 0 || slotIndex >= materialSlots.Length)
+                    int materialCost = BlacksmithCraftingSystem.GetMaterialCost(requirement.amount, upgradeLevel);
+                    if (materialCost <= 0 || slotIndex >= materialSlots.Length)
                         continue;
-                    materialSlots[slotIndex++]?.Show(GetMaterialItem(requirement.materialType), requirement.amount);
+                    materialSlots[slotIndex++]?.Show(GetMaterialItem(requirement.materialType), materialCost);
                 }
 
-                if (recipe.goldCost > 0 && slotIndex < materialSlots.Length)
-                    materialSlots[slotIndex++]?.Show(goldItem, recipe.goldCost);
+                int goldCost = BlacksmithCraftingSystem.GetGoldCost(recipe, upgradeLevel);
+                if (goldCost > 0 && slotIndex < materialSlots.Length)
+                    materialSlots[slotIndex++]?.Show(goldItem, goldCost);
             }
 
             for (int i = slotIndex; i < materialSlots.Length; i++)

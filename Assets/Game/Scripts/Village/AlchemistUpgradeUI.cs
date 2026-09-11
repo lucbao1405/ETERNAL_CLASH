@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using EternalClash.Upgrade;
 using EternalClash.Village;
 
 namespace EternalClash.UI
@@ -34,23 +33,19 @@ namespace EternalClash.UI
         public void Refresh()
         {
             AlchemistUpgradeSystem alchemist = AlchemistUpgradeSystem.Instance;
-            UpgradeRecipeData recipe = alchemist?.GetRecipe();
             GoldSystem gold = GoldSystem.Instance;
             int current = alchemist != null ? alchemist.HealingLevel : 1;
-            int value = recipe != null ? Mathf.Max(1, recipe.upgradeValue) : 1;
-            int goldCost = recipe != null ? recipe.goldCost : 0;
-            int woodCost = GetRequirement(recipe, MaterialType.Wood);
-            int currentGold = gold != null ? gold.Gold : 0;
+            int woodCost = alchemist != null ? alchemist.GetUpgradeCost(WitchAbility.Healing) : 0;
             int currentWood = gold != null ? gold.WoodMaterial : 0;
 
             if (currentLevelText != null)
                 currentLevelText.text = $"Healing Level: {current}";
             if (nextUpgradeText != null)
-                nextUpgradeText.text = $"Next upgrade: {current} -> {current + value}";
+                nextUpgradeText.text = $"Next upgrade: {current} -> {current + 1}";
             if (requirementText != null)
             {
-                requirementText.text = $"Wood: {currentWood} / {woodCost}\nGold: {currentGold} / {goldCost}";
-                requirementText.color = currentGold >= goldCost && currentWood >= woodCost
+                requirementText.text = $"Wood: {currentWood} / {woodCost}";
+                requirementText.color = currentWood >= woodCost
                     ? Color.green : Color.red;
             }
             if (upgradeButton != null)
@@ -64,13 +59,5 @@ namespace EternalClash.UI
                 Refresh();
         }
 
-        private static int GetRequirement(UpgradeRecipeData recipe, MaterialType type)
-        {
-            foreach (UpgradeMaterialRequirement requirement in recipe?.requiredMaterials ??
-                     System.Array.Empty<UpgradeMaterialRequirement>())
-                if (requirement.materialType == type)
-                    return requirement.amount;
-            return 0;
-        }
     }
 }

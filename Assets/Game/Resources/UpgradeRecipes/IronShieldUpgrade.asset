@@ -12,10 +12,10 @@ MonoBehaviour:
   itemId: iron_shield_t1
   requiredMaterials:
   - materialType: 0
-    amount: 5
+    amount: 2
   - materialType: 1
     amount: 0
   - materialType: 2
-    amount: 5
-  goldCost: 120
+    amount: 3
+  goldCost: 10
   upgradeValue: 1

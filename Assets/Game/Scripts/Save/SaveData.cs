@@ -159,4 +159,5 @@ public class EquipmentItemSaveData
 public class AbilitySaveData
 {
     public int healingLevel = 1;
+    public int cooldownLevel = 1;
 }
