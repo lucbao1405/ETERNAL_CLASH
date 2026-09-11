@@ -9,6 +9,7 @@ namespace EternalClash.Core.Save
         {
             SaveData data = oldData ?? new SaveData();
             bool hadPersistedSave = oldData != null;
+            int sourceVersion = data.version;
             changed = oldData == null;
             if (data.version < SaveVersion.CurrentVersion)
             {
@@ -20,6 +21,8 @@ namespace EternalClash.Core.Save
                     MigrateToVersion3(data);
                 if (data.version < 4)
                     MigrateToVersion4(data, hadPersistedSave);
+                if (sourceVersion < 5)
+                    MigrateToVersion5(data);
                 data.version = SaveVersion.CurrentVersion;
                 changed = true;
             }
@@ -110,6 +113,15 @@ namespace EternalClash.Core.Save
             // restart it simply because the new tutorial fields did not exist yet.
             data.tutorialInitialized = true;
             data.tutorialStep = 10;
+        }
+
+        private static void MigrateToVersion5(SaveData data)
+        {
+            // Witch effects are now derived exclusively from these levels. Retain
+            // progress while discarding prior presentation/test values implicitly.
+            data.abilities ??= new AbilitySaveData();
+            data.abilities.healingLevel = System.Math.Max(0, data.abilities.healingLevel);
+            data.abilities.cooldownLevel = System.Math.Max(0, data.abilities.cooldownLevel);
         }
 
         private static void RebalanceIronEquipment(EquipmentItemSaveData item)

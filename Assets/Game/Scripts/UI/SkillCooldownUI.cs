@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using EternalClash.Skill;
+using EternalClash.Village;
 
 namespace EternalClash.UI
 {
@@ -117,7 +118,9 @@ namespace EternalClash.UI
 
                 case SkillType.Potion:
                     cd = skillManager.GetPotionCooldown();
-                    maxCd = skillManager.potionSkill != null ? skillManager.potionSkill.cooldown : 15.0f;
+                    maxCd = AlchemistUpgradeSystem.Instance != null
+                        ? AlchemistUpgradeSystem.Instance.GetCooldownValue()
+                        : 15f;
                     break;
             }
 

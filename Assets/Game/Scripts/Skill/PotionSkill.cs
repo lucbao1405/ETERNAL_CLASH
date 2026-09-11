@@ -25,6 +25,11 @@ namespace EternalClash.Skill
 
         protected override void Execute()
         {
+            // SkillBase starts its timer after Execute, so resolve the latest saved
+            // Witch cooldown at use time instead of relying on an Awake cache.
+            cooldown = AlchemistUpgradeSystem.Instance != null
+                ? AlchemistUpgradeSystem.Instance.GetCooldownValue()
+                : 15f;
             if (health == null)
             {
                 health = GetComponentInParent<HealthSystem>();
@@ -41,10 +46,10 @@ namespace EternalClash.Skill
             int finalHeal = PlayerStatSystem.Instance != null 
                 ? PlayerStatSystem.Instance.PotionHealAmount 
                 : baseHealAmount;
-            int healingLevel = AlchemistUpgradeSystem.Instance != null
-                ? AlchemistUpgradeSystem.Instance.HealingLevel
-                : 1;
-            finalHeal *= healingLevel;
+            int bonusPercent = AlchemistUpgradeSystem.Instance != null
+                ? AlchemistUpgradeSystem.Instance.GetHealingBonusPercent()
+                : 0;
+            finalHeal = Mathf.RoundToInt(finalHeal * (1f + bonusPercent / 100f));
 
             Debug.Log($"[SKILL] Potion USED - Heal amount: {finalHeal}");
             health.Heal(finalHeal);
