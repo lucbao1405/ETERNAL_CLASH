@@ -3,6 +3,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using EternalClash.Core.Save;
 using EternalClash.Data;
 using EternalClash.Upgrade;
 using EternalClash.Village;
@@ -108,12 +109,17 @@ namespace EternalClash.UI
                     int materialCost = BlacksmithCraftingSystem.GetMaterialCost(requirement.amount, upgradeLevel);
                     if (materialCost <= 0 || slotIndex >= materialSlots.Length)
                         continue;
-                    materialSlots[slotIndex++]?.Show(GetMaterialItem(requirement.materialType), materialCost);
+                    string itemId = BlacksmithCraftingSystem.GetMaterialItemId(requirement.materialType);
+                    int available = BlacksmithCraftingSystem.GetMaterialAmount(SaveManager.Instance?.Data?.inventory?.items, itemId);
+                    materialSlots[slotIndex++]?.Show(GetMaterialItem(requirement.materialType), materialCost, available >= materialCost);
                 }
 
                 int goldCost = BlacksmithCraftingSystem.GetGoldCost(recipe, upgradeLevel);
                 if (goldCost > 0 && slotIndex < materialSlots.Length)
-                    materialSlots[slotIndex++]?.Show(goldItem, goldCost);
+                {
+                    int availableGold = SaveManager.Instance?.Data?.currency?.gold ?? 0;
+                    materialSlots[slotIndex++]?.Show(goldItem, goldCost, availableGold >= goldCost);
+                }
             }
 
             for (int i = slotIndex; i < materialSlots.Length; i++)
@@ -184,17 +190,11 @@ namespace EternalClash.UI
                 quantityText ??= slotRoot.Find("Soluong")?.GetComponent<TMP_Text>();
             }
 
-            public void Show(ItemData itemData, int quantity)
+            public void Show(ItemData itemData, int quantity, bool enough)
             {
                 if (root != null)
                     root.SetActive(true);
-                if (icon != null)
-                {
-                    icon.sprite = itemData != null ? itemData.icon : null;
-                    icon.enabled = itemData != null && itemData.icon != null;
-                }
-                if (quantityText != null)
-                    quantityText.text = "x" + quantity;
+                ShopMaterialDisplay.Refresh(icon, quantityText, itemData, quantity, enough);
             }
 
             public void Hide()

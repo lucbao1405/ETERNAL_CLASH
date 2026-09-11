@@ -158,6 +158,6 @@ public class EquipmentItemSaveData
 [Serializable]
 public class AbilitySaveData
 {
-    public int healingLevel = 1;
-    public int cooldownLevel = 1;
+    public int healingLevel;
+    public int cooldownLevel;
 }

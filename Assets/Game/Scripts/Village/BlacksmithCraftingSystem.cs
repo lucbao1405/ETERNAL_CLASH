@@ -146,7 +146,7 @@ namespace EternalClash.Village
             return true;
         }
 
-        private static string GetMaterialItemId(MaterialType materialType)
+        public static string GetMaterialItemId(MaterialType materialType)
         {
             switch (materialType)
             {
@@ -158,9 +158,9 @@ namespace EternalClash.Village
             }
         }
 
-        private static int GetMaterialAmount(IEnumerable<ItemStackSaveData> items, string itemId)
+        public static int GetMaterialAmount(IEnumerable<ItemStackSaveData> items, string itemId)
         {
-            if (string.IsNullOrWhiteSpace(itemId))
+            if (items == null || string.IsNullOrWhiteSpace(itemId))
                 return 0;
 
             return items.Where(item => item != null &&
