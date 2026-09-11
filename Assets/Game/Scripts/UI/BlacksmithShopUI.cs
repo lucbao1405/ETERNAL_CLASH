@@ -66,6 +66,7 @@ namespace EternalClash.UI
         [SerializeField] private Transform itemDetailsRoot;
         [SerializeField] private TMP_Text itemDetailsText;
         [SerializeField] private Image itemDetailsIcon;
+        [SerializeField] private ScrollRect itemDetailsScrollRect;
 
         [Header("Controls")]
         [SerializeField] private Button weaponButton;
@@ -103,6 +104,7 @@ namespace EternalClash.UI
             Transform legacyPreview = FindChildRecursive(transform, "ThongTinNangCap");
             itemDetailsRoot ??= FindChildRecursive(transform, "ThongTinVatPham");
             itemDetailsText ??= itemDetailsRoot?.Find("TTVP_Text")?.GetComponent<TMP_Text>();
+            itemDetailsScrollRect ??= itemDetailsRoot?.Find("ContentArea")?.GetComponent<ScrollRect>();
             EnsureItemDetailsIcon();
             current ??= legacyPreview?.Find("Current") ?? legacyPreview?.Find("ThongTinVatPham");
             next ??= legacyPreview?.Find("Next");
@@ -277,6 +279,8 @@ namespace EternalClash.UI
                 goldAmountText.text = string.Empty;
             if (itemDetailsText != null)
                 itemDetailsText.text = "Select an item";
+            if (itemDetailsScrollRect != null)
+                itemDetailsScrollRect.verticalNormalizedPosition = 1f;
             if (itemDetailsIcon != null)
             {
                 itemDetailsIcon.sprite = null;
@@ -544,6 +548,7 @@ namespace EternalClash.UI
                 itemDetailsText.text = "Missing ItemData";
                 if (itemDetailsIcon != null)
                     itemDetailsIcon.gameObject.SetActive(false);
+                ResetItemDetailsScroll();
                 return;
             }
 
@@ -566,6 +571,20 @@ namespace EternalClash.UI
                 item.vitBonus,
                 item.luckBonus,
                 FormatRequirements(selectedRecipe));
+
+            ResetItemDetailsScroll();
+        }
+
+        private void ResetItemDetailsScroll()
+        {
+            if (itemDetailsText == null)
+                return;
+
+            if (itemDetailsScrollRect != null)
+                itemDetailsScrollRect.verticalNormalizedPosition = 1f;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(itemDetailsText.rectTransform);
+            Canvas.ForceUpdateCanvases();
         }
 
         private static string FormatRequirements(UpgradeRecipeData recipe)
