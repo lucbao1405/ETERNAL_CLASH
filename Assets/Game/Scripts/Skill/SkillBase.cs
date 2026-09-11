@@ -51,6 +51,7 @@ namespace EternalClash.Skill
 
             // Animation-layer feedback only (no gameplay impact).
             SkillExecuted?.Invoke(skillName);
+            EternalClash.Audio.GameAudio.PlaySkill(skillName);
 
             // Start cooldown only after the skill actually executes
             timer = cooldown;

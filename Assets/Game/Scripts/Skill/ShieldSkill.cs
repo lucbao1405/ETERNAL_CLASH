@@ -97,6 +97,8 @@ namespace EternalClash.Skill
             if (mitigatedDamage < 1 && incomingDamage > 0)
                 mitigatedDamage = 1;
 
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerShieldBlock);
+
             // Reflect damage to attacker
             if (attacker != null && reflectDamage > 0)
             {

@@ -544,6 +544,7 @@ namespace EternalClash.UI
 
             int before = stats.StatPoints;
             action(stats);
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.StatSelect);
             Debug.Log($"[TownStat] +1 {statName}. Diem con lai: {before} -> {stats.StatPoints}");
         }
 

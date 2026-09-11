@@ -73,6 +73,7 @@ namespace EternalClash.UI
         {
             if (State != EternalClash.BattleResult.ChestState.Closed || chestSkeleton == null) return;
             State = EternalClash.BattleResult.ChestState.Opening;
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.ChestOpen);
             SetTapHint(false);
             UnsubscribeOpenTrack();
             openTrack = SetChestAnimation(openAnimation, false);

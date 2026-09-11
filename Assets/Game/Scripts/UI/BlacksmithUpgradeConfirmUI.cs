@@ -92,6 +92,9 @@ namespace EternalClash.UI
 
         private void Confirm()
         {
+            // Tieng rieng cua nut xac nhan (thay tieng click thuong). Nang cap thanh
+            // cong thi BlacksmithCraftingSystem phat them "ItemUpgrade".
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UpgradeAccept);
             if (upgradeCallback != null && upgradeCallback())
                 Close(false);
         }

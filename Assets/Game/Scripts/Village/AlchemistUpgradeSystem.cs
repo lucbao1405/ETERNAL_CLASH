@@ -94,6 +94,7 @@ namespace EternalClash.Village
             SaveCoordinator.RequestSave();
             RefreshBags();
 
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.ItemUpgrade);
             Debug.Log($"[WITCH] {ability} upgraded using {cost} {material}.");
             return true;
         }

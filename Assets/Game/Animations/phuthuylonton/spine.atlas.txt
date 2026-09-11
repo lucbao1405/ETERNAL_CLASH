@@ -1,69 +1,76 @@
 
 spine.png
-size: 2580,3873
+size: 6297,1747
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
-back headwear
+binh mau
   rotate: false
-  xy: 2, 1541
-  size: 1971, 1028
-  orig: 1971, 1028
+  xy: 2888, 181
+  size: 286, 325
+  orig: 286, 325
   offset: 0, 0
   index: -1
-body est
+body
   rotate: true
-  xy: 1518, 382
-  size: 1157, 1054
-  orig: 1157, 1054
+  xy: 3919, 161
+  size: 1584, 1322
+  orig: 1584, 1322
   offset: 0, 0
   index: -1
-face
+chan 1
+  rotate: false
+  xy: 1891, 13
+  size: 361, 493
+  orig: 361, 493
+  offset: 0, 0
+  index: -1
+chan 2
+  rotate: false
+  xy: 2254, 12
+  size: 360, 494
+  orig: 360, 494
+  offset: 0, 0
+  index: -1
+co tay 2
   rotate: true
+  xy: 2943, 5
+  size: 174, 306
+  orig: 174, 306
+  offset: 0, 0
+  index: -1
+mat
+  rotate: false
   xy: 2, 2
-  size: 1537, 1514
-  orig: 1537, 1514
+  size: 1887, 1743
+  orig: 1887, 1743
   offset: 0, 0
   index: -1
-features
-  rotate: false
-  xy: 1975, 1776
-  size: 448, 288
-  orig: 448, 288
-  offset: 0, 0
-  index: -1
-headwear
-  rotate: false
-  xy: 2, 2571
-  size: 2360, 1300
-  orig: 2360, 1300
-  offset: 0, 0
-  index: -1
-left foot est
+tay 1
   rotate: true
-  xy: 1975, 2066
-  size: 233, 506
-  orig: 233, 506
+  xy: 2616, 44
+  size: 108, 325
+  orig: 108, 325
   offset: 0, 0
   index: -1
-left hand eat
-  rotate: true
-  xy: 1975, 2301
-  size: 268, 522
-  orig: 268, 522
-  offset: 0, 0
-  index: -1
-right foot est
+tay 2
   rotate: false
-  xy: 2364, 3404
-  size: 214, 467
-  orig: 214, 467
+  xy: 2616, 154
+  size: 270, 352
+  orig: 270, 352
   offset: 0, 0
   index: -1
-right hand est
+toc sau
   rotate: false
-  xy: 2364, 2966
-  size: 127, 436
-  orig: 127, 436
+  xy: 5243, 410
+  size: 1052, 1335
+  orig: 1052, 1335
+  offset: 0, 0
+  index: -1
+vanh mu
+  rotate: false
+  xy: 1891, 508
+  size: 2026, 1237
+  orig: 2026, 1237
   offset: 0, 0
   index: -1
