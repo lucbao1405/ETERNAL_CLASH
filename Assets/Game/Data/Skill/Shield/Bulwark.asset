@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4282130f4da3d384b8faf9e2ff52c4c3, type: 3}
+  m_Name: Bulwark
+  m_EditorClassIdentifier: 
+  skillId: Bulwark
+  skillName: Bulwark
+  branchType: 1
+  icon: {fileID: 21300000, guid: da9b5c2f088d1f54c917b3e6eda9d975, type: 3}
+  tier: 3
+  isDefaultUnlocked: 0
+  unlockRequirement: "M\u1EDF kh\xF3a khi \u0111\u1EA1t c\u1EA5p \u0111\u1ED9 cao
+    h\u01A1n."
+  description: Become temporarily immune to damage and control effects.
+  specialEffectDescription: 
+  specialEffectType: 6
+  effectValue: 1.5
+  effectDuration: 3
+  bonusDamage: 0
+  customCooldown: 0
+  vfxPrefab: {fileID: 0}
+  sfxAudio: {fileID: 0}
