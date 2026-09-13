@@ -20,16 +20,33 @@ public class SmoothSlide : MonoBehaviour
     public float bounceDistance = 100f;
 
     private bool isOpen = false;
+    private bool initialized;
+    private bool activationRequested;
     private Coroutine slideCoroutine;
 
-    void Start()
+    void Awake()
     {
+        if (!Initialize())
+            return;
+
+        // Panels that are active in the scene are treated as closed on startup.
+        // TogglePanel initializes first when it is invoked on an inactive panel.
+        if (gameObject.activeSelf && !activationRequested)
+            gameObject.SetActive(false);
+    }
+
+    private bool Initialize()
+    {
+        if (initialized)
+            return panelRect != null;
+
         ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
         if (animator != null)
         {
             enabled = false;
-            return;
+            return false;
         }
+
         if (panelRect == null)
             panelRect = GetComponent<RectTransform>();
 
@@ -37,20 +54,54 @@ public class SmoothSlide : MonoBehaviour
         {
             Debug.LogError("[SmoothSlide] Không tìm thấy Panel RectTransform.", this);
             enabled = false;
-            return;
+            return false;
         }
 
+        isOpen = false;
         panelRect.anchoredPosition = offScreenPos;
-
         if (darkOverlay != null)
         {
             darkOverlay.alpha = 0f;
             darkOverlay.blocksRaycasts = false;
         }
+
+        initialized = true;
+        return true;
     }
+
+
+    public void OpenPanel()
+    {
+        if (!gameObject.activeSelf)
+            isOpen = false;
+
+        if (!isOpen)
+            TogglePanel();
+    }
+
+
+    public void ClosePanel()
+    {
+        if (!gameObject.activeSelf)
+        {
+            isOpen = false;
+            if (panelRect != null)
+                panelRect.anchoredPosition = offScreenPos;
+            return;
+        }
+
+        if (isOpen)
+            TogglePanel();
+        else if (panelRect != null)
+            panelRect.anchoredPosition = offScreenPos;
+    }
+
 
     public void TogglePanel()
     {
+        if (!Initialize())
+            return;
+
         isOpen = !isOpen;
 
         if (slideCoroutine != null)
@@ -58,13 +109,16 @@ public class SmoothSlide : MonoBehaviour
 
         if (isOpen)
         {
+            activationRequested = true;
+            gameObject.SetActive(true);
+            activationRequested = false;
             if (darkOverlay != null)
             {
                 darkOverlay.alpha = 1f;
                 darkOverlay.blocksRaycasts = true;
             }
 
-            slideCoroutine = StartCoroutine(OpenPanel());
+            slideCoroutine = StartCoroutine(OpenPanelRoutine());
         }
         else
         {
@@ -74,11 +128,11 @@ public class SmoothSlide : MonoBehaviour
                 darkOverlay.blocksRaycasts = false;
             }
 
-            slideCoroutine = StartCoroutine(ClosePanel());
+            slideCoroutine = StartCoroutine(ClosePanelRoutine());
         }
     }
 
-    IEnumerator OpenPanel()
+    IEnumerator OpenPanelRoutine()
     {
         // Vị trí thấp hơn vị trí chính
         Vector2 lowPosition = onScreenPos + new Vector2(0, -bounceDistance);
@@ -92,10 +146,11 @@ public class SmoothSlide : MonoBehaviour
         yield return MoveTo(onScreenPos);
     }
 
-    IEnumerator ClosePanel()
+    IEnumerator ClosePanelRoutine()
     {
         // Đóng: từ vị trí hiện tại -> ngoài màn hình
         yield return MoveTo(offScreenPos);
+        gameObject.SetActive(false);
     }
 
     IEnumerator MoveTo(Vector2 targetPosition)
@@ -105,7 +160,7 @@ public class SmoothSlide : MonoBehaviour
             panelRect.anchoredPosition = Vector2.MoveTowards(
                 panelRect.anchoredPosition,
                 targetPosition,
-                moveSpeed * Time.deltaTime
+                moveSpeed * Time.unscaledDeltaTime
             );
 
             yield return null;
