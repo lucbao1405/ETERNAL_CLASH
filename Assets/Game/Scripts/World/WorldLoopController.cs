@@ -30,10 +30,11 @@ namespace EternalClash.World
 
         private readonly List<LayerSettings> layers = new List<LayerSettings>();
         private float speedMultiplier = 1f;
+        private float knockbackMultiplier;
         private float direction = -1f;
         private bool scrolling = true;
 
-        public float GroundVelocity => groundSpeed * speedMultiplier;
+        public float GroundVelocity => groundSpeed * (speedMultiplier + knockbackMultiplier);
         public float WorldVelocityX => direction * GroundVelocity;
 
         protected virtual void Start()
@@ -54,7 +55,13 @@ namespace EternalClash.World
                 return;
 
             foreach (LayerSettings layer in layers)
-                layer.loop?.Move(direction * layer.speed * speedMultiplier * Time.deltaTime);
+            {
+                float multiplier = speedMultiplier;
+                if (layer.name != "Cloud")
+                    multiplier += knockbackMultiplier;
+
+                layer.loop?.Move(direction * layer.speed * multiplier * Time.deltaTime);
+            }
         }
 
         public void SetWorldSpeed(float multiplier)
@@ -67,9 +74,15 @@ namespace EternalClash.World
             SetWorldSpeed(multiplier);
         }
 
+        public void SetKnockbackMultiplier(float km)
+        {
+            knockbackMultiplier = km;
+        }
+
         public void ResetSpeed()
         {
             SetWorldSpeed(1f);
+            knockbackMultiplier = 0f;
         }
 
         public void ReverseDirection()

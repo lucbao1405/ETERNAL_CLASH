@@ -2,6 +2,7 @@ using UnityEngine;
 using EternalClash.Character;
 using EternalClash.Enemy;
 using EternalClash.World;
+using EternalClash.Player;
 
 namespace EternalClash.Combat
 {
@@ -16,19 +17,32 @@ namespace EternalClash.Combat
         private Rigidbody2D rb;
         private CharacterStateMachine stateMachine;
         private EnemyMover enemyMover;
+        private PlayerCombatStateMachine combatStateMachine;
+        private AutoRunner autoRunner;
+        private HealthSystem healthSystem;
+        private WorldScroller worldScroller;
         private bool isKnockback;
         private Vector2 targetPosition;
         private Vector2 originalPosition;
         private float knockbackElapsed;
+        private bool isRecoveringFromHit;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
             stateMachine = GetComponent<CharacterStateMachine>();
             enemyMover = GetComponent<EnemyMover>();
+            combatStateMachine = GetComponent<PlayerCombatStateMachine>();
+            autoRunner = GetComponent<AutoRunner>();
+            healthSystem = GetComponent<HealthSystem>();
         }
 
-        private bool isPlayerHitActive;
+        private void Start()
+        {
+            worldScroller = FindObjectOfType<WorldScroller>();
+        }
+
+        public bool IsRecoveringFromHit => isRecoveringFromHit;
 
         private void Update()
         {
@@ -53,8 +67,16 @@ namespace EternalClash.Combat
 
         public void ApplyKnockback(Vector2 direction, float force)
         {
-            if (isKnockback) return;
-            if (CompareTag("Player") && isPlayerHitActive) return;
+            if (healthSystem != null && healthSystem.IsDead) return;
+            if (isRecoveringFromHit) return;
+            if (combatStateMachine != null && combatStateMachine.CurrentState == PlayerCombatState.Hit) return;
+            if (combatStateMachine != null && combatStateMachine.CurrentState == PlayerCombatState.Dead) return;
+
+            if (CompareTag("Player"))
+            {
+                ApplyPlayerEnvironmentKnockback(direction, force);
+                return;
+            }
 
             originalPosition = transform.position;
             knockbackElapsed = 0f;
@@ -64,48 +86,68 @@ namespace EternalClash.Combat
             if (enemyMover != null)
                 enemyMover.PauseMovement(enemyStunTime);
 
-            if (CompareTag("Player"))
-            {
-                float horizontalDirection = Mathf.Sign(direction.x);
-                if (Mathf.Abs(horizontalDirection) < 0.01f)
-                    horizontalDirection = 1f;
-
-                isPlayerHitActive = true;
-
-                WorldPullbackApplier.ShiftWorldAndEnemies(
-                    new Vector3(-horizontalDirection * Mathf.Min(knockbackDistance, 0.35f), 0f, 0f));
-
-                if (DistanceProgress.Instance != null)
-                    DistanceProgress.Instance.ReduceDistance(knockbackDistance);
-
-                Invoke(nameof(RecoverFromHit), recoveryTime);
-                return;
-            }
-
             targetPosition = new Vector2(
                 originalPosition.x + Mathf.Sign(direction.x) * knockbackDistance,
                 originalPosition.y);
             isKnockback = true;
         }
 
+        private void ApplyPlayerEnvironmentKnockback(Vector2 direction, float force)
+        {
+            isRecoveringFromHit = true;
+
+            if (stateMachine != null)
+                stateMachine.ChangeState(CharacterState.Hit);
+
+            if (combatStateMachine != null)
+                combatStateMachine.Hit();
+
+            if (autoRunner != null)
+                autoRunner.StopRunning();
+
+            if (worldScroller == null)
+                worldScroller = FindObjectOfType<WorldScroller>();
+
+            if (worldScroller != null)
+                worldScroller.TriggerKnockback(force);
+
+            if (DistanceProgress.Instance != null)
+                DistanceProgress.Instance.ReduceDistance(knockbackDistance);
+
+            float totalLockTime = recoveryTime + (worldScroller != null ? 0.15f : 0f);
+            Invoke(nameof(RecoverFromHit), totalLockTime);
+
+            Debug.Log("[KNOCKBACK] Player environment knockback: force=" + force);
+        }
+
         private void RecoverFromHit()
         {
+            isRecoveringFromHit = false;
+
             if (CompareTag("Player"))
-                isPlayerHitActive = false;
+            {
+                if (healthSystem != null && healthSystem.IsDead) return;
 
-            if (stateMachine != null && !isKnockback)
-                stateMachine.ChangeState(CharacterState.Idle);
+                if (combatStateMachine != null && combatStateMachine.CurrentState == PlayerCombatState.Hit)
+                    combatStateMachine.ReturnToCombatIdle();
+
+                if (autoRunner != null)
+                    autoRunner.ResumeRunning();
+
+                if (stateMachine != null && stateMachine.CurrentState == CharacterState.Hit)
+                    stateMachine.ChangeState(CharacterState.Run);
+            }
+            else
+            {
+                if (stateMachine != null && !isKnockback)
+                    stateMachine.ChangeState(CharacterState.Idle);
+            }
         }
-    }
 
-    public static class WorldPullbackApplier
-    {
-        public static void ShiftWorldAndEnemies(Vector3 delta)
+        public void CancelRecovery()
         {
-            delta.y = 0f;
-            var scroller = Object.FindObjectOfType<WorldScroller>();
-            if (scroller != null)
-                scroller.ApplyKnockbackShift(delta);
+            isRecoveringFromHit = false;
+            CancelInvoke(nameof(RecoverFromHit));
         }
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using EternalClash.Combat;
 using EternalClash.Skill;
+using EternalClash.World;
 
 namespace EternalClash.Enemy
 {
@@ -9,6 +10,7 @@ namespace EternalClash.Enemy
         [SerializeField] private float speed = 5.0f;
         [SerializeField] private int damage = 12;
         [SerializeField] private float lifeTime = 5.0f;
+        [SerializeField] private float knockbackForce = 0.5f;
 
         private Vector2 direction = Vector2.left;
 
@@ -33,16 +35,23 @@ namespace EternalClash.Enemy
         {
             if (other.CompareTag("Player"))
             {
-                // Khong tu goi ShieldSkill.BlockDamage() o day nua: DamageReceiver
-                // ben trong DealDamage() da lam viec do. Goi ca hai noi khien mui ten
-                // bi giam 80% HAI LAN (12 -> 2 -> 1) va phan don hai lan.
-                // Chi can truyen gameObject lam attacker de Khien phan lai 5 DMG.
                 CombatDamageResolver.Instance?.DealDamage(
                     other.gameObject,
                     damage,
                     DamageSource.EnemyAttack,
                     gameObject
                 );
+
+                ShieldSkill shield = other.GetComponent<ShieldSkill>();
+                if (shield == null || !shield.IsActive())
+                {
+                    KnockbackReceiver knockback = other.GetComponent<KnockbackReceiver>();
+                    if (knockback != null)
+                    {
+                        Vector2 knockbackDir = (other.transform.position - transform.position).normalized;
+                        knockback.ApplyKnockback(knockbackDir, knockbackForce);
+                    }
+                }
 
                 Destroy(gameObject);
             }

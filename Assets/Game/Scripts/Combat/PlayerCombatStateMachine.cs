@@ -1,4 +1,5 @@
 using UnityEngine;
+using EternalClash.World;
 
 namespace EternalClash.Combat
 {
@@ -17,9 +18,23 @@ namespace EternalClash.Combat
     {
         public PlayerCombatState CurrentState { get; private set; } = PlayerCombatState.Run;
 
-        public bool CanUseSkill =>
-            CurrentState == PlayerCombatState.Run ||
-            CurrentState == PlayerCombatState.CombatIdle;
+        private WorldScroller worldScroller;
+
+        public bool CanUseSkill
+        {
+            get
+            {
+                if (CurrentState == PlayerCombatState.Hit) return false;
+                if (CurrentState == PlayerCombatState.Dead) return false;
+
+                if (worldScroller == null)
+                    worldScroller = FindObjectOfType<WorldScroller>();
+                if (worldScroller != null && worldScroller.IsKnockbackActive) return false;
+
+                return CurrentState == PlayerCombatState.Run ||
+                       CurrentState == PlayerCombatState.CombatIdle;
+            }
+        }
 
         public void ChangeState(PlayerCombatState state)
         {
