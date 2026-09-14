@@ -13,6 +13,9 @@ namespace EternalClash.Core
             Time.timeScale = 1f;
             AudioListener.pause = false;
 
+            // Doi scene co the ton vai giay tren may yeu: ghi het save dang cho truoc.
+            EternalClash.Core.Save.SaveCoordinator.Flush();
+
             SceneManager.LoadScene(sceneName);
         }
 

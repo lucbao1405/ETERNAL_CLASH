@@ -88,6 +88,7 @@ public class StageManager : MonoBehaviour
         // bo dem de hien thi.
         EternalClash.Village.PlayerStatSystem.Instance?.ResetSessionCounters();
         EternalClash.Village.GoldSystem.Instance?.ResetSessionCounters();
+        SetBattleInProgress(true);
         Debug.Log($"[STAGE] Stage {CurrentStageLevel} Started - {StageDataName(CurrentStageData)}");
 
         if (waveManager != null)
@@ -159,11 +160,26 @@ public class StageManager : MonoBehaviour
         battleStartTime = -1f;
     }
 
+    /// <summary>
+    /// Ghi ngay (khong gom) de cai co nay chac chan nam trong save truoc khi nguoi
+    /// choi kip tat app.
+    /// </summary>
+    private static void SetBattleInProgress(bool value)
+    {
+        SaveManager save = SaveManager.Instance;
+        if (save == null || save.Data == null || save.Data.battleInProgress == value)
+            return;
+
+        save.Data.battleInProgress = value;
+        save.Save();
+    }
+
     public void CompleteStage()
     {
         if (CurrentState != StageState.Running) return;
 
         StopBattleTimer();
+        SetBattleInProgress(false);
         CurrentState = StageState.Victory;
         Debug.Log("Stage Victory");
 
@@ -194,6 +210,7 @@ public class StageManager : MonoBehaviour
         if (CurrentState != StageState.Running) return;
 
         StopBattleTimer();
+        SetBattleInProgress(false);
         CurrentState = StageState.Defeat;
         Debug.Log("Stage Defeat");
 

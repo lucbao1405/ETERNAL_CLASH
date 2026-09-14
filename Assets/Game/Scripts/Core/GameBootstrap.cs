@@ -79,6 +79,12 @@ namespace EternalClash.Core
         {
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = TargetFrameRate;
+
+            // Ban build chinh thuc: bo Debug.Log thuong (ghi log + stack trace ton CPU
+            // tren dien thoai), van giu Warning / Error de doc loi qua logcat.
+            // Ban Development Build va Unity Editor van hien day du log.
+            if (!Debug.isDebugBuild)
+                Debug.unityLogger.filterLogType = LogType.Warning;
         }
 
 
@@ -143,10 +149,35 @@ namespace EternalClash.Core
             if(PlayerConditionSystem.Instance == null && GetComponent<PlayerConditionSystem>() == null)
                 gameObject.AddComponent<PlayerConditionSystem>();
 
+            if (GetComponent<MobilePlatformController>() == null)
+                gameObject.AddComponent<MobilePlatformController>();
+
         }
 
 
 
+
+        /// <summary>
+        /// Lan truoc app bi tat ngang tran (vuot khoi da nhiem, het pin...): tinh nhu
+        /// thua - bi thuong, ve lang voi 10% HP. Do da nhat van giu, giong luat thua.
+        /// Trong Unity Editor chi xoa co, khong phat: bam Stop giua tran khi test la chuyen
+        /// thuong xuyen.
+        /// </summary>
+        private void ApplyAbandonedBattlePenalty(SaveData data)
+        {
+            if (!data.battleInProgress)
+                return;
+
+            data.battleInProgress = false;
+
+#if !UNITY_EDITOR
+            int maxHp = playerStatSystem != null ? playerStatSystem.TotalMaxHealth : 100;
+            PlayerConditionSystem.Instance?.MarkInjured(maxHp);
+            Debug.LogWarning("[STAGE] Lan truoc thoat app giua tran -> tinh la thua, nhan vat bi thuong.");
+#endif
+
+            SaveCoordinator.RequestSave();
+        }
 
         /// <summary>
         /// Load toàn bộ dữ liệu đã lưu vào các hệ thống sau khi SaveManager đã nạp SaveData.
@@ -181,6 +212,7 @@ namespace EternalClash.Core
 
             PlayerConditionSystem.Instance?.LoadFromSave(data);
 
+            ApplyAbandonedBattlePenalty(data);
 
             if(equipmentSystem != null)
                 equipmentSystem.RefreshFromSave();

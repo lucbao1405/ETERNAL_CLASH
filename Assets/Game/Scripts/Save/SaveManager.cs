@@ -81,8 +81,60 @@ namespace EternalClash.Core.Save
 
 
 
+        /// <summary>Khoang cach toi thieu (giay) giua 2 lan ghi save xuong bo nho may.</summary>
+        private const float MinSaveInterval = 1f;
+
+        private bool savePending;
+        private float lastSaveTime = float.NegativeInfinity;
+
+        /// <summary>
+        /// Xin luu, ghi vao cuoi frame. Nhieu lan xin trong 1 frame chi ghi 1 lan; xin
+        /// lien tuc (vd nhat 10 dong xu) thi ghi toi da 1 lan moi MinSaveInterval giay.
+        /// Du lieu trong bo nho (Data) van cap nhat ngay, chi viec ghi xuong may bi gom.
+        /// Can ghi ngay (vd truoc khi xoa save) thi goi Save().
+        /// </summary>
+        public void RequestSave()
+        {
+            savePending = true;
+        }
+
+        /// <summary>Ghi ngay neu dang co yeu cau luu chua ghi.</summary>
+        public void FlushPendingSave()
+        {
+            if (savePending)
+                Save();
+        }
+
+        private void LateUpdate()
+        {
+            if (savePending && Time.unscaledTime - lastSaveTime >= MinSaveInterval)
+                Save();
+        }
+
+        // Dien thoai co the kill app bat cu luc nao sau khi xuong nen: ghi het truoc.
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused && Instance == this)
+                FlushPendingSave();
+        }
+
+        private void OnApplicationQuit()
+        {
+            if (Instance == this)
+                FlushPendingSave();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                FlushPendingSave();
+        }
+
         public void Save()
         {
+            savePending = false;
+            lastSaveTime = Time.unscaledTime;
+
             try
             {
                 Data ??= new SaveData();
@@ -137,6 +189,7 @@ namespace EternalClash.Core.Save
 
         public void ResetSave()
         {
+            savePending = false;
             repository.Delete();
             Data = new SaveData();
             hasSaveData = false;
@@ -169,6 +222,8 @@ namespace EternalClash.Core.Save
 
         public void DeleteSave()
         {
+            // Bo yeu cau luu dang cho, neu khong LateUpdate se ghi lai du lieu vua xoa.
+            savePending = false;
             repository.Delete();
             Data = new SaveData();
             hasSaveData = false;
