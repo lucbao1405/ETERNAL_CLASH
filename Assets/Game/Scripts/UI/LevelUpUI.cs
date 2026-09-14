@@ -59,13 +59,14 @@ namespace EternalClash.UI
             if (luckButton != null) luckButton.interactable = hasPoints;
         }
 
-        private void OnAddStr() => PlayerStatSystem.Instance?.AllocateStrength();
-        private void OnAddInt() => PlayerStatSystem.Instance?.AllocateIntelligence();
-        private void OnAddVit() => PlayerStatSystem.Instance?.AllocateVitality();
-        private void OnAddLuck() => PlayerStatSystem.Instance?.AllocateLuck();
+        private void OnAddStr() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateStrength(); }
+        private void OnAddInt() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateIntelligence(); }
+        private void OnAddVit() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateVitality(); }
+        private void OnAddLuck() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateLuck(); }
 
         private void OnConfirm()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             StageCompleteController.Instance?.OnLevelUpConfirmed();
             if (gameObject != null)
                 gameObject.SetActive(false);

@@ -57,9 +57,10 @@ public class EncounterSpawner : MonoBehaviour
     {
         if (encounter.enemyPrefab == null) return;
 
+        Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(transform.position);
         Instantiate(
             encounter.enemyPrefab,
-            transform.position,
+            spawnPosition,
             Quaternion.identity,
             enemyContainer
         );

@@ -243,6 +243,7 @@ namespace EternalClash.UI
 
         private void OnContinueClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             Action callback = onContinue;
             onContinue = null;
             Close();

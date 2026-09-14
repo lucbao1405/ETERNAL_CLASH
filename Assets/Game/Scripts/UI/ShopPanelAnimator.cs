@@ -56,6 +56,7 @@ public sealed class ShopPanelAnimator : MonoBehaviour
         if (shopPanel == null || State == PanelState.Closed || State == PanelState.Closing)
             return;
 
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
         StartSlide(PanelState.Closing, closedY, PanelState.Closed, true);
     }
 

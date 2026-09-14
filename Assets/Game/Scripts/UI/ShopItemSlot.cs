@@ -81,6 +81,7 @@ namespace EternalClash.UI
 
         private void SelectItem()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             if (itemData != null)
                 controller?.SelectItem(itemData);
         }

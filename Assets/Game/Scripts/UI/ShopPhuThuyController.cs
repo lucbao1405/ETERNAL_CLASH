@@ -66,6 +66,7 @@ namespace EternalClash.UI
 
         public void Close()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             successPanel?.SetActive(false);
             failurePanel?.SetActive(false);
             ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
@@ -75,8 +76,9 @@ namespace EternalClash.UI
                 gameObject.SetActive(false);
         }
 
-        public void SelectHealing()
+        private void SelectHealing()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             AlchemistUpgradeSystem witchSkills = AlchemistUpgradeSystem.Instance;
             int healingLevel = witchSkills != null ? witchSkills.HealingLevel : 1;
             int cooldownLevel = witchSkills != null ? witchSkills.CooldownLevel : 1;
@@ -171,6 +173,7 @@ namespace EternalClash.UI
 
         private void ClosePopups()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             successPanel?.SetActive(false);
             failurePanel?.SetActive(false);
         }

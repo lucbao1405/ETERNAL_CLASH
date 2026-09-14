@@ -72,6 +72,7 @@ namespace EternalClash.Player
             Vector3 target = combatPosition != null
                 ? combatPosition.position
                 : new Vector3(moveTargetX, spawnPosition.y, spawnPosition.z);
+            target.y = spawnPosition.y;
             intro.BeginIntro(spawnPosition, target, moveSpeed);
             Debug.Log("[PLAYER INTRO] Spawn: " + spawnPosition + " -> Combat: " + target);
             StartCoroutine(WaitForPlayerReady(intro));

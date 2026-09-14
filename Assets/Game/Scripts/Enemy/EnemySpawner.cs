@@ -30,7 +30,8 @@ namespace EternalClash.Enemy
             if (enemyContainer == null)
                 enemyContainer = GameObject.Find("EnemyContainer")?.transform;
 
-            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity, enemyContainer);
+            Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(spawnPoint.position);
+            Instantiate(enemyPrefab, spawnPosition, Quaternion.identity, enemyContainer);
         }
     }
 }

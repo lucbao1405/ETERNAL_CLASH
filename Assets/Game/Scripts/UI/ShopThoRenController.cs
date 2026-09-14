@@ -73,6 +73,7 @@ namespace EternalClash.UI
 
         public void OpenUpgradeConfirm()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             if (selectedItem == null || upgradeConfirmUI == null)
                 return;
 

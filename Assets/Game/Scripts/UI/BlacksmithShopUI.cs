@@ -105,6 +105,7 @@ namespace EternalClash.UI
             itemDetailsRoot ??= FindChildRecursive(transform, "ThongTinVatPham");
             itemDetailsText ??= itemDetailsRoot?.Find("TTVP_Text")?.GetComponent<TMP_Text>();
             itemDetailsScrollRect ??= itemDetailsRoot?.Find("ContentArea")?.GetComponent<ScrollRect>();
+            EnsureItemDetailsScrollRect();
             EnsureItemDetailsIcon();
             current ??= legacyPreview?.Find("Current") ?? legacyPreview?.Find("ThongTinVatPham");
             next ??= legacyPreview?.Find("Next");
@@ -170,6 +171,7 @@ namespace EternalClash.UI
 
         public void Close()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
             if (animator != null) animator.Close();
             else gameObject.SetActive(false);
@@ -187,6 +189,7 @@ namespace EternalClash.UI
 
         private void OnWeaponPressed()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             ClearSelection();
             detailShown = true;
             ShowDetail(ItemSlot.Weapon);
@@ -194,6 +197,7 @@ namespace EternalClash.UI
 
         private void OnArmorPressed()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             ClearSelection();
             detailShown = true;
             ShowDetail(ItemSlot.Armor);
@@ -201,6 +205,7 @@ namespace EternalClash.UI
 
         private void OnShieldPressed()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             ClearSelection();
             detailShown = true;
             ShowDetail(ItemSlot.Accessory);
@@ -465,6 +470,7 @@ namespace EternalClash.UI
             ItemSlot slot = ToItemSlot(equipmentSlot);
             slotObject.GetComponent<Button>().onClick.AddListener(() =>
             {
+                EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
                 selectedItemId = recipe.itemId;
                 selectedItem = FindItemData(recipe.itemId);
                 selectedRecipe = recipe;
@@ -536,6 +542,42 @@ namespace EternalClash.UI
             itemDetailsIcon.preserveAspect = true;
             itemDetailsIcon.raycastTarget = false;
             iconObject.SetActive(false);
+        }
+
+        private void EnsureItemDetailsScrollRect()
+        {
+            if (itemDetailsScrollRect != null || itemDetailsRoot == null)
+                return;
+
+            RectTransform textRect = itemDetailsText?.rectTransform;
+            if (textRect == null)
+                return;
+
+            ScrollRect scroll = itemDetailsRoot.GetComponent<ScrollRect>();
+            if (scroll == null)
+                scroll = itemDetailsRoot.gameObject.AddComponent<ScrollRect>();
+
+            scroll.viewport = null;
+            scroll.content = textRect;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.inertia = true;
+            scroll.scrollSensitivity = 30f;
+            scroll.elasticity = 0.1f;
+
+            if (itemDetailsRoot.GetComponent<Mask>() == null)
+                itemDetailsRoot.gameObject.AddComponent<Mask>();
+
+            Image maskImage = itemDetailsRoot.GetComponent<Image>();
+            if (maskImage == null)
+                maskImage = itemDetailsRoot.gameObject.AddComponent<Image>();
+            maskImage.color = Color.clear;
+
+            itemDetailsScrollRect = scroll;
+
+            if (itemDetailsScrollRect.GetComponent<UIScrollSound>() == null)
+                itemDetailsScrollRect.gameObject.AddComponent<UIScrollSound>();
         }
 
         private void RefreshItemDetails(ItemData item, int tier)
