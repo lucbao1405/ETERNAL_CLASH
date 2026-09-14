@@ -11,6 +11,7 @@ namespace EternalClash.Enemy
         /// ca dot quai dung chong khit len nhau o cung mot cho truoc mat Player.
         /// </summary>
         private static readonly List<EnemyMover> activeMovers = new List<EnemyMover>();
+        private static EternalClash.World.WorldScroller cachedScroller;
 
         [SerializeField] private float archerStopDistance = 4.5f;
         [SerializeField] private bool isArcher = false;
@@ -62,7 +63,12 @@ namespace EternalClash.Enemy
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked()) return;
             if (controller != null && !controller.canMove) return;
 
-            var scroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            // Tim 1 lan roi dung chung cho moi quai. FindObjectOfType duyet toan scene,
+            // goi moi FixedUpdate cho tung quai rat ton CPU tren dien thoai.
+            // Doi scene thi WorldScroller cu bi huy -> "== null" -> tim lai.
+            if (cachedScroller == null)
+                cachedScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            var scroller = cachedScroller;
             float worldVelocityX = scroller != null ? scroller.GetWorldVelocity().x : 0f;
             float finalVelocity = worldVelocityX;
 

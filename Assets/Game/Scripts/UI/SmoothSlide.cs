@@ -21,6 +21,9 @@ public class SmoothSlide : MonoBehaviour
 
     private bool isOpen = false;
     private bool initialized;
+
+    /// <summary>Bang dang mo (hoac dang truot vao). Dung cho nut Back Android.</summary>
+    public bool IsOpen => isOpen && gameObject.activeInHierarchy;
     private bool activationRequested;
     private Coroutine slideCoroutine;
 
