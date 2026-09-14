@@ -107,6 +107,7 @@ namespace EternalClash.Skill
 
             if (worldScroller != null)
             {
+                worldScroller.CancelKnockback();
                 worldScroller.SetSpeedMultiplier(chargeMultiplier);
                 Debug.Log("[CHARGE] WorldScroller speed multiplied x" + chargeMultiplier);
             }

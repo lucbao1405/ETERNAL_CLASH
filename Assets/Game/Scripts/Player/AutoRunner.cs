@@ -1,10 +1,8 @@
 using UnityEngine;
+using EternalClash.Combat;
 
 namespace EternalClash.Player
 {
-    /// <summary>
-    /// Keeps player combat position. World movement is handled by WorldScroller.
-    /// </summary>
     public class AutoRunner : MonoBehaviour
     {
         [SerializeField] private float runSpeed = 2.5f;
@@ -17,7 +15,6 @@ namespace EternalClash.Player
         private bool homePositionSet;
 
         public float RunSpeed => runSpeed;
-
         public bool IsRunning => isRunning;
 
         private void Update()
@@ -59,7 +56,6 @@ namespace EternalClash.Player
 
         public void StopChargeMovement()
         {
-            // Reset charge speed overrides
         }
     }
 }

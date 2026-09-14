@@ -24,12 +24,15 @@ namespace EternalClash.World
         [SerializeField] private WorldLoopController loopController;
         [SerializeField] private WorldLoopSpawner chunkSpawner;
 
-        [Header("Knockback recoil")]
-        [SerializeField] private float recoilDuration = 0.12f;
+        [Header("Knockback (Postknight environment knockback)")]
+        [SerializeField] private float knockbackSpeedScale = 2f;
+        [SerializeField] private float knockbackRecoveryDuration = 0.15f;
 
         private bool scrolling = true;
         private float currentMultiplier = 1f;
-        private Coroutine recoilRoutine;
+        private float knockbackMultiplier;
+        private bool knockbackActive;
+        private Coroutine knockbackRoutine;
 
         private void Awake()
         {
@@ -42,12 +45,17 @@ namespace EternalClash.World
         }
 
         public bool IsScrolling => scrolling;
+        public bool IsKnockbackActive => knockbackActive;
+        public float KnockbackMultiplier => knockbackMultiplier;
+
+        private float ForegroundMultiplier => currentMultiplier + knockbackMultiplier;
+
         public float WorldVelocityX => scrollDirection * GetGroundVelocity();
         public float SkySpeed => skySpeed * currentMultiplier;
         public float CloudSpeed => cloudSpeed * currentMultiplier;
-        public float MountainSpeed => mountainSpeed * currentMultiplier;
-        public float GroundSpeed => groundSpeed * currentMultiplier;
-        public float TreeSpeed => treeSpeed * currentMultiplier;
+        public float MountainSpeed => mountainSpeed * ForegroundMultiplier;
+        public float GroundSpeed => groundSpeed * ForegroundMultiplier;
+        public float TreeSpeed => treeSpeed * ForegroundMultiplier;
         public float SkyVelocityX => scrollDirection * SkySpeed;
         public float CloudVelocityX => scrollDirection * CloudSpeed;
         public float MountainVelocityX => scrollDirection * MountainSpeed;
@@ -75,7 +83,7 @@ namespace EternalClash.World
                 layer.position.z);
         }
 
-        public float GetGroundVelocity() => groundSpeed * currentMultiplier;
+        public float GetGroundVelocity() => groundSpeed * ForegroundMultiplier;
 
         public Vector3 GetWorldVelocity() => new Vector3(scrollDirection * GetGroundVelocity(), 0f, 0f);
 
@@ -90,8 +98,12 @@ namespace EternalClash.World
         public void ResetSpeed()
         {
             currentMultiplier = 1f;
+            CancelKnockback();
             if (loopController != null)
+            {
                 loopController.ResetSpeed();
+                loopController.SetKnockbackMultiplier(0f);
+            }
             Debug.Log("[WORLD] Speed reset");
         }
 
@@ -107,35 +119,33 @@ namespace EternalClash.World
             scrollDirection *= -1f;
         }
 
-        public void StopScroll() => scrolling = false;
-        public void ResumeScroll() => scrolling = true;
-
-        public void ApplyKnockbackShift(Vector3 delta)
+        public void StopScroll()
         {
-            delta.y = 0f;
-            if (Mathf.Abs(delta.x) < 0.0001f) return;
-
-            // The chunk spawner owns every cloned UI Image. Let it shift the complete
-            // layer sets so originals and clones can never drift apart.
-            if (chunkSpawner != null)
-            {
-                chunkSpawner.ApplyKnockbackShift(delta);
-                return;
-            }
-
-            if (recoilRoutine != null)
-                StopCoroutine(recoilRoutine);
-            recoilRoutine = StartCoroutine(SmoothWorldRecoil(delta));
+            scrolling = false;
+            CancelKnockback();
         }
 
-        private IEnumerator SmoothWorldRecoil(Vector3 delta)
+        public void ResumeScroll() => scrolling = true;
+
+        public void TriggerKnockback(float force)
         {
-            Vector3 cloudLockedPosition = cloudLayer != null ? cloudLayer.position : Vector3.zero;
-            Vector3 skyLockedPosition = skyLayer != null ? skyLayer.position : Vector3.zero;
-            Transform target = transform;
-            Vector3 start = target.position;
-            Vector3 end = start + new Vector3(delta.x, 0f, 0f);
-            float duration = Mathf.Max(0.01f, recoilDuration);
+            if (!scrolling || knockbackActive)
+                return;
+
+            if (knockbackRoutine != null)
+                StopCoroutine(knockbackRoutine);
+
+            knockbackRoutine = StartCoroutine(KnockbackRecoveryRoutine(force));
+        }
+
+        private IEnumerator KnockbackRecoveryRoutine(float force)
+        {
+            knockbackActive = true;
+            knockbackMultiplier = -force * knockbackSpeedScale;
+            PropagateKnockback();
+
+            float start = knockbackMultiplier;
+            float duration = Mathf.Max(0.01f, knockbackRecoveryDuration);
             float elapsed = 0f;
 
             while (elapsed < duration)
@@ -143,25 +153,53 @@ namespace EternalClash.World
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 float eased = Mathf.SmoothStep(0f, 1f, t);
-                Vector3 p = Vector3.Lerp(start, end, eased);
-                target.position = new Vector3(p.x, start.y, start.z);
-
-                if (cloudLayer != null)
-                    cloudLayer.position = cloudLockedPosition;
-                if (skyLayer != null)
-                    skyLayer.position = skyLockedPosition;
-
+                knockbackMultiplier = Mathf.LerpUnclamped(start, 0f, eased);
+                PropagateKnockback();
                 yield return null;
             }
 
-            target.position = new Vector3(end.x, start.y, start.z);
+            knockbackMultiplier = 0f;
+            knockbackActive = false;
+            knockbackRoutine = null;
+            PropagateKnockback();
+            Debug.Log("[WORLD] Knockback recovery complete");
+        }
 
-            if (cloudLayer != null)
-                cloudLayer.position = cloudLockedPosition;
-            if (skyLayer != null)
-                skyLayer.position = skyLockedPosition;
+        private void PropagateKnockback()
+        {
+            if (loopController != null)
+                loopController.SetKnockbackMultiplier(knockbackMultiplier);
+        }
 
-            recoilRoutine = null;
+        public void CancelKnockback()
+        {
+            if (knockbackRoutine != null)
+            {
+                StopCoroutine(knockbackRoutine);
+                knockbackRoutine = null;
+            }
+
+            knockbackMultiplier = 0f;
+            knockbackActive = false;
+            PropagateKnockback();
+        }
+
+        public void ApplyKnockbackShift(Vector3 delta)
+        {
+            delta.y = 0f;
+            if (Mathf.Abs(delta.x) < 0.0001f) return;
+
+            if (chunkSpawner != null)
+            {
+                chunkSpawner.ApplyKnockbackShift(delta);
+                return;
+            }
+
+            if (loopController != null)
+            {
+                loopController.ApplyKnockbackShift(delta);
+                return;
+            }
         }
 
         private void ResolveLayerReferences()

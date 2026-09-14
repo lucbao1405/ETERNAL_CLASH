@@ -1,14 +1,11 @@
 using UnityEngine;
 using EternalClash.Character;
 using EternalClash.Combat;
+using EternalClash.World;
+using EternalClash.Enemy;
 
 namespace EternalClash.Player
 {
-    /// <summary>
-    /// Bridges HealthSystem death to the defeat flow.
-    /// DamageReceiver already calls StageManager.FailStage() which starts the defeat UI.
-    /// This handler is a safety net so defeated players always reach the defeat flow.
-    /// </summary>
     public class PlayerDeathHandler : MonoBehaviour
     {
         private HealthSystem healthSystem;
@@ -38,6 +35,25 @@ namespace EternalClash.Player
         {
             if (notified) return;
             notified = true;
+
+            var combatStateMachine = GetComponent<PlayerCombatStateMachine>();
+            if (combatStateMachine != null)
+                combatStateMachine.Die();
+
+            var knockbackReceiver = GetComponent<KnockbackReceiver>();
+            if (knockbackReceiver != null)
+                knockbackReceiver.CancelRecovery();
+
+            var worldScroller = FindObjectOfType<WorldScroller>();
+            if (worldScroller != null)
+            {
+                worldScroller.CancelKnockback();
+                worldScroller.StopScroll();
+            }
+
+            EnemyMover[] movers = FindObjectsOfType<EnemyMover>();
+            foreach (EnemyMover mover in movers)
+                mover.StopMovement();
 
             StageManager.Instance?.FailStage();
         }

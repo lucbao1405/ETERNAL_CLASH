@@ -3,6 +3,8 @@ using EternalClash.Character;
 using EternalClash.Skill;
 using EternalClash.Player;
 using EternalClash.UI;
+using EternalClash.World;
+using EternalClash.Enemy;
 
 namespace EternalClash.Combat
 {
@@ -22,12 +24,6 @@ namespace EternalClash.Combat
             playerController = GetComponent<PlayerController>();
         }
 
-        /// <summary>
-        /// <paramref name="attacker"/> la doi tuong gay sat thuong. Can truyen vao de
-        /// Khien phan lai duoc 5 DMG (GDD 3.3) - truoc day cho nay goi BlockDamage()
-        /// khong kem attacker nen phan don chi hoat dong voi mui ten, khong hoat dong
-        /// voi don can chien. Tham so co gia tri mac dinh nen loi goi cu van bien dich.
-        /// </summary>
         public void TakeDamage(int damage, GameObject attacker = null)
         {
             if (healthSystem == null || isDead)
@@ -84,6 +80,23 @@ namespace EternalClash.Combat
             if (basicAttackSystem != null)
                 basicAttackSystem.enabled = false;
 
+            var combatStateMachine = GetComponent<PlayerCombatStateMachine>();
+            if (combatStateMachine != null)
+                combatStateMachine.Die();
+
+            var knockbackReceiver = GetComponent<KnockbackReceiver>();
+            if (knockbackReceiver != null)
+                knockbackReceiver.CancelRecovery();
+
+            var worldScroller = FindObjectOfType<WorldScroller>();
+            if (worldScroller != null)
+            {
+                worldScroller.CancelKnockback();
+                worldScroller.StopScroll();
+            }
+
+            StopAllEnemies();
+
             Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
             foreach (Collider2D col in colliders)
                 col.enabled = false;
@@ -100,6 +113,17 @@ namespace EternalClash.Combat
                 sprite.enabled = false;
 
             StageManager.Instance?.FailStage();
+        }
+
+        private static void StopAllEnemies()
+        {
+            EnemyMover[] movers = FindObjectsOfType<EnemyMover>();
+            foreach (EnemyMover mover in movers)
+                mover.StopMovement();
+
+            EnemyAttack[] attackers = FindObjectsOfType<EnemyAttack>();
+            foreach (EnemyAttack attacker in attackers)
+                attacker.enabled = false;
         }
 
         public void SetDamageMultiplier(float multiplier)
