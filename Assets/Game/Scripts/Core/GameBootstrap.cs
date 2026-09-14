@@ -56,14 +56,29 @@ namespace EternalClash.Core
         /// tiên là scene nào. Host nằm trong DontDestroyOnLoad nên sống xuyên
         /// suốt Town -> Battle -> Town mà không tạo duplicate.
         /// </summary>
+        /// <summary>FPS muc tieu. Android/iOS mac dinh chi chay 30 FPS neu khong dat.</summary>
+        private const int TargetFrameRate = 60;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureBootstrapped()
         {
+            ApplyFrameRate();
+
             if (instance != null)
                 return;
 
             GameObject go = new GameObject("GameSystems");
             go.AddComponent<GameBootstrap>();
+        }
+
+        /// <summary>
+        /// Tat VSync de targetFrameRate co tac dung (muc chat luong Medium/High cua
+        /// Android dang bat VSync, khi do Unity bo qua targetFrameRate).
+        /// </summary>
+        private static void ApplyFrameRate()
+        {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = TargetFrameRate;
         }
 
 
