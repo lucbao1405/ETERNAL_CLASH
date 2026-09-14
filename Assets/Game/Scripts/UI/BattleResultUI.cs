@@ -40,7 +40,15 @@ namespace EternalClash.UI
         [Header("Action")]
         [SerializeField] private Button returnButton;
 
+        [Header("Banner Animation (Spine)")]
+        [Tooltip("Banner Spine cua popup (vd VictoryBanner). De trong thi tu tim con ten VictoryBanner.")]
+        [SerializeField] private Spine.Unity.SkeletonGraphic bannerAnimation;
+        [SerializeField] private string bannerIntroAnimation = "hien";
+        [SerializeField] private string bannerLoopAnimation = "keep";
+
         public bool HasExitControl => returnButton != null;
+
+        private const string BannerObjectName = "VictoryBanner";
 
         private Action onContinue;
         private bool buttonBound;
@@ -51,6 +59,62 @@ namespace EternalClash.UI
         {
             ResolveVisuals();
             BindButton();
+        }
+
+        // Popup duoc SetActive(true) roi moi fade in, nen phat banner o day de hieu ung
+        // "bat ra" chay ngay tu luc popup bat dau hien, khong doi toi ShowVictory.
+        private void OnEnable()
+        {
+            PlayBanner();
+        }
+
+        /// <summary>Phat intro 1 lan ("hien") roi lap animation giu ("keep").</summary>
+        private void PlayBanner()
+        {
+            if (bannerAnimation == null)
+            {
+                Transform found = FindChildByName(transform, BannerObjectName);
+                bannerAnimation = found != null ? found.GetComponent<Spine.Unity.SkeletonGraphic>() : null;
+            }
+
+            if (bannerAnimation == null || bannerAnimation.skeletonDataAsset == null)
+                return;
+
+            bannerAnimation.Initialize(false);
+            Spine.AnimationState state = bannerAnimation.AnimationState;
+            Spine.SkeletonData data = bannerAnimation.Skeleton?.Data;
+            if (state == null || data == null)
+                return;
+
+            bool hasIntro = data.FindAnimation(bannerIntroAnimation) != null;
+            bool hasLoop = data.FindAnimation(bannerLoopAnimation) != null;
+
+            if (hasIntro)
+            {
+                state.SetAnimation(0, bannerIntroAnimation, false);
+                if (hasLoop)
+                    state.AddAnimation(0, bannerLoopAnimation, true, 0f);
+            }
+            else if (hasLoop)
+            {
+                state.SetAnimation(0, bannerLoopAnimation, true);
+            }
+
+            // Ap ngay khung dau cua intro (banner nho 50%) de khong loe len 1 frame o tu the goc.
+            bannerAnimation.Update(0f);
+        }
+
+        private static Transform FindChildByName(Transform root, string childName)
+        {
+            foreach (Transform child in root)
+            {
+                if (child.name == childName)
+                    return child;
+                Transform nested = FindChildByName(child, childName);
+                if (nested != null)
+                    return nested;
+            }
+            return null;
         }
 
         // ------------------------------------------------------------------
