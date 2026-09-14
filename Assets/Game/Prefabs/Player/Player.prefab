@@ -144,6 +144,7 @@ GameObject:
   - component: {fileID: -8666561796210250806}
   - component: {fileID: 300311324677675463}
   - component: {fileID: 219685781055295580}
+  - component: {fileID: 6483935708253570007}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -584,7 +585,7 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1645145209
-  m_SortingLayer: 8
+  m_SortingLayer: 10
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &300311324677675463
@@ -637,6 +638,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skeletonAnimation: {fileID: 0}
+--- !u!114 &6483935708253570007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120340383641654317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17b11968a76a5474491fc462eaefbbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3199390587613228680
 GameObject:
   m_ObjectHideFlags: 0
