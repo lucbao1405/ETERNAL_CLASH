@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using EternalClash.Village;
+using EternalClash.Data;
 
 namespace EternalClash.UI
 {
@@ -20,9 +21,15 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text cooldownLabelText;
         [SerializeField] private TMP_Text cooldownValueText;
 
+        [Header("ThongTinNangCap")]
+        [SerializeField] private Transform thongTinNangCap;
+        [SerializeField] private TMP_Text beforeStatsText;
+        [SerializeField] private TMP_Text afterStatsText;
+
         [Header("Controls")]
         [SerializeField] private Button upgradeButton;
         [SerializeField] private Button closeButton;
+        [SerializeField] private TMP_Text descriptionText;
         [SerializeField] private GameObject materialSlots;
         [SerializeField] private GameObject successPanel;
         [SerializeField] private TMP_Text successText;
@@ -83,13 +90,16 @@ namespace EternalClash.UI
             int healingLevel = witchSkills != null ? witchSkills.HealingLevel : 1;
             int cooldownLevel = witchSkills != null ? witchSkills.CooldownLevel : 1;
 
-            if (nameText != null) nameText.text = "Healing";
+            ItemData wood = ItemCatalog.Find("wood_small");
+            if (nameText != null) nameText.text = wood != null ? wood.itemName : "Healing";
+            if (descriptionText != null) descriptionText.text = wood != null && !string.IsNullOrEmpty(wood.description) ? wood.description : string.Empty;
             if (healingLabelText != null) healingLabelText.text = "Healing";
             if (healingValueText != null) healingValueText.text = "Current: +" + GetHealingPercent(healingLevel) + "%\nAfter upgrade: +" +
                 GetHealingPercent(healingLevel + 1) + "%";
             if (cooldownLabelText != null) cooldownLabelText.text = "Cooldown";
             if (cooldownValueText != null) cooldownValueText.text = GetCooldownSeconds(cooldownLevel) + " sec";
             RefreshMaterials(witchSkills);
+            RefreshThongTinNangCap(healingLevel, cooldownLevel);
 
             if (upgradeButton != null)
                 upgradeButton.interactable = witchSkills != null;
@@ -115,13 +125,25 @@ namespace EternalClash.UI
             SelectHealing();
         }
 
+        private void RefreshThongTinNangCap(int healingLevel, int cooldownLevel)
+        {
+            if (beforeStatsText != null)
+                beforeStatsText.text = "Healing: +" + GetHealingPercent(healingLevel) + "%\nCooldown: " + GetCooldownSeconds(cooldownLevel) + " sec";
+            if (afterStatsText != null)
+                afterStatsText.text = "Healing: +" + GetHealingPercent(healingLevel + 1) + "%\nCooldown: " + GetCooldownSeconds(cooldownLevel + 1) + " sec";
+        }
+
         private void AutoWire()
         {
             nameText ??= FindText("Name/Text");
+            descriptionText ??= FindText("Mota_skill") ?? (FindDeepChild(transform, "Mota_skill")?.GetComponent<TMP_Text>());
             healingLabelText ??= FindText("Khung/HieuQuaHoiMau/Mota");
             healingValueText ??= FindText("Khung/HieuQuaHoiMau/%");
             cooldownLabelText ??= FindText("Khung/GiamHoiChieu/Mota");
             cooldownValueText ??= FindText("Khung/GiamHoiChieu/%");
+            thongTinNangCap ??= FindDeepChild(transform, "ThongTinNangCap");
+            beforeStatsText ??= FindText("ThongTinNangCap/BeforeStats") ?? (thongTinNangCap?.Find("BeforeStats")?.GetComponent<TMP_Text>());
+            afterStatsText ??= FindText("ThongTinNangCap/AfterStats") ?? (thongTinNangCap?.Find("AfterStats")?.GetComponent<TMP_Text>());
             upgradeButton ??= transform.Find("UPGRADE")?.GetComponent<Button>();
             closeButton ??= transform.Find("X")?.GetComponent<Button>();
             materialSlots ??= transform.Find("Vat_Pham_Can/Hienthivp")?.gameObject;
@@ -136,6 +158,16 @@ namespace EternalClash.UI
             return transform.Find(path)?.GetComponent<TMP_Text>();
         }
 
+        private static Transform FindDeepChild(Transform root, string objectName)
+        {
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == objectName)
+                    return child;
+            }
+            return null;
+        }
+
         private static TMP_Text FindFirstText(GameObject root)
         {
             return root != null ? root.GetComponentInChildren<TMP_Text>(true) : null;
@@ -146,10 +178,26 @@ namespace EternalClash.UI
             if (materialSlots == null)
                 return;
 
-            TMP_Text[] texts = materialSlots.GetComponentsInChildren<TMP_Text>(true);
             int cost = witchSkills != null ? witchSkills.GetUpgradeCost(WitchAbility.Healing) : 0;
-            for (int i = 0; i < texts.Length; i++)
-                texts[i].text = i == 0 ? "Wood x" + cost : string.Empty;
+            int available = EternalClash.Village.AlchemistUpgradeSystem.GetMaterialAmount(
+                EternalClash.Core.Save.SaveManager.Instance?.Data?.inventory?.items, "wood_small");
+            ItemData wood = ItemCatalog.Find("wood_small");
+
+            SetSlotVisible(materialSlots.transform, "Slot_1", true);
+            SetSlotVisible(materialSlots.transform, "Slot_2", false);
+            SetSlotVisible(materialSlots.transform, "Slot_3", false);
+
+            Image icon = FindDeepChild(materialSlots.transform, "ItemPic")?.GetComponent<Image>();
+            TMP_Text quantity = FindDeepChild(materialSlots.transform, "Soluong")?.GetComponent<TMP_Text>();
+            if (icon != null || quantity != null)
+                ShopMaterialDisplay.Refresh(icon, quantity, wood, cost, available >= cost);
+        }
+
+        private static void SetSlotVisible(Transform root, string slotName, bool visible)
+        {
+            Transform slot = FindDeepChild(root, slotName);
+            if (slot != null)
+                slot.gameObject.SetActive(visible);
         }
 
         private void AddPopupCloseListener(GameObject popup)
