@@ -7,6 +7,7 @@ using Spine.Unity;
 using EternalClash.Data;
 using EternalClash.Village;
 using EternalClash.Core.Save;
+using EternalClash.Skill;
 
 namespace EternalClash.UI
 {
@@ -85,11 +86,11 @@ namespace EternalClash.UI
         [SerializeField] private Color lockedIconColor = new Color(0.6f, 0.6f, 0.6f, 0.9f);
 
         [Header("--- Level Unlock Settings ---")]
-        [Tooltip("Cấp độ mở khóa kỹ năng thứ 2 (mặc định 20)")]
-        [SerializeField] private int skill2UnlockLevel = 20;
+        [Tooltip("Cấp độ mở khóa kỹ năng thứ 2 (mặc định 10)")]
+        [SerializeField] private int skill2UnlockLevel = 10;
 
-        [Tooltip("Khoảng cách cấp độ mở mỗi kỹ năng tiếp theo (mặc định 10: Lv 30, Lv 40,...)")]
-        [SerializeField] private int levelStepPerSkill = 10;
+        [Tooltip("Khoảng cách cấp độ mở mỗi kỹ năng tiếp theo (mặc định 5: Lv 15, Lv 20,...)")]
+        [SerializeField] private int levelStepPerSkill = 5;
 
         [Tooltip("Ghi đè level để test trực tiếp trong Inspector (nếu = 0 sẽ lấy level thật của người chơi)")]
         [SerializeField] private int testPlayerLevelOverride = 0;
@@ -131,7 +132,12 @@ namespace EternalClash.UI
 
         private void OnEnable()
         {
-            // Mặc định chọn nhánh hiện tại (hoặc Charge) khi mở panel
+            // Restore the loadout selected before entering another scene.
+            int savedBranchIndex = branches.FindIndex(b =>
+                string.Equals(b.branchId, SkillLoadout.BranchId, StringComparison.OrdinalIgnoreCase));
+            if (savedBranchIndex >= 0)
+                currentBranchIndex = savedBranchIndex;
+
             SelectBranch(currentBranchIndex);
         }
 
@@ -221,6 +227,7 @@ namespace EternalClash.UI
 
             currentBranchIndex = branchIndex;
             SkillBranchData branch = branches[branchIndex];
+            SkillLoadout.SelectBranch(branch.branchId);
 
             // 1. Cập nhật ten_skill
             if (tenSkillText != null)
@@ -243,8 +250,10 @@ namespace EternalClash.UI
             // 5. Cập nhật danh sách các kỹ năng con trong list_skill
             RefreshSubSkillSlots(branch);
 
-            // 6. Mặc định chọn kỹ năng con đầu tiên trong nhánh
-            SelectSubSkill(0);
+            // Restore the previously equipped sub-skill when reopening the panel.
+            int savedSkillIndex = branch.subSkills.FindIndex(s =>
+                string.Equals(s.skillId, SkillLoadout.SkillId, StringComparison.OrdinalIgnoreCase));
+            SelectSubSkill(savedSkillIndex >= 0 ? savedSkillIndex : 0);
         }
 
         /// <summary>
@@ -335,9 +344,9 @@ namespace EternalClash.UI
         /// <summary>
         /// Lấy cấp độ yêu cầu để mở khóa slot kỹ năng:
         /// - Skill 1 (slot 0): Lv 1 (mở mặc định)
-        /// - Skill 2 (slot 1): Lv 20
-        /// - Skill 3 (slot 2): Lv 30
-        /// - Skill 4 (slot 3): Lv 40 (từ sau cứ 10 lv mở 1 skill)
+        /// - Skill 2 (slot 1): Lv 10
+        /// - Skill 3 (slot 2): Lv 15
+        /// - Skill 4 (slot 3): Lv 20 (từ sau cứ 5 lv mở 1 skill)
         /// </summary>
         public int GetRequiredLevelForSlot(int slotIndex)
         {
@@ -370,7 +379,7 @@ namespace EternalClash.UI
         /// <summary>
         /// Đồng bộ và sắp xếp danh sách kỹ năng con:
         /// - Sắp xếp tăng dần theo Tier (Tier 1 thấp nhất).
-        /// - Lv 20 mở skill 2, từ sau cứ 10 lv mở 1 skill.
+        /// - Lv 10 mở skill 2, từ sau cứ 5 lv mở 1 skill.
         /// </summary>
         private void SyncSubSkillsFromAssets(SkillBranchData branch)
         {
@@ -382,6 +391,9 @@ namespace EternalClash.UI
             // 1. Nếu có danh sách ScriptableObject SkillData
             if (branch.skillDataAssets != null && branch.skillDataAssets.Count > 0)
             {
+                foreach (SkillData asset in branch.skillDataAssets)
+                    SkillLoadout.RegisterData(asset);
+
                 // Sắp xếp tăng dần theo Tier: Tier 1 là thấp nhất
                 branch.skillDataAssets.Sort((a, b) =>
                 {
@@ -450,6 +462,9 @@ namespace EternalClash.UI
             currentSubSkillIndex = subSkillIndex;
             SubSkillData skill = branch.subSkills[subSkillIndex];
             int reqLevel = GetRequiredLevelForSlot(subSkillIndex);
+
+            if (skill.isUnlocked)
+                SkillLoadout.Save(branch.branchId, skill.skillId, skill.skillDataAsset);
 
             // 1. Cập nhật chon_skill: chỉ hiện mỗi tên
             if (chonSkillText != null)

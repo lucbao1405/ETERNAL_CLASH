@@ -167,6 +167,7 @@ namespace EternalClash.BattleResult
             BattleRewardData data = BuildResultData(false);
             if (losePopup != null && loseUI != null)
             {
+                BattlePopupController.SetResultOverlay(true);
                 losePopup.SetActive(true);
                 losePopup.transform.SetAsLastSibling();
                 yield return FadeIn(losePopup);
@@ -175,6 +176,7 @@ namespace EternalClash.BattleResult
                 loseUI.ShowDefeat(data.exp, data.battleTime, data.GetDisplayItems(), () => clicked = true);
                 yield return WaitForResultClick(() => clicked);
                 loseUI.Close();
+                BattlePopupController.SetResultOverlay(false);
                 ReturnToVillage();
                 yield break;
             }
@@ -210,6 +212,7 @@ namespace EternalClash.BattleResult
             BattleRewardData data = BuildResultData(true);
             if (winPopup != null && winUI != null)
             {
+                BattlePopupController.SetResultOverlay(true);
                 winPopup.SetActive(true);
                 winPopup.transform.SetAsLastSibling();
                 yield return FadeIn(winPopup);
@@ -218,6 +221,7 @@ namespace EternalClash.BattleResult
                 winUI.ShowVictory(data.exp, data.gold, data.battleTime, data.GetDisplayItems(), () => clicked = true);
                 yield return WaitForResultClick(() => clicked);
                 winUI.Close();
+                BattlePopupController.SetResultOverlay(false);
                 ReturnToVillage();
                 yield break;
             }

@@ -97,6 +97,17 @@ namespace EternalClash.Player
                 ? PlayerStatSystem.Instance.ChargeDamage
                 : 20;
 
+            SkillManager skillManager = transform.root.GetComponent<SkillManager>();
+            if (skillManager != null)
+                finalDamage += SkillLoadout.GetBonusDamage("charge");
+
+            if (skillManager != null && SkillLoadout.GetEffectType("charge") ==
+                (int)EternalClash.Data.SpecialEffectType.DamageBonus)
+            {
+                finalDamage = Mathf.RoundToInt(finalDamage *
+                    (1f + SkillLoadout.GetEffectValue("charge") / 100f));
+            }
+
             Debug.Log($"[CHARGE HIT] {enemyObject.name} finalDamage={finalDamage}");
 
             CombatDamageResolver.Instance?.DealDamage(

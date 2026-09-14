@@ -88,7 +88,7 @@ namespace EternalClash.UI
             // EXP
             if (expText != null)
             {
-                expText.text = $"EXP +{exp}";
+                expText.text = $"+{exp}";
                 expText.gameObject.SetActive(victory || exp > 0);
             }
 
@@ -103,9 +103,7 @@ namespace EternalClash.UI
             // Time
             if (timeText != null)
             {
-                timeText.text = victory
-                    ? $"Time  {FormatTime(battleTime)}"
-                    : $"Time Survived  {FormatTime(battleTime)}";
+                timeText.text = FormatTime(battleTime);
                 timeText.gameObject.SetActive(true);
             }
 

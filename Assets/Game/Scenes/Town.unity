@@ -7087,8 +7087,8 @@ MonoBehaviour:
   normalSlotColor: {r: 1, g: 1, b: 1, a: 1}
   lockedSlotColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   lockedIconColor: {r: 0.6, g: 0.6, b: 0.6, a: 0.9}
-  skill2UnlockLevel: 20
-  levelStepPerSkill: 10
+  skill2UnlockLevel: 10
+  levelStepPerSkill: 5
   testPlayerLevelOverride: 0
   branches:
   - branchId: charge
@@ -7115,7 +7115,7 @@ MonoBehaviour:
       skillName: Power Strike
       tier: 2
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 20"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 10"
       skillDescription: Strike with increased damage.
       icon: {fileID: 21300000, guid: 619caa8d850b96c48a436af939fbf677, type: 3}
       skillDataAsset: {fileID: 11400000, guid: a6df88d574d783c42970dfe953bfae91, type: 2}
@@ -7123,7 +7123,7 @@ MonoBehaviour:
       skillName: Rising Charge
       tier: 3
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 30"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 15"
       skillDescription: Charge forward and briefly stun enemies.
       icon: {fileID: 21300000, guid: 63f6136ec20d5e14889762d748b659ec, type: 3}
       skillDataAsset: {fileID: 11400000, guid: caf1c762ef95cd34b9f2eacbbebaa135, type: 2}
@@ -7131,7 +7131,7 @@ MonoBehaviour:
       skillName: Earth Breaker
       tier: 4
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 40"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 20"
       skillDescription: Smash the ground and unleash a shockwave.
       icon: {fileID: 21300000, guid: 7014859eb801f0444bb42cbf618773c3, type: 3}
       skillDataAsset: {fileID: 11400000, guid: 665dbba74dcadae478a39b9a91fc7fe6, type: 2}
@@ -7159,7 +7159,7 @@ MonoBehaviour:
       skillName: Counter Shield
       tier: 2
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 20"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 10"
       skillDescription: Block attacks and reflect damage to the attacker.
       icon: {fileID: 21300000, guid: 6229b5aec47141f4fac153eada3e3beb, type: 3}
       skillDataAsset: {fileID: 11400000, guid: 8c0bb00f17cf7a1498db17ea3640f408, type: 2}
@@ -7167,7 +7167,7 @@ MonoBehaviour:
       skillName: Bulwark
       tier: 3
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 30"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 15"
       skillDescription: Become temporarily immune to damage and control effects.
       icon: {fileID: 0}
       skillDataAsset: {fileID: 11400000, guid: 9e1f5d584c519254bb46ce6416c99c24, type: 2}
@@ -7175,7 +7175,7 @@ MonoBehaviour:
       skillName: Shield Burst
       tier: 4
       isUnlocked: 0
-      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 40"
+      unlockRequirement: "M\u1EDF kh\xF3a \u1EDF Lv 20"
       skillDescription: Release a shockwave after blocking an attack.
       icon: {fileID: 0}
       skillDataAsset: {fileID: 11400000, guid: f1996ff85035c044cab5a6aba62b8af8, type: 2}
@@ -25305,8 +25305,8 @@ MonoBehaviour:
   normalSlotColor: {r: 1, g: 1, b: 1, a: 1}
   lockedSlotColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   lockedIconColor: {r: 0.6, g: 0.6, b: 0.6, a: 0.9}
-  skill2UnlockLevel: 20
-  levelStepPerSkill: 10
+  skill2UnlockLevel: 10
+  levelStepPerSkill: 5
   testPlayerLevelOverride: 0
   branches:
   - branchId: charge

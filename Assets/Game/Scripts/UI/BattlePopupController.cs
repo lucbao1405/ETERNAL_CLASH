@@ -48,6 +48,7 @@ namespace EternalClash.UI
         private RectTransform settingPanel;
         private RectTransform winPopup;
         private RectTransform losePopup;
+        private Transform resultDim;
         private Button settingsButton;
         private Button closeSettingsButton;
         private Button settingReturnButton;
@@ -86,7 +87,18 @@ namespace EternalClash.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void BootstrapForBattle()
         {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
             EnsureController();
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (mode == LoadSceneMode.Single &&
+                string.Equals(scene.name, BattleSceneName, StringComparison.OrdinalIgnoreCase))
+            {
+                EnsureController();
+            }
         }
 
         private static BattlePopupController EnsureController()
@@ -184,6 +196,13 @@ namespace EternalClash.UI
         {
             BattlePopupController controller = EnsureController();
             return controller != null && controller.ShowLose(result);
+        }
+
+        public static void SetResultOverlay(bool visible)
+        {
+            BattlePopupController controller = EnsureController();
+            if (controller != null)
+                controller.SetResultOverlayInternal(visible);
         }
 
         public bool ShowWin()
@@ -335,7 +354,7 @@ namespace EternalClash.UI
         {
             if (motion.XpLabel != null)
             {
-                motion.XpLabel.text = $"XP: +{earnedExp}";
+                motion.XpLabel.text = $"+{earnedExp}";
                 motion.XpLabel.gameObject.SetActive(true);
             }
 
@@ -420,7 +439,7 @@ namespace EternalClash.UI
                 return;
 
             string time = FormatTime(battleTime);
-            motion.TimeLabel.text = victory ? $"Time  {time}" : $"Time Survived  {time}";
+            motion.TimeLabel.text = time;
             motion.TimeLabel.gameObject.SetActive(true);
         }
 
@@ -470,6 +489,7 @@ namespace EternalClash.UI
             settingPanel = FindSceneRect(scene, "Setting", "Settings");
             winPopup = FindSceneRect(scene, "Win_Popup", "WinPopup");
             losePopup = FindSceneRect(scene, "Lose_Popup", "LosePopup");
+            resultDim = FindSceneTransform(scene, "Dim");
 
             Transform settingsButtonTransform = FindSceneTransform(scene, "SettingsButton", "SettingButton");
             settingsButton = EnsureButton(settingsButtonTransform);
@@ -748,6 +768,36 @@ namespace EternalClash.UI
             Time.timeScale = timeScaleBeforeSettings;
             AudioListener.pause = audioPauseBeforeSettings;
             pausedBySettings = false;
+        }
+
+        private void SetResultOverlayInternal(bool visible)
+        {
+            if (resultDim == null)
+                resultDim = FindSceneTransform(gameObject.scene, "Dim");
+
+            if (resultDim != null)
+                resultDim.gameObject.SetActive(visible);
+
+            SkillUIController[] skillControllers = FindObjectsOfType<SkillUIController>();
+            foreach (SkillUIController skillController in skillControllers)
+                skillController.SetSkillButtonsInteractable(!visible);
+
+            if (visible)
+            {
+                if (!pausedBySettings)
+                {
+                    timeScaleBeforeSettings = Time.timeScale;
+                    audioPauseBeforeSettings = AudioListener.pause;
+                    pausedBySettings = true;
+                }
+
+                Time.timeScale = 0f;
+                AudioListener.pause = true;
+            }
+            else
+            {
+                RestoreGameTime();
+            }
         }
 
         private void WireButtons()

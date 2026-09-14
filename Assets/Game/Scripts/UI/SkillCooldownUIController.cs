@@ -18,13 +18,34 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text potionText;
         [SerializeField] private TMP_Text chargeText;
 
+        private void Start()
+        {
+            BindRuntimePlayer();
+        }
+
         private void Update()
         {
-            if (skillManager == null) return;
+            if (skillManager == null)
+            {
+                BindRuntimePlayer();
+                if (skillManager == null)
+                    return;
+            }
 
             UpdateCooldown(shieldManagerTime(), shieldOverlay, shieldText);
             UpdateCooldown(skillManager.GetPotionCooldown(), potionOverlay, potionText);
             UpdateCooldown(skillManager.GetChargeCooldown(), chargeOverlay, chargeText);
+        }
+
+        private void BindRuntimePlayer()
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+                return;
+
+            skillManager = player.GetComponent<SkillManager>();
+            if (skillManager != null)
+                skillManager.EnsureSkills();
         }
 
         private float shieldManagerTime()
