@@ -10,6 +10,7 @@ namespace EternalClash.Skill
         /// (does not change any gameplay/cooldown behaviour).
         /// </summary>
         public event Action<string> SkillExecuted;
+        public event Action<SkillBase> SkillExecutedSource;
 
         public string skillName;
         public float cooldown = 5f;
@@ -51,6 +52,7 @@ namespace EternalClash.Skill
 
             // Animation-layer feedback only (no gameplay impact).
             SkillExecuted?.Invoke(skillName);
+            SkillExecutedSource?.Invoke(this);
             EternalClash.Audio.GameAudio.PlaySkill(skillName);
 
             // Start cooldown only after the skill actually executes

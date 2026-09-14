@@ -25,10 +25,18 @@ namespace EternalClash.UI
 
         private void DisableButtons()
         {
+            SetSkillButtonsInteractable(false);
+        }
+
+        public void SetSkillButtonsInteractable(bool interactable)
+        {
+            if (skillButtons == null)
+                return;
+
             foreach (Button button in skillButtons)
             {
                 if (button != null)
-                    button.interactable = false;
+                    button.interactable = interactable;
             }
         }
 

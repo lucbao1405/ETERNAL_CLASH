@@ -1,8 +1,9 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using EternalClash.Skill;
 using EternalClash.Village;
+using UnityEngine.UI;
+using EternalClash.Data;
 
 namespace EternalClash.UI
 {
@@ -22,6 +23,7 @@ namespace EternalClash.UI
         public SkillType skillType;
 
         private SkillManager skillManager;
+        private bool equippedIconApplied;
 
         private void Awake()
         {
@@ -54,6 +56,34 @@ namespace EternalClash.UI
                 skillButton.onClick.AddListener(OnClickSkill);
 
             FindRuntimePlayer();
+            ApplyEquippedIcon();
+        }
+
+        private void ApplyEquippedIcon()
+        {
+            if (skillButton == null)
+                return;
+
+            string branchId = skillType == SkillType.Charge ? "charge" :
+                skillType == SkillType.Shield ? "shield" : null;
+            SkillData selectedData = SkillLoadout.GetSelectedData(branchId);
+            if (selectedData == null)
+                return;
+
+            string iconName = skillType == SkillType.Charge ? "Kiem" :
+                skillType == SkillType.Shield ? "Khien" : "Thuoc";
+            Transform iconTransform = skillButton.transform.Find(iconName);
+            if (iconTransform == null)
+                iconTransform = skillButton.transform.Find("Icon");
+            Image buttonImage = iconTransform != null
+                ? iconTransform.GetComponent<Image>()
+                : null;
+            if (buttonImage != null && selectedData != null && selectedData.icon != null)
+            {
+                buttonImage.sprite = selectedData.icon;
+                buttonImage.preserveAspect = true;
+                equippedIconApplied = true;
+            }
         }
 
         private void OnDestroy()
@@ -100,6 +130,9 @@ namespace EternalClash.UI
                 FindRuntimePlayer();
                 return;
             }
+
+            if (!equippedIconApplied)
+                ApplyEquippedIcon();
 
             float cd = 0f;
             float maxCd = 1f;

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using EternalClash.Skill;
 
 namespace EternalClash.Player
 {
@@ -52,6 +53,11 @@ namespace EternalClash.Player
                 spawnPosition,
                 Quaternion.identity
             );
+
+            SkillManager skillManager = currentPlayer.GetComponent<SkillManager>();
+            if (skillManager == null)
+                skillManager = currentPlayer.AddComponent<SkillManager>();
+            skillManager.EnsureSkills();
 
             EternalClash.Village.EquipmentVisualBinder visualBinder =
                 currentPlayer.GetComponent<EternalClash.Village.EquipmentVisualBinder>();

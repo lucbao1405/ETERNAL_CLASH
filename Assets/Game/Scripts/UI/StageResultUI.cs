@@ -189,10 +189,10 @@ namespace EternalClash.UI
             int seconds = Mathf.FloorToInt(result.stageTime % 60f);
 
             if (timeBoxText != null)
-                timeBoxText.text = $"Time\n{minutes:00}:{seconds:00}";
+                timeBoxText.text = $"{minutes:00}:{seconds:00}";
 
             if (xpBoxText != null)
-                xpBoxText.text = $"XP\n+{result.earnedExp}";
+                xpBoxText.text = $"+{result.earnedExp}";
 
             RefreshExpProgress();
 
@@ -243,10 +243,10 @@ namespace EternalClash.UI
             int seconds = Mathf.FloorToInt(stageTime % 60f);
 
             if (timeBoxText != null)
-                timeBoxText.text = $"Time Survived\n{minutes:00}:{seconds:00}";
+                timeBoxText.text = $"{minutes:00}:{seconds:00}";
 
             if (xpBoxText != null)
-                xpBoxText.text = earnedExp > 0 ? $"EXP\n+{earnedExp}" : "EXP\n+0";
+                xpBoxText.text = earnedExp > 0 ? $"+{earnedExp}" : "+0";
 
             if (rewardItemRoot != null)
                 rewardItemRoot.SetActive(false);

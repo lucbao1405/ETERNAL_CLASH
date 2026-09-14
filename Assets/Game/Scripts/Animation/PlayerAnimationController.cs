@@ -122,7 +122,7 @@ namespace EternalClash.Animation
                 if (skill == null)
                     continue;
                 boundSkills.Add(skill);
-                skill.SkillExecuted += OnSkillExecuted;
+                skill.SkillExecutedSource += OnSkillExecutedSource;
             }
 
             subscribed = true;
@@ -157,7 +157,7 @@ namespace EternalClash.Animation
             foreach (SkillBase skill in boundSkills)
             {
                 if (skill != null)
-                    skill.SkillExecuted -= OnSkillExecuted;
+                    skill.SkillExecutedSource -= OnSkillExecutedSource;
             }
             boundSkills.Clear();
 
@@ -390,41 +390,23 @@ namespace EternalClash.Animation
             NotifyDeath();
         }
 
-        private void OnSkillExecuted(string skillName)
+        private void OnSkillExecutedSource(SkillBase skill)
         {
-            if (dead)
+            if (dead || skill == null)
                 return;
 
-            if (string.Equals(skillName, "Shield", StringComparison.OrdinalIgnoreCase))
+            if (skill is ShieldSkill shield)
             {
-                // Find the skill instance that executed so we can watch its end.
-                shieldSource = null;
-                foreach (SkillBase skill in boundSkills)
-                {
-                    if (skill is ShieldSkill s && string.Equals(s.skillName, skillName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        shieldSource = s;
-                        break;
-                    }
-                }
-                NotifyShield(shieldSource);
+                shieldSource = shield;
+                NotifyShield(shield);
             }
-            else if (string.Equals(skillName, "Potion", StringComparison.OrdinalIgnoreCase))
+            else if (skill is PotionSkill)
             {
                 NotifyPotion();
             }
-            else if (string.Equals(skillName, "Charge", StringComparison.OrdinalIgnoreCase))
+            else if (skill is ChargeSkill charge)
             {
-                float duration = 0f;
-                foreach (SkillBase skill in boundSkills)
-                {
-                    if (skill is ChargeSkill charge)
-                    {
-                        duration = charge.GetChargeDuration();
-                        break;
-                    }
-                }
-                NotifyCharge(duration);
+                NotifyCharge(charge.GetChargeDuration());
             }
         }
     }
