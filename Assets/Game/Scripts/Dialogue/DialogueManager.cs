@@ -36,6 +36,9 @@ public class DialogueManager : MonoBehaviour
     private Coroutine slideCoroutine;
     private bool isTyping;
     private bool isOpen;
+
+    /// <summary>Hop hoi thoai dang hien. Dung cho nut Back Android.</summary>
+    public bool IsOpen => isOpen;
     private GameObject panelToOpenAfterDialogue;
 
     private Vector2 HiddenAnchoredPosition =>

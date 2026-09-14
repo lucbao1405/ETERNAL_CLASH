@@ -131,6 +131,18 @@ namespace EternalClash.UI
         // Public API used by StageCompleteController (and tests).
         // ------------------------------------------------------------------
 
+        /// <summary>Bang Pause dang mo (game dang tam dung).</summary>
+        public bool IsSettingsOpen => pausedBySettings;
+
+        /// <summary>
+        /// Lay (hoac tao) controller trong scene Battle. Null neu khong o Battle.
+        /// Dung cho nut Back Android.
+        /// </summary>
+        public static BattlePopupController GetForBattle()
+        {
+            return EnsureController();
+        }
+
         public void OpenSettings()
         {
             InitializeIfNeeded();
@@ -240,9 +252,24 @@ namespace EternalClash.UI
         // Button actions
         // ------------------------------------------------------------------
 
+        /// <summary>
+        /// Return trong bang Pause = bo cuoc. Dang danh thi tinh la THUA (bi thuong,
+        /// hien Lose popup, do da nhat van giu nhu luat thua) thay vi ve lang
+        /// nguyen ven - truoc day co the danh dot dau roi thoat ra de cay khong mat gi.
+        /// </summary>
         private void OnSettingsReturnClicked()
         {
+            if (settingMotion != null)
+                ClosePanel(settingMotion);
             RestoreGameTime();
+
+            StageManager stage = StageManager.Instance;
+            if (stage != null && stage.CurrentState == StageManager.StageState.Running)
+            {
+                stage.FailStage();
+                return;
+            }
+
             ExitToTown();
         }
 

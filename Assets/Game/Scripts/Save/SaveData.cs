@@ -69,6 +69,10 @@ public class SaveData
     public long recoveryStartUnixTime = 0;
     public float recoveryRatePerSecond = 5f;
     public int recoveryTargetPercent = 80;
+
+    // Dang o giua tran. Bat khi vao Battle, tat khi thang / thua. Mo game ma co con
+    // bat nghia la app bi tat ngang tran -> tinh la thua (tranh thoat app de ne thua).
+    public bool battleInProgress = false;
 }
 
 [Serializable]
