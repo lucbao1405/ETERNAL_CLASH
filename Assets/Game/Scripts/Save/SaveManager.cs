@@ -95,6 +95,12 @@ namespace EternalClash.Core.Save
         /// </summary>
         public void RequestSave()
         {
+            // Dong bo truong cu -> DTO ngay (chi gan gia tri, re). Lo ren / phu thuy doc
+            // data.currency.gold; neu doi toi luc ghi (<= 1s) ho se thay so vang cu va
+            // khi tru tien se ghi de tra lai vang vua tieu.
+            if (Data != null)
+                SaveMigrationManager.SynchronizeDtosFromLegacy(Data);
+
             savePending = true;
         }
 
