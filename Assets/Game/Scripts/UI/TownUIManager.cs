@@ -191,14 +191,14 @@ namespace EternalClash.UI
         }
 
         // Button Callbacks
-        public void OnClick_AddStrength() => PlayerStatSystem.Instance?.AllocateStrength();
-        public void OnClick_AddIntelligence() => PlayerStatSystem.Instance?.AllocateIntelligence();
-        public void OnClick_AddVitality() => PlayerStatSystem.Instance?.AllocateVitality();
-        public void OnClick_AddLuck() => PlayerStatSystem.Instance?.AllocateLuck();
-        public void OnClick_ResetStats() => PlayerStatSystem.Instance?.ResetStats();
+        public void OnClick_AddStrength() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateStrength(); }
+        public void OnClick_AddIntelligence() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateIntelligence(); }
+        public void OnClick_AddVitality() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateVitality(); }
+        public void OnClick_AddLuck() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.AllocateLuck(); }
+        public void OnClick_ResetStats() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); PlayerStatSystem.Instance?.ResetStats(); }
 
-        public void OnClick_UpgradeWeapon() => BlacksmithCraftingSystem.Instance?.UpgradeWeapon();
-        public void OnClick_UpgradeArmor() => BlacksmithCraftingSystem.Instance?.UpgradeArmor();
+        public void OnClick_UpgradeWeapon() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); BlacksmithCraftingSystem.Instance?.UpgradeWeapon(); }
+        public void OnClick_UpgradeArmor() { EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick); BlacksmithCraftingSystem.Instance?.UpgradeArmor(); }
 
         private static int GetRequirement(UpgradeRecipeData recipe, MaterialType type)
         {
@@ -212,6 +212,7 @@ namespace EternalClash.UI
 
         public void OnClick_StartBattle()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             var condition = PlayerConditionSystem.Instance;
             if (condition != null && !condition.CanStartBattle())
             {

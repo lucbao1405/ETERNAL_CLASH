@@ -111,6 +111,7 @@ namespace EternalClash.UI
 
         private void HandleTap()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             if (State == EternalClash.BattleResult.ChestState.Closed) PlayOpen();
             else if (State == EternalClash.BattleResult.ChestState.Hold) RevealNextItem();
         }

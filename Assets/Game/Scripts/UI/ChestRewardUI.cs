@@ -110,6 +110,8 @@ namespace EternalClash.UI
             if (!IsRevealing || Time.unscaledTime < inputEnabledAt)
                 return;
 
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+
             if (chestAnimation != null && chestAnimation.State == ChestState.Closed)
             {
                 SetTapHint(false);

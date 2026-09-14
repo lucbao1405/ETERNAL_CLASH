@@ -53,6 +53,7 @@ namespace EternalClash.UI
 
         private void OnEquipClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             StageCompleteController.Instance?.OnEquipAccepted();
             if (gameObject != null)
                 gameObject.SetActive(false);
@@ -60,6 +61,7 @@ namespace EternalClash.UI
 
         private void OnBackClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             StageCompleteController.Instance?.OnEquipSkipped();
             if (gameObject != null)
                 gameObject.SetActive(false);

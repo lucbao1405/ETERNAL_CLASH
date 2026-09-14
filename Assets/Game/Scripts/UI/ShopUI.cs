@@ -44,14 +44,19 @@ namespace EternalClash.UI
             gameObject.SetActive(true);
             RefreshShop();
             if (shopScroll != null)
+            {
                 shopScroll.verticalNormalizedPosition = 1f;
+                if (shopScroll.GetComponent<UIScrollSound>() == null)
+                    shopScroll.gameObject.AddComponent<UIScrollSound>();
+            }
         }
 
-    public void Close()
-    {
-        ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
-        if (animator != null) animator.Close();
-        else gameObject.SetActive(false);
+        public void Close()
+        {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+            ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
+            if (animator != null) animator.Close();
+            else gameObject.SetActive(false);
         }
 
         public void RefreshShop()

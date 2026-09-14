@@ -63,5 +63,8 @@ public class SwipePage : MonoBehaviour, IEndDragHandler, IBeginDragHandler
                 targetPosition = pagePositions[i];
             }
         }
+
+        if (Mathf.Abs(targetPosition - currentPos) > 0.01f)
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
     }
 }

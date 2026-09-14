@@ -164,6 +164,7 @@ namespace EternalClash.UI
 
         public void OnChargeButtonClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             int index = branches.FindIndex(b => string.Equals(b.branchId, "charge", StringComparison.OrdinalIgnoreCase));
             if (index >= 0)
             {
@@ -173,6 +174,7 @@ namespace EternalClash.UI
 
         public void OnShieldButtonClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             int index = branches.FindIndex(b => string.Equals(b.branchId, "shield", StringComparison.OrdinalIgnoreCase));
             if (index >= 0)
             {
@@ -182,6 +184,7 @@ namespace EternalClash.UI
 
         public void OnCloseButtonClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             var animator = GetComponent<ShopPanelAnimator>();
             if (animator != null)
             {
@@ -331,7 +334,11 @@ namespace EternalClash.UI
                         bgImg.color = skill.isUnlocked ? normalSlotColor : lockedSlotColor;
                     }
 
-                    slotBtn.onClick.AddListener(() => SelectSubSkill(slotIndex));
+                    slotBtn.onClick.AddListener(() =>
+                    {
+                        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+                        SelectSubSkill(slotIndex);
+                    });
                 }
                 else
                 {
@@ -630,6 +637,9 @@ namespace EternalClash.UI
             skillScrollRect.content = content;
             LayoutRebuilder.ForceRebuildLayoutImmediate(content);
             skillScrollRect.verticalNormalizedPosition = 1f;
+
+            if (skillScrollRect.GetComponent<UIScrollSound>() == null)
+                skillScrollRect.gameObject.AddComponent<UIScrollSound>();
         }
 
         /// <summary>

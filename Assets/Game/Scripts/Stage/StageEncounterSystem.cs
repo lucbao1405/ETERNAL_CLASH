@@ -43,7 +43,8 @@ public class StageEncounterSystem : MonoBehaviour
                 continue;
 
             int index = Random.Range(0, encounter.enemyPrefabs.Count);
-            Instantiate(encounter.enemyPrefabs[index], enemyContainer);
+            GameObject enemy = Instantiate(encounter.enemyPrefabs[index], enemyContainer);
+            enemy.transform.position = CombatLaneY.AlignToPlayerY(enemy.transform.position);
         }
     }
 

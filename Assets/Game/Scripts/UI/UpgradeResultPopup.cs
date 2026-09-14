@@ -63,6 +63,7 @@ namespace EternalClash.UI
 
         public void Close()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             successPanel?.SetActive(false);
             failurePanel?.SetActive(false);
         }

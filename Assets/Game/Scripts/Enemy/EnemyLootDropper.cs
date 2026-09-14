@@ -41,7 +41,8 @@ namespace EternalClash.Enemy
                 if (roll > item.dropChance)
                     continue;
 
-                GameObject drop = Instantiate(item.prefab, transform.position, Quaternion.identity);
+                Vector3 dropPosition = CombatLaneY.AlignToPlayerY(transform.position);
+                GameObject drop = Instantiate(item.prefab, dropPosition, Quaternion.identity);
 
                 // Cung cha voi Enemy de Item troi theo Map neu Enemy dang la con cua
                 // 1 container Map/World nao do (SetParent(worldPositionStays: true) de

@@ -94,8 +94,12 @@ public class EnemyLootDropController : MonoBehaviour
     private void SpawnDrop(LootData entry, int amount)
     {
         Bounds enemyBounds = GetEnemyBounds();
+        Transform player = FindPlayer();
+        float playerY = player != null ? player.position.y : enemyBounds.center.y;
 
-        GameObject drop = Instantiate(entry.prefab, enemyBounds.center, Quaternion.identity);
+        Vector3 dropPosition = enemyBounds.center;
+        dropPosition.y = playerY;
+        GameObject drop = Instantiate(entry.prefab, dropPosition, Quaternion.identity);
         drop.transform.SetParent(null, true);
 
         ItemPickup pickup = drop.GetComponent<ItemPickup>();
@@ -124,8 +128,10 @@ public class EnemyLootDropController : MonoBehaviour
             rigidBody.gravityScale = 0f;
         }
 
-        float itemHalfHeight = spriteRenderer != null ? spriteRenderer.bounds.extents.y : 0f;
-        float groundY = enemyBounds.min.y + itemHalfHeight + groundOffsetY;
+        // Player is the single source of truth for the combat lane. Do not use
+        // enemy bounds here because different enemy pivots would move the item
+        // to a different vertical lane.
+        float groundY = playerY + groundOffsetY;
 
         // Diem roi: nhay tu xac quai theo huong NGUOC chieu cuon map, va khong
         // vuot ra ngoai man hinh (quai dung xa nhu Goblin Archer de bi van ra mep).

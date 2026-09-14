@@ -48,7 +48,9 @@ namespace EternalClash.Enemy
             rb = GetComponent<Rigidbody2D>();
             GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
             player = playerObject != null ? playerObject.transform : null;
-            lockedY = transform.position.y;
+            // Player defines the shared combat lane. This also corrects enemies
+            // that were already present in the scene before a runtime spawn.
+            lockedY = CombatLaneY.GetPlayerY(transform.position.y);
             if (rb != null)
             {
                 rb.gravityScale = 0f;

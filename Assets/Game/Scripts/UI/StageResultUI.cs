@@ -365,6 +365,7 @@ namespace EternalClash.UI
 
         private void OnContinueClicked()
         {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
             if (currentMode == StageResultMode.Defeat)
             {
                 StageCompleteController.Instance?.OnDefeatContinueClicked();

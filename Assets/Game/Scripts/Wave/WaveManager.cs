@@ -153,7 +153,8 @@ namespace EternalClash.Wave
                 return;
 
             // Diem spawn duy nhat = vi tri cua chinh GameObject dang gan WaveManager nay.
-            GameObject enemy = Instantiate(prefab, transform.position, Quaternion.identity);
+            Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(transform.position);
+            GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
 
             aliveEnemies.Add(enemy);
         }
