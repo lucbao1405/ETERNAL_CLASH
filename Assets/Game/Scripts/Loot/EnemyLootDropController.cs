@@ -94,12 +94,9 @@ public class EnemyLootDropController : MonoBehaviour
     private void SpawnDrop(LootData entry, int amount)
     {
         Bounds enemyBounds = GetEnemyBounds();
-        Transform player = FindPlayer();
-        float playerY = player != null ? player.position.y : enemyBounds.center.y;
 
-        Vector3 dropPosition = enemyBounds.center;
-        dropPosition.y = playerY;
-        GameObject drop = Instantiate(entry.prefab, dropPosition, Quaternion.identity);
+        // Bung ra tu giua than quai, roi xuong duong mat dat chung (chan Player).
+        GameObject drop = Instantiate(entry.prefab, enemyBounds.center, Quaternion.identity);
         drop.transform.SetParent(null, true);
 
         ItemPickup pickup = drop.GetComponent<ItemPickup>();
@@ -128,10 +125,13 @@ public class EnemyLootDropController : MonoBehaviour
             rigidBody.gravityScale = 0f;
         }
 
-        // Player is the single source of truth for the combat lane. Do not use
-        // enemy bounds here because different enemy pivots would move the item
-        // to a different vertical lane.
-        float groundY = playerY + groundOffsetY;
+        // Duong mat dat = chan Player (CombatLaneY). groundY cua LootDropMotion la TAM
+        // vat pham nen cong them nua chieu cao de vat pham nam TREN duong, khong lun.
+        float laneY = CombatLaneY.TryGetGroundY(out float playerFeetY)
+            ? playerFeetY
+            : enemyBounds.min.y;
+        float itemHalfHeight = spriteRenderer != null ? spriteRenderer.bounds.extents.y : 0f;
+        float groundY = laneY + itemHalfHeight + groundOffsetY;
 
         // Diem roi: nhay tu xac quai theo huong NGUOC chieu cuon map, va khong
         // vuot ra ngoai man hinh (quai dung xa nhu Goblin Archer de bi van ra mep).
@@ -195,7 +195,11 @@ public class EnemyLootDropController : MonoBehaviour
 
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
+            // Bo particle, chu HP tren dau quai va renderer chua co hinh (bounds rong)
+            // de tam "than quai" khong bi keo lech.
             if (r is ParticleSystemRenderer || !r.enabled)
+                continue;
+            if (r.GetComponent<TMPro.TMP_Text>() != null || r.bounds.size.y <= 0.0001f)
                 continue;
 
             if (found)
