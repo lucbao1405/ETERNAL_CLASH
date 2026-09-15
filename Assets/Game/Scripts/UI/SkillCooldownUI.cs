@@ -159,18 +159,24 @@ namespace EternalClash.UI
 
             bool isOnCooldown = cd > 0.05f;
 
+            // Bi day lui: khoa ca 3 nut. Phu kin nut (khong dem nguoc) de nguoi choi
+            // thay ro la dang bi khoa, bam cung khong ra skill.
+            bool isLocked = skillManager.AreSkillsLocked;
+
             if (cooldownText != null)
                 cooldownText.text = isOnCooldown ? cd.ToString("0.0") : "";
 
             if (cooldownOverlay != null)
             {
-                cooldownOverlay.gameObject.SetActive(isOnCooldown);
-                cooldownOverlay.fillAmount = isOnCooldown ? (cd / Mathf.Max(maxCd, 0.01f)) : 0f;
+                cooldownOverlay.gameObject.SetActive(isOnCooldown || isLocked);
+                cooldownOverlay.fillAmount = isOnCooldown
+                    ? (cd / Mathf.Max(maxCd, 0.01f))
+                    : (isLocked ? 1f : 0f);
             }
 
             if (skillButton != null)
             {
-                skillButton.interactable = !isOnCooldown;
+                skillButton.interactable = !isOnCooldown && !isLocked;
             }
         }
     }
