@@ -57,6 +57,20 @@ namespace EternalClash.Enemy
                 rb.constraints |= RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
                 rb.position = new Vector2(rb.position.x, lockedY);
             }
+
+            // Dat pivot ngang Player chua du (moi prefab pivot khac nhau): sau khi hinh
+            // anh duoc ve, CombatLaneAligner dich quai de CHAN cham duong mat dat.
+            if (GetComponent<CombatLaneAligner>() == null)
+                gameObject.AddComponent<CombatLaneAligner>();
+        }
+
+        /// <summary>Doi do cao duong di cua quai (goi boi CombatLaneAligner).</summary>
+        public void SetLaneY(float y)
+        {
+            lockedY = y;
+            if (rb != null)
+                rb.position = new Vector2(rb.position.x, y);
+            transform.position = new Vector3(transform.position.x, y, transform.position.z);
         }
 
         private void FixedUpdate()

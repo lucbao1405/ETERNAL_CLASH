@@ -103,6 +103,22 @@ namespace EternalClash.Skill
             return potionSkill != null ? potionSkill.CooldownRemaining : 0;
         }
 
+        private EternalClash.Combat.PlayerCombatStateMachine combatState;
+
+        /// <summary>
+        /// Skill dang bi khoa vi Player bi day lui (trang thai Hit / man hinh dang lui)
+        /// hoac da chet. Cung dieu kien voi SkillBase.CanUse(), dung de UI lam mo nut.
+        /// </summary>
+        public bool AreSkillsLocked
+        {
+            get
+            {
+                if (combatState == null)
+                    combatState = GetComponent<EternalClash.Combat.PlayerCombatStateMachine>();
+                return combatState != null && !combatState.CanUseSkill;
+            }
+        }
+
         public float GetChargeCooldown()
         {
             return chargeSkill != null ? chargeSkill.CooldownRemaining : 0;
