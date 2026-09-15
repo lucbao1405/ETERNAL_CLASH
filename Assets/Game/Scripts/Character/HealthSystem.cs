@@ -46,6 +46,16 @@ namespace EternalClash.Character
 
             currentHealth = maxHealth;
 
+            // Dong bo voi Town: vao tran voi dung luong mau dang co (dang hoi mau thi
+            // khong day). Dat thang o day, khong qua TakeDamage de khong phat am thanh /
+            // animation bi danh luc moi vao tran.
+            if (CompareTag("Player"))
+            {
+                var condition = EternalClash.Core.PlayerConditionSystem.Instance;
+                if (condition != null)
+                    currentHealth = condition.GetBattleStartHp(maxHealth);
+            }
+
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
