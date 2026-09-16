@@ -116,12 +116,10 @@ namespace EternalClash.Village
 
         public bool CanUpgradeWeapon() => CanUpgrade(ItemSlot.Weapon);
         public bool CanUpgradeArmor() => CanUpgrade(ItemSlot.Armor);
-        public bool CanUpgradeShield() => CanUpgrade(ItemSlot.Accessory);
         public void UpgradeWeapon() => TryUpgradeWeapon();
         public void UpgradeArmor() => TryUpgradeArmor();
         public bool TryUpgradeWeapon() => TryUpgrade(ItemSlot.Weapon);
         public bool TryUpgradeArmor() => TryUpgrade(ItemSlot.Armor);
-        public bool TryUpgradeShield() => TryUpgrade(ItemSlot.Accessory);
 
         public void LoadFromSave(SaveData data)
         {

@@ -45,11 +45,15 @@ namespace EternalClash.UI
 
         public static BattlePopupController Instance { get; private set; }
 
-        private RectTransform settingPanel;
-        private RectTransform winPopup;
-        private RectTransform losePopup;
-        private Transform resultDim;
-        private Button settingsButton;
+    private RectTransform settingPanel;
+    private RectTransform winPopup;
+    private RectTransform losePopup;
+    private Button settingsButton;
+
+    // Distinct PanelDim owner keys: settings (pause) dim and result-flow dim can
+    // be held at the same time on the same controller instance.
+    private readonly object settingsDimKey = new object();
+    private readonly object resultDimKey = new object();
         private Button closeSettingsButton;
         private Button settingReturnButton;
         private Button winReturnButton;
@@ -175,6 +179,7 @@ namespace EternalClash.UI
 
             CloseResultPanels();
             OpenPanel(settingMotion);
+            PanelDim.Acquire(settingsDimKey);
         }
 
         public void CloseSettings()
@@ -182,6 +187,7 @@ namespace EternalClash.UI
             InitializeIfNeeded();
             if (settingMotion != null)
                 ClosePanel(settingMotion);
+            PanelDim.Release(settingsDimKey);
 
             // Gameplay resumes as soon as X is pressed. The closing animation uses
             // unscaled time, so it remains smooth before and after this restore.
@@ -231,6 +237,7 @@ namespace EternalClash.UI
             RestoreGameTime();
             if (settingMotion != null)
                 ClosePanel(settingMotion, true);
+            PanelDim.Release(settingsDimKey);
             if (settingsButton != null)
                 settingsButton.gameObject.SetActive(false);
 
@@ -256,6 +263,7 @@ namespace EternalClash.UI
             RestoreGameTime();
             if (settingMotion != null)
                 ClosePanel(settingMotion, true);
+            PanelDim.Release(settingsDimKey);
             if (settingsButton != null)
                 settingsButton.gameObject.SetActive(false);
 
@@ -280,6 +288,7 @@ namespace EternalClash.UI
         {
             if (settingMotion != null)
                 ClosePanel(settingMotion);
+            PanelDim.Release(settingsDimKey);
             RestoreGameTime();
 
             StageManager stage = StageManager.Instance;
@@ -516,7 +525,6 @@ namespace EternalClash.UI
             settingPanel = FindSceneRect(scene, "Setting", "Settings");
             winPopup = FindSceneRect(scene, "Win_Popup", "WinPopup");
             losePopup = FindSceneRect(scene, "Lose_Popup", "LosePopup");
-            resultDim = FindSceneTransform(scene, "Dim");
 
             Transform settingsButtonTransform = FindSceneTransform(scene, "SettingsButton", "SettingButton");
             settingsButton = EnsureButton(settingsButtonTransform);
@@ -799,11 +807,10 @@ namespace EternalClash.UI
 
         private void SetResultOverlayInternal(bool visible)
         {
-            if (resultDim == null)
-                resultDim = FindSceneTransform(gameObject.scene, "Dim");
-
-            if (resultDim != null)
-                resultDim.gameObject.SetActive(visible);
+            if (visible)
+                PanelDim.Acquire(resultDimKey);
+            else
+                PanelDim.Release(resultDimKey);
 
             SkillUIController[] skillControllers = FindObjectsOfType<SkillUIController>();
             foreach (SkillUIController skillController in skillControllers)

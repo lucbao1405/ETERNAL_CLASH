@@ -60,6 +60,14 @@ namespace EternalClash.UI
         private readonly List<TMP_Text> expTexts = new List<TMP_Text>();
         private readonly List<Slider> expSliders = new List<Slider>();
 
+        // Cum "Potion" trong panel Trang_Bi: chi so thuoc do Phu thuy nang cap.
+        //   Potion/Healing_Potion/Text   -> luong hoi phuc (Heal + bonus %)
+        //   Potion/Cooldown_Potion/Text  -> hoi chieu thuoc (giam theo cap)
+        //   Potion/Defense_Potion/Text   -> luc khiên thuoc
+        private TMP_Text potionHealText;
+        private TMP_Text potionCooldownText;
+        private TMP_Text potionShieldText;
+
         private TMP_Text pointsText;
 
         // True khi o hien diem la object co san trong scene (vd "Point"). Luc do chi
@@ -309,6 +317,19 @@ namespace EternalClash.UI
                 TMP_Text expText = expNumber != null ? expNumber.GetComponent<TMP_Text>() : null;
                 if (expText != null && !expTexts.Contains(expText))
                     expTexts.Add(expText);
+            }
+
+            // --- Chi so thuoc Phu thuy trong panel Trang_Bi ---
+            foreach (Transform potion in FindAllInScene(scene, "Potion"))
+            {
+                // Cu the canh Potion/Healing_Potion nay chi co trong Trang_Bi;
+                // bo qua node "Potion" khac khong dung cau truc.
+                if (FindDescendant(potion, "Healing_Potion") == null)
+                    continue;
+
+                potionHealText = FindDescendant(potion, "Healing_Potion")?.GetComponentInChildren<TMP_Text>(true);
+                potionCooldownText = FindDescendant(potion, "Cooldown_Potion")?.GetComponentInChildren<TMP_Text>(true);
+                potionShieldText = FindDescendant(potion, "Defense_Potion")?.GetComponentInChildren<TMP_Text>(true);
             }
 
             pointsText = CreatePointsLabel(staUpdate);
@@ -649,6 +670,36 @@ namespace EternalClash.UI
             if (intButton != null) intButton.interactable = hasPoints;
             if (vitButton != null) vitButton.interactable = hasPoints;
             if (luckButton != null) luckButton.interactable = hasPoints;
+
+            ApplyPotionStats();
+        }
+
+        /// <summary>
+        /// Dong bo chi so thuoc (Phu thuy nang cap) vao cum Potion cua panel
+        /// Trang_Bi. Cong thuc trung khop voi badge trong shop Phu thuy.
+        /// </summary>
+        private void ApplyPotionStats()
+        {
+            if (potionHealText == null && potionCooldownText == null && potionShieldText == null)
+                return;
+
+            AlchemistUpgradeSystem witch = AlchemistUpgradeSystem.Instance;
+            int healBonus = witch != null
+                ? AlchemistUpgradeSystem.GetHealingBonusPercent(witch.HealingLevel)
+                : 0;
+            int baseHeal = PlayerStatSystem.Instance != null
+                ? PlayerStatSystem.Instance.PotionHealAmount
+                : 50;
+            int heal = Mathf.RoundToInt(baseHeal * (1f + healBonus / 100f));
+            int cooldown = witch != null ? witch.GetCooldownValue() : AlchemistUpgradeSystem.BaseCooldownSeconds;
+            int shield = witch != null ? witch.GetShieldValue() : AlchemistUpgradeSystem.BaseShieldValue;
+
+            if (potionHealText != null)
+                potionHealText.text = heal.ToString();
+            if (potionCooldownText != null)
+                potionCooldownText.text = cooldown + "s";
+            if (potionShieldText != null)
+                potionShieldText.text = shield.ToString();
         }
 
         /// <summary>

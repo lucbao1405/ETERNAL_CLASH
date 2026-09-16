@@ -15,14 +15,11 @@ namespace EternalClash.UI
     /// </summary>
     public class BlacksmithShopUI : MonoBehaviour
     {
-        public event Action<ItemData> OnUpgradeSuccess;
-
         [Serializable]
         private class MaterialSlotReferences
         {
             private GameObject slotObject;
             [SerializeField] private Image itemIcon;
-            [SerializeField] private TMP_Text currentAmountText;
             [SerializeField] private TMP_Text requiredAmountText;
 
             public void Clear()
@@ -73,8 +70,6 @@ namespace EternalClash.UI
                 itemIcon = root.Find("ItemIcon")?.GetComponent<Image>()
                     ?? root.Find("ItemPic")?.GetComponent<Image>()
                     ?? root.GetComponentInChildren<Image>(true);
-                currentAmountText = root.Find("CurrentAmountText")?.GetComponent<TMP_Text>()
-                    ?? root.Find("Soluong")?.GetComponent<TMP_Text>();
                 requiredAmountText = root.Find("RequiredAmountText")?.GetComponent<TMP_Text>()
                     ?? root.Find("Soluong")?.GetComponent<TMP_Text>()
                     ?? root.GetComponentInChildren<TMP_Text>(true);
@@ -260,16 +255,6 @@ namespace EternalClash.UI
             else gameObject.SetActive(false);
         }
 
-        public void SelectWeapon()
-        {
-            OnWeaponPressed();
-        }
-
-        public void SelectArmor()
-        {
-            OnArmorPressed();
-        }
-
         private void OnWeaponPressed()
         {
             EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
@@ -340,7 +325,6 @@ namespace EternalClash.UI
             {
                 SaveCoordinator.RequestSave();
                 RefreshAfterUpgrade();
-                FireUpgradeSuccess(selectedItem);
             }
             else
             {
@@ -530,11 +514,6 @@ namespace EternalClash.UI
             UpdateUpgradeButtonState();
         }
 
-        public void RefreshRequirement()
-        {
-            RefreshRequirementSlots(selectedItem ?? ResolveItem(selectedSlot));
-        }
-
         private void ClearRequirementSlots()
         {
             if (materialSlots == null)
@@ -579,19 +558,6 @@ namespace EternalClash.UI
             }
 
             return smith.CanUpgrade(selectedSlot);
-        }
-
-        private void FireUpgradeSuccess(ItemData item)
-        {
-            try
-            {
-                Debug.Log("Upgrade Success: " + item.itemName);
-                OnUpgradeSuccess?.Invoke(item);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogException(exception);
-            }
         }
 
         private int GetSelectedTier()
@@ -928,9 +894,6 @@ namespace EternalClash.UI
             }
             return fallback != null ? Mathf.Max(1, fallback.level) : 1;
         }
-
-        private static string GetEquipmentLabelFor(ItemSlot slot) =>
-            slot == ItemSlot.Weapon ? "Weapon" : slot == ItemSlot.Armor ? "Armor" : "Shield";
 
         private static void CreateInventoryIcon(Transform parent, Sprite sprite)
         {

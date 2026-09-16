@@ -1,6 +1,7 @@
 using UnityEngine;
 using EternalClash.Player;
 using EternalClash.Combat;
+using EternalClash.Village;
 using EternalClash.World;
 
 namespace EternalClash.Skill
@@ -36,6 +37,9 @@ namespace EternalClash.Skill
 
         protected override void Execute()
         {
+            if (AlchemistUpgradeSystem.Instance != null)
+                reflectDamage = AlchemistUpgradeSystem.Instance.GetShieldValue();
+
             Active = true;
             Debug.Log("[SKILL] Shield ACTIVATED (Duration: 1s, -80% DMG, Reflect 5 DMG)");
 

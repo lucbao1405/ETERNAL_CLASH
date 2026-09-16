@@ -1,432 +1,362 @@
 
 spine.png
-size: 6291,4876
+size: 6261,6017
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 BUI/Layer 2
-  rotate: false
-  xy: 5948, 2604
+  rotate: true
+  xy: 6025, 2154
   size: 251, 193
   orig: 251, 193
   offset: 0, 0
   index: -1
 BUI/Layer 3
   rotate: true
-  xy: 5984, 1048
+  xy: 5830, 635
   size: 324, 251
   orig: 324, 251
   offset: 0, 0
   index: -1
 BUI/Layer 4
   rotate: true
-  xy: 1838, 653
+  xy: 5720, 2698
   size: 681, 533
   orig: 681, 533
   offset: 0, 0
   index: -1
 ao chaong
-  rotate: false
-  xy: 4373, 1502
+  rotate: true
+  xy: 5080, 3381
   size: 983, 1088
   orig: 983, 1088
   offset: 0, 0
   index: -1
 ban tay 1
   rotate: true
-  xy: 5948, 2799
+  xy: 5370, 1066
   size: 293, 273
   orig: 293, 273
   offset: 0, 0
   index: -1
 body
-  rotate: false
-  xy: 3301, 744
+  rotate: true
+  xy: 4148, 44
   size: 761, 821
   orig: 761, 821
   offset: 0, 0
   index: -1
 chan 1
   rotate: false
-  xy: 5873, 3763
+  xy: 5485, 570
   size: 343, 389
   orig: 343, 389
   offset: 0, 0
   index: -1
 chan 2
-  rotate: false
-  xy: 5873, 3409
+  rotate: true
+  xy: 1556, 2
   size: 273, 352
   orig: 273, 352
   offset: 0, 0
   index: -1
-choc/Group 7
+choc/Layer 18
   rotate: false
-  xy: 2278, 2754
-  size: 1415, 606
-  orig: 1650, 1042
-  offset: 129, 210
+  xy: 2, 479
+  size: 1573, 1417
+  orig: 1719, 1417
+  offset: 146, 0
   index: -1
-choc/Layer 11
-  rotate: false
-  xy: 5178, 528
-  size: 569, 288
-  orig: 605, 333
-  offset: 14, 16
-  index: -1
-choc/Layer 12
-  rotate: false
-  xy: 2340, 38
-  size: 809, 586
-  orig: 860, 653
-  offset: 24, 23
-  index: -1
-choc/Layer 13
-  rotate: false
-  xy: 5178, 86
-  size: 496, 186
-  orig: 522, 214
-  offset: 5, 19
-  index: -1
-choc/Layer 14
-  rotate: false
-  xy: 1623, 68
-  size: 715, 583
-  orig: 781, 653
-  offset: 25, 23
-  index: -1
-choc/Layer 15
-  rotate: false
-  xy: 4064, 1060
-  size: 1052, 440
-  orig: 1105, 512
-  offset: 21, 22
-  index: -1
-choc/Layer 16
-  rotate: false
-  xy: 5178, 274
-  size: 589, 252
-  orig: 623, 305
-  offset: 12, 14
-  index: -1
-choc/Layer 3
-  rotate: false
-  xy: 5118, 1070
-  size: 864, 302
-  orig: 923, 384
-  offset: 22, 50
-  index: -1
-choc/Layer 4
+choc/Layer 20
   rotate: true
-  xy: 5339, 3061
-  size: 887, 532
-  orig: 944, 603
-  offset: 25, 47
+  xy: 5080, 4366
+  size: 1649, 1084
+  orig: 1695, 1084
+  offset: 46, 0
   index: -1
-choc/Layer 5
-  rotate: false
-  xy: 5159, 2597
-  size: 787, 462
-  orig: 847, 538
-  offset: 25, 47
+choc/Layer 21
+  rotate: true
+  xy: 3254, 7
+  size: 798, 892
+  orig: 798, 892
+  offset: 0, 0
   index: -1
-choc/Layer 6
+choc/Layer 23
   rotate: false
-  xy: 4064, 774
-  size: 1004, 284
-  orig: 1050, 353
-  offset: 21, 37
+  xy: 2278, 2632
+  size: 1324, 1544
+  orig: 1804, 1837
+  offset: 363, 158
   index: -1
-choc/Layer 61 copy
+choc/Layer 24
   rotate: false
-  xy: 3695, 2592
-  size: 1462, 707
-  orig: 1681, 1062
-  offset: 103, 169
-  index: -1
-choc/Layer 7
-  rotate: false
-  xy: 3151, 98
-  size: 710, 246
-  orig: 743, 299
-  offset: 15, 12
-  index: -1
-choc/Layer 8
-  rotate: false
-  xy: 4648, 249
-  size: 528, 523
-  orig: 568, 585
-  offset: 14, 23
-  index: -1
-choc/Layer 9
-  rotate: false
-  xy: 5118, 818
-  size: 677, 250
-  orig: 713, 284
-  offset: 8, 10
+  xy: 2, 4178
+  size: 3144, 1837
+  orig: 4118, 2308
+  offset: 487, 188
   index: -1
 co tay 1
-  rotate: true
-  xy: 4080, 9
+  rotate: false
+  xy: 5485, 167
   size: 303, 401
   orig: 303, 401
   offset: 0, 0
   index: -1
 co tay 2
   rotate: true
-  xy: 4483, 2
+  xy: 3538, 1736
   size: 245, 355
   orig: 245, 355
   offset: 0, 0
   index: -1
 dau
-  rotate: false
-  xy: 2362, 1554
+  rotate: true
+  xy: 3897, 1733
   size: 932, 1198
   orig: 932, 1198
   offset: 0, 0
   index: -1
 giap mom
-  rotate: false
-  xy: 5358, 1374
+  rotate: true
+  xy: 4971, 24
   size: 781, 512
   orig: 781, 512
   offset: 0, 0
   index: -1
 giap tran
   rotate: false
-  xy: 3301, 346
+  xy: 2, 81
   size: 800, 396
   orig: 800, 396
   offset: 0, 0
   index: -1
 giap vai 1
   rotate: false
-  xy: 5797, 708
+  xy: 2229, 42
   size: 476, 338
   orig: 476, 338
   offset: 0, 0
   index: -1
 giap vai 2
-  rotate: false
-  xy: 5873, 3094
+  rotate: true
+  xy: 1910, 14
   size: 261, 313
   orig: 261, 313
   offset: 0, 0
   index: -1
 giay 1
   rotate: true
-  xy: 5836, 4508
+  xy: 2707, 14
   size: 366, 453
   orig: 366, 453
   offset: 0, 0
   index: -1
 giay 2
   rotate: false
-  xy: 5769, 279
+  xy: 5646, 1315
   size: 407, 427
   orig: 407, 427
   offset: 0, 0
   index: -1
 healing factor/Layer 10
   rotate: false
-  xy: 3151, 535
+  xy: 3254, 1368
   size: 89, 89
   orig: 89, 89
   offset: 0, 0
   index: -1
 healing factor/Layer 11
   rotate: false
-  xy: 6178, 617
+  xy: 6166, 5926
   size: 89, 89
   orig: 89, 89
   offset: 0, 0
   index: -1
 healing factor/Layer 12
   rotate: false
-  xy: 3453, 2663
+  xy: 3162, 291
   size: 89, 89
   orig: 89, 89
   offset: 0, 0
   index: -1
 healing factor/Layer 17
   rotate: false
-  xy: 3453, 2663
+  xy: 3162, 291
   size: 89, 89
   orig: 89, 89
   offset: 0, 0
   index: -1
 healing factor/Layer 13
   rotate: false
-  xy: 6032, 1904
+  xy: 6055, 1551
   size: 204, 204
   orig: 204, 204
   offset: 0, 0
   index: -1
 healing factor/Layer 14
   rotate: false
-  xy: 5118, 1401
+  xy: 1349, 59
   size: 100, 99
   orig: 100, 99
   offset: 0, 0
   index: -1
 healing factor/Layer 18
   rotate: true
-  xy: 3720, 4133
+  xy: 3538, 1361
   size: 182, 2106
   orig: 207, 2432
   offset: 13, 171
   index: -1
 healing factor/Layer 18 copy
   rotate: true
-  xy: 3720, 4505
+  xy: 3254, 990
   size: 184, 2111
   orig: 207, 2432
   offset: 12, 166
   index: -1
 healing factor/Layer 18 copy 2
   rotate: true
-  xy: 3720, 4691
+  xy: 3254, 1176
   size: 183, 2114
   orig: 207, 2432
   offset: 12, 170
   index: -1
 healing factor/Layer 18 copy 3
   rotate: true
-  xy: 3720, 3950
+  xy: 3254, 807
   size: 181, 2107
   orig: 207, 2432
   offset: 13, 171
   index: -1
 healing factor/Layer 18 copy 4
   rotate: true
-  xy: 3720, 4317
+  xy: 3538, 1545
   size: 186, 2105
   orig: 207, 2432
   offset: 10, 171
   index: -1
 healing factor/Layer 2
   rotate: false
-  xy: 6032, 2357
+  xy: 5830, 388
   size: 245, 245
   orig: 245, 245
   offset: 0, 0
   index: -1
 healing factor/Layer 3
   rotate: false
-  xy: 5676, 87
+  xy: 6055, 1364
   size: 185, 185
   orig: 185, 185
   offset: 0, 0
   index: -1
 healing factor/Layer 4
   rotate: false
-  xy: 6032, 2110
+  xy: 5790, 141
   size: 245, 245
   orig: 245, 245
   offset: 0, 0
   index: -1
 healing factor/Layer 5
   rotate: false
-  xy: 3296, 2597
+  xy: 6025, 1757
   size: 155, 155
   orig: 155, 155
   offset: 0, 0
   index: -1
 khien
   rotate: false
-  xy: 2373, 626
+  xy: 5097, 1744
   size: 926, 926
   orig: 926, 926
   offset: 0, 0
   index: -1
 kiem
-  rotate: true
-  xy: 1838, 1336
+  rotate: false
+  xy: 2278, 1459
   size: 1258, 522
   orig: 1258, 522
   offset: 0, 0
   index: -1
 long dau
   rotate: true
-  xy: 4103, 314
+  xy: 804, 19
   size: 458, 543
   orig: 458, 543
   offset: 0, 0
   index: -1
 shield/Layer 2
-  rotate: false
-  xy: 2, 664
+  rotate: true
+  xy: 3148, 4181
   size: 1834, 1930
   orig: 1840, 1931
   offset: 3, 1
   index: -1
 shield/Layer 3
   rotate: false
-  xy: 2278, 3362
+  xy: 3604, 2667
   size: 1440, 1512
   orig: 1442, 1515
   offset: 0, 2
   index: -1
 shield/Layer 4
-  rotate: true
-  xy: 3296, 1567
+  rotate: false
+  xy: 2229, 382
   size: 1023, 1075
   orig: 1023, 1076
   offset: 0, 0
   index: -1
 shield/Layer 5
   rotate: false
-  xy: 5358, 1888
+  xy: 5046, 2672
   size: 672, 707
   orig: 672, 707
   offset: 0, 0
   index: -1
 shield/Layer 50 copy 3
   rotate: false
-  xy: 2, 2596
+  xy: 2, 1898
   size: 2274, 2278
   orig: 3834, 2558
   offset: 1455, 110
   index: -1
 shield/Layer 51 copy
   rotate: false
-  xy: 3720, 3301
+  xy: 2278, 1983
   size: 1617, 647
   orig: 1649, 927
   offset: 14, 280
   index: -1
 shield/Layer 51 copy 2
-  rotate: false
-  xy: 2, 12
+  rotate: true
+  xy: 1577, 277
   size: 1619, 650
   orig: 1650, 928
   offset: 14, 0
   index: -1
 tay 1
   rotate: true
-  xy: 5833, 4154
+  xy: 5645, 961
   size: 352, 420
   orig: 352, 420
   offset: 0, 0
   index: -1
 tay 2
-  rotate: true
-  xy: 4840, 42
+  rotate: false
+  xy: 1349, 160
   size: 205, 317
   orig: 205, 317
   offset: 0, 0
   index: -1
 vong tay 1
   rotate: true
-  xy: 3863, 55
+  xy: 6025, 2407
   size: 289, 215
   orig: 289, 215
   offset: 0, 0
   index: -1
 vong tay 2
   rotate: true
-  xy: 5159, 3061
+  xy: 6025, 1914
   size: 238, 172
   orig: 238, 172
   offset: 0, 0

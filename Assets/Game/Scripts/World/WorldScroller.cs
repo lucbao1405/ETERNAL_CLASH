@@ -27,9 +27,18 @@ namespace EternalClash.World
         [Header("Knockback (Postknight environment knockback)")]
         [SerializeField] private float knockbackSpeedScale = 2f;
         [SerializeField] private float knockbackRecoveryDuration = 0.15f;
+        [Tooltip("Time to ease from normal speed into full recoil. Prevents the world snapping.")]
+        [SerializeField] private float knockbackImpactDuration = 0.08f;
+        [Tooltip("Cap on the recoil multiplier so heavy hits cannot reverse the world violently.")]
+        [SerializeField] private float knockbackMaxPeak = 2f;
+
+        [Header("Smoothing")]
+        [Tooltip("How fast currentMultiplier chases the target (units per second).")]
+        [SerializeField] private float speedRampSpeed = 6f;
 
         private bool scrolling = true;
         private float currentMultiplier = 1f;
+        private float targetMultiplier = 1f;
         private float knockbackMultiplier;
         private bool knockbackActive;
         private Coroutine knockbackRoutine;
@@ -64,6 +73,15 @@ namespace EternalClash.World
 
         private void Update()
         {
+            // Ramp speed changes (charge, stage speed) so the loop never snaps.
+            if (!Mathf.Approximately(currentMultiplier, targetMultiplier))
+            {
+                currentMultiplier = Mathf.MoveTowards(
+                    currentMultiplier, targetMultiplier, speedRampSpeed * Time.deltaTime);
+                if (loopController != null)
+                    loopController.SetWorldSpeed(currentMultiplier);
+            }
+
             if (loopController != null || chunkSpawner != null || !scrolling)
                 return;
 
@@ -89,15 +107,13 @@ namespace EternalClash.World
 
         public void SetSpeedMultiplier(float multiplier)
         {
-            currentMultiplier = Mathf.Max(1f, multiplier);
-            if (loopController != null)
-                loopController.SetWorldSpeed(currentMultiplier);
-            Debug.Log("[WORLD] Speed multiplier x" + currentMultiplier);
+            targetMultiplier = Mathf.Max(1f, multiplier);
+            Debug.Log("[WORLD] Speed multiplier x" + targetMultiplier);
         }
 
         public void ResetSpeed()
         {
-            currentMultiplier = 1f;
+            targetMultiplier = 1f;
             CancelKnockback();
             if (loopController != null)
             {
@@ -141,19 +157,18 @@ namespace EternalClash.World
         private IEnumerator KnockbackRecoveryRoutine(float force)
         {
             knockbackActive = true;
-            knockbackMultiplier = -force * knockbackSpeedScale;
-            PropagateKnockback();
 
-            float start = knockbackMultiplier;
-            float duration = Mathf.Max(0.01f, knockbackRecoveryDuration);
+            float peak = Mathf.Clamp(force * knockbackSpeedScale, 0f, knockbackMaxPeak);
+            float impact = Mathf.Max(0.01f, knockbackImpactDuration);
+            float recovery = Mathf.Max(0.01f, knockbackRecoveryDuration);
+            float total = impact + recovery;
             float elapsed = 0f;
 
-            while (elapsed < duration)
+            // Ease into the recoil, then ease back: the world speed never snaps.
+            while (elapsed < total)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                float eased = Mathf.SmoothStep(0f, 1f, t);
-                knockbackMultiplier = Mathf.LerpUnclamped(start, 0f, eased);
+                knockbackMultiplier = EvaluateKnockbackMultiplier(elapsed, peak, impact, recovery);
                 PropagateKnockback();
                 yield return null;
             }
@@ -164,6 +179,29 @@ namespace EternalClash.World
             PropagateKnockback();
             Debug.Log("[WORLD] Knockback recovery complete");
         }
+
+        /// <summary>
+        /// Recoil curve: 0 eases down to -peak over impactDuration, holds the turn,
+        /// then eases back to 0 over recoveryDuration. SmoothStep keeps the slope
+        /// continuous at both ends and at the peak.
+        /// </summary>
+        public static float EvaluateKnockbackMultiplier(float t, float peak, float impactDuration, float recoveryDuration)
+        {
+            if (t <= 0f || peak <= 0f)
+                return 0f;
+
+            if (t < impactDuration)
+                return -peak * Mathf.SmoothStep(0f, 1f, t / impactDuration);
+
+            float recoveryElapsed = t - impactDuration;
+            if (recoveryElapsed >= recoveryDuration)
+                return 0f;
+
+            return -peak * (1f - Mathf.SmoothStep(0f, 1f, recoveryElapsed / recoveryDuration));
+        }
+
+        public float KnockbackTotalDuration =>
+            Mathf.Max(0.01f, knockbackImpactDuration) + Mathf.Max(0.01f, knockbackRecoveryDuration);
 
         private void PropagateKnockback()
         {
