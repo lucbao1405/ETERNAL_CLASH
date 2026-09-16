@@ -22,7 +22,7 @@ MonoBehaviour:
   armorTier: 0
   strBonus: 1
   intBonus: 0
-  vitBonus: 0
+  vitBonus: 1
   luckBonus: 0
   level: 1
   upgradeLevel: 0

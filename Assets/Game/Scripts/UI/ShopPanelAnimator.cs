@@ -107,9 +107,15 @@ public sealed class ShopPanelAnimator : MonoBehaviour
             gameObject.SetActive(false);
 
             SwipePageCharacterTravel player = FindObjectOfType<SwipePageCharacterTravel>();
-            if (player != null)
+            if (player != null && !IsCharacterNavigating())
                 player.FaceDefaultDirection();
         }
+    }
+
+    private static bool IsCharacterNavigating()
+    {
+        var navigation = FindObjectOfType<EternalClash.UI.TownNavigationController>();
+        return navigation != null && navigation.IsMoving;
     }
 
     private void SetRaycastState(bool isOpen)

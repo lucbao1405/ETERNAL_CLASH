@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76283486c5a0d754f8881de1ee8fe007, type: 3}
-  m_Name: ItemData
+  m_Name: Iron Armor
   m_EditorClassIdentifier: 
   itemId: iron_armor
   itemName: Iron Armor
@@ -26,7 +26,7 @@ MonoBehaviour:
   luckBonus: 0
   level: 1
   upgradeLevel: 0
-  description: 
+  description: Basic iron armor protection
   icon: {fileID: 21300000, guid: 9fd897177e94be84cb4c330bb9657f6e, type: 3}
   quantity: 0
   iconSpriteName: 

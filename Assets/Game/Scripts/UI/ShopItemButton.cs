@@ -47,8 +47,12 @@ namespace EternalClash.UI
             EnsureIcon();
             if (icon != null)
             {
-                icon.sprite = itemData != null ? itemData.icon : null;
-                icon.enabled = itemData != null && itemData.icon != null;
+                Sprite sprite = itemData != null ? itemData.icon : null;
+                if (sprite == null && itemData != null)
+                    sprite = ItemCatalog.Find(itemData.itemId)?.icon;
+                icon.sprite = sprite;
+                icon.enabled = itemData != null && sprite != null;
+                icon.gameObject.SetActive(itemData != null && sprite != null);
             }
 
             if (tierText != null)
@@ -74,6 +78,8 @@ namespace EternalClash.UI
                 return;
             }
 
+            // Legacy town slots do not contain an icon child in the scene.
+            // Create one so serialized items are visible without scene rework.
             GameObject iconObject = new GameObject("ItemIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             iconObject.transform.SetParent(transform, false);
             RectTransform rect = iconObject.GetComponent<RectTransform>();
