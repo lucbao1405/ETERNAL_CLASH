@@ -51,7 +51,30 @@ public class SwipePage : MonoBehaviour, IEndDragHandler, IBeginDragHandler
         
         // Đo vị trí hiện tại lúc thả tay ra
         float currentPos = scrollRect.horizontalNormalizedPosition;
+        targetPosition = FindNearestPage(currentPos);
+
+        if (Mathf.Abs(targetPosition - currentPos) > 0.01f)
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+    }
+
+    // Gọi sau khi nhân vật tự đi đến chỗ mới để hút về đúng trang.
+    public void SyncToCurrentPage()
+    {
+        targetPosition = FindNearestPage(scrollRect.horizontalNormalizedPosition);
+    }
+
+    private float FindNearestPage(float currentPos)
+    {
+        if (pagePositions == null || pagePositions.Length != totalPages)
+        {
+            // Component có thể vừa được bật lại mà Start chưa chạy xong.
+            pagePositions = new float[totalPages];
+            for (int i = 0; i < totalPages; i++)
+                pagePositions[i] = (float)i / (totalPages - 1);
+        }
+
         float minDistance = float.MaxValue;
+        float nearest = pagePositions[0];
 
         // So sánh xem lúc thả tay ra đang ở gần mốc trang nào nhất thì hút về trang đó
         for (int i = 0; i < totalPages; i++)
@@ -60,11 +83,10 @@ public class SwipePage : MonoBehaviour, IEndDragHandler, IBeginDragHandler
             if (distance < minDistance)
             {
                 minDistance = distance;
-                targetPosition = pagePositions[i];
+                nearest = pagePositions[i];
             }
         }
 
-        if (Mathf.Abs(targetPosition - currentPos) > 0.01f)
-            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+        return nearest;
     }
 }

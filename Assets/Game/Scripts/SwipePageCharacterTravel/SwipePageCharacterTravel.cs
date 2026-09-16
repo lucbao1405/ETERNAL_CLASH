@@ -229,6 +229,19 @@ public class SwipePageCharacterTravel : MonoBehaviour,
         return value * value * (3f - 2f * value);
     }
 
+    // Gọi sau khi nhân vật tự đi đến chỗ mới để cập nhật trang hiện tại.
+    public void SyncCurrentPage()
+    {
+        int pageCount = characterStops.Length;
+        currentPage = Mathf.Clamp(
+            Mathf.RoundToInt(
+                scrollRect.horizontalNormalizedPosition * (pageCount - 1)
+            ),
+            0,
+            pageCount - 1
+        );
+    }
+
     private void PlayRun()
     {
         character.AnimationState.SetAnimation(
