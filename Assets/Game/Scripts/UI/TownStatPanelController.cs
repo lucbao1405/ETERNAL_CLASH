@@ -292,6 +292,10 @@ namespace EternalClash.UI
                 Image fill = EnsureHpFill(hp);
                 if (fill != null && !hpFills.Contains(fill))
                     hpFills.Add(fill);
+
+                // Nhap nhay thanh mau khi bam GO ma chua du mau vao tran.
+                if (hp.GetComponent<HpLowBlink>() == null)
+                    hp.gameObject.AddComponent<HpLowBlink>();
             }
 
             // --- Cum "Lv": thanh EXP + nhan cap + so EXP ---

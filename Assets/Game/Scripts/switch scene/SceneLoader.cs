@@ -16,6 +16,7 @@ public class SceneLoader : MonoBehaviour
         if (condition != null && !condition.CanStartBattle())
         {
             ToastMessage.Show(condition.GetInjuredBlockReason());
+            HpLowBlink.BlinkAll();
             Debug.Log("[TOWN] Chan vao tran: " + condition.GetInjuredBlockReason());
             return;
         }
