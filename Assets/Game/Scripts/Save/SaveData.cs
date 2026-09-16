@@ -33,10 +33,11 @@ public class SaveData
     public int statResetCount = 0;
 
     // 4 Core Stats
-    public int strength = 0;
-    public int intelligence = 0;
-    public int vitality = 0;
-    public int luck = 0;
+    // Nhan vat moi bat dau voi 1 diem o moi chi so (PlayerStatSystem.BASE_STAT_VALUE).
+    public int strength = 1;
+    public int intelligence = 1;
+    public int vitality = 1;
+    public int luck = 1;
 
     // Equipment Tiers (0: Starter, 1: Leather, 2: Knight, 3: Royal)
     public int weaponTier = 0;
@@ -152,6 +153,7 @@ public class EquipmentItemSaveData
     public int slot = 0;
     public int level = 0;
     public int upgradeLevel = 0;
+    // Chi so CONG THEM cua mon trang bi, mac dinh 0 (khong lien quan chi so goc nhan vat).
     public int strength = 0;
     public int intelligence = 0;
     public int vitality = 0;

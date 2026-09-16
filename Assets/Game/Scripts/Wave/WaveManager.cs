@@ -41,6 +41,15 @@ namespace EternalClash.Wave
         public bool IsSpawning => groupsStillSpawning > 0;
         public int AliveCount => aliveEnemies.Count;
 
+        /// <summary>Tong so dot cua man dang chay.</summary>
+        public int TotalWaves => stageData != null && stageData.waves != null ? stageData.waves.Length : 0;
+
+        /// <summary>Tong so quai cua dot dang danh.</summary>
+        public int CurrentWaveEnemyCount { get; private set; }
+
+        /// <summary>So quai da ha trong dot dang danh.</summary>
+        public int CurrentWaveKilled { get; private set; }
+
         public event System.Action<int> OnWaveComplete;
         public event System.Action OnStageComplete;
 
@@ -111,6 +120,10 @@ namespace EternalClash.Wave
         {
             Debug.Log($"[WAVE] Start Wave {wave.waveNumber} TotalEnemy={wave.TotalEnemies}");
 
+            // UI tien trinh doc 2 con so nay de hien "Dot x/y" va so quai da ha.
+            CurrentWaveEnemyCount = wave.TotalEnemies;
+            CurrentWaveKilled = 0;
+
             groupsStillSpawning = wave.groups.Count;
 
             foreach (EnemySpawnGroup group in wave.groups)
@@ -164,7 +177,8 @@ namespace EternalClash.Wave
         // hoac bao trung) thi don gian khong lam gi - khong bao gio bi am so luong.
         private void HandleEnemyKilled(GameObject enemy)
         {
-            aliveEnemies.Remove(enemy);
+            if (aliveEnemies.Remove(enemy))
+                CurrentWaveKilled++;
         }
     }
 }

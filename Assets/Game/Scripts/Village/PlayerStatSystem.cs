@@ -63,11 +63,14 @@ namespace EternalClash.Village
         /// </summary>
         private const int FALLBACK_PLAYER_MAX_HEALTH = 100;
 
+        /// <summary>Chi so goc cua nhan vat moi: moi nhanh bat dau o muc nay.</summary>
+        public const int BASE_STAT_VALUE = 1;
+
         private int registeredBaseMaxHealth = -1;
-        private int baseStrength;
-        private int baseIntelligence;
-        private int baseVitality;
-        private int baseLuck;
+        private int baseStrength = BASE_STAT_VALUE;
+        private int baseIntelligence = BASE_STAT_VALUE;
+        private int baseVitality = BASE_STAT_VALUE;
+        private int baseLuck = BASE_STAT_VALUE;
         private int equipmentStrength;
         private int equipmentIntelligence;
         private int equipmentVitality;
@@ -266,11 +269,13 @@ namespace EternalClash.Village
             int cost = GetResetCost();
             if (cost > 0) GoldSystem.Instance.SpendGold(cost);
 
-            StatPoints += baseStrength + baseIntelligence + baseVitality + baseLuck;
-            baseStrength = 0;
-            baseIntelligence = 0;
-            baseVitality = 0;
-            baseLuck = 0;
+            // Chi hoan lai so diem da cong them; 4 chi so tro ve muc goc, khong ve 0.
+            StatPoints += (baseStrength - BASE_STAT_VALUE) + (baseIntelligence - BASE_STAT_VALUE)
+                          + (baseVitality - BASE_STAT_VALUE) + (baseLuck - BASE_STAT_VALUE);
+            baseStrength = BASE_STAT_VALUE;
+            baseIntelligence = BASE_STAT_VALUE;
+            baseVitality = BASE_STAT_VALUE;
+            baseLuck = BASE_STAT_VALUE;
 
             RecalculateDerivedStats();
 
@@ -338,10 +343,12 @@ namespace EternalClash.Village
             Level = Mathf.Max(1, data.level);
             CurrentExp = data.currentExp;
             StatPoints = data.statPoints;
-            baseStrength = data.strength;
-            baseIntelligence = data.intelligence;
-            baseVitality = data.vitality;
-            baseLuck = data.luck;
+            // Save cu luu chi so goc = 0; keo len muc goc moi de UI va sat thuong
+            // khong thap hon nhan vat moi tao.
+            baseStrength = Mathf.Max(BASE_STAT_VALUE, data.strength);
+            baseIntelligence = Mathf.Max(BASE_STAT_VALUE, data.intelligence);
+            baseVitality = Mathf.Max(BASE_STAT_VALUE, data.vitality);
+            baseLuck = Mathf.Max(BASE_STAT_VALUE, data.luck);
             RequiredExp = CalculateRequiredExp(Level);
             RecalculateDerivedStats();
         }

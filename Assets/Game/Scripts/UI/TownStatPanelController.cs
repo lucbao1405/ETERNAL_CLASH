@@ -60,12 +60,6 @@ namespace EternalClash.UI
         private readonly List<TMP_Text> expTexts = new List<TMP_Text>();
         private readonly List<Slider> expSliders = new List<Slider>();
 
-        // O chu hien chi phi tren mat tung nut nang cap.
-        private readonly List<TMP_Text> costLabels = new List<TMP_Text>();
-
-        private static readonly Color CostAffordableColor = new Color(1f, 0.95f, 0.6f);
-        private static readonly Color CostBlockedColor = new Color(0.75f, 0.4f, 0.4f);
-
         private TMP_Text pointsText;
 
         // True khi o hien diem la object co san trong scene (vd "Point"). Luc do chi
@@ -319,14 +313,11 @@ namespace EternalClash.UI
 
             pointsText = CreatePointsLabel(staUpdate);
 
-            // O chu chi phi tren mat 4 nut. Dung mot o so co san lam mau de thua
-            // huong font, mau va kich co chu cua UI hien tai.
-            TMP_Text sample = strTexts.Count > 0 ? strTexts[0] : null;
-            costLabels.Clear();
-            AddCostLabel(strButton, sample);
-            AddCostLabel(intButton, sample);
-            AddCostLabel(vitButton, sample);
-            AddCostLabel(luckButton, sample);
+            // Khong hien so chi phi tren mat nut nua: xoa o chu cu neu con sot lai.
+            RemoveCostLabel(strButton);
+            RemoveCostLabel(intButton);
+            RemoveCostLabel(vitButton);
+            RemoveCostLabel(luckButton);
 
             WireButtons();
 
@@ -463,46 +454,16 @@ namespace EternalClash.UI
         }
 
         /// <summary>
-        /// Tao (hoac tim lai) o chu hien chi phi ngay tren mat nut. Cac nut trong
-        /// Sta_Update la nut icon khong co con nao, nen o chu duoc them lam con cua
-        /// chinh nut - Layout Group cua Sta_Update chi sap xep cac nut chu khong dung
-        /// toi con ben trong nut, nen khong bi xo lech.
+        /// Xoa o chu "CostText" tung duoc tao tren mat nut cong diem.
         /// </summary>
-        private void AddCostLabel(Button button, TMP_Text sample)
+        private static void RemoveCostLabel(Button button)
         {
-            TMP_Text label = EnsureButtonCostLabel(button, sample);
-            if (label != null)
-                costLabels.Add(label);
-        }
-
-        private TMP_Text EnsureButtonCostLabel(Button button, TMP_Text sample)
-        {
-            if (button == null || sample == null)
-                return null;
+            if (button == null)
+                return;
 
             Transform existing = FindDescendant(button.transform, "CostText");
             if (existing != null)
-                return existing.GetComponent<TMP_Text>();
-
-            TMP_Text label = Instantiate(sample, button.transform);
-            label.name = "CostText";
-
-            RectTransform rect = label.rectTransform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            rect.localScale = Vector3.one;
-            rect.SetAsLastSibling();
-
-            label.alignment = TextAlignmentOptions.Center;
-            label.enableWordWrapping = false;
-            label.fontStyle = FontStyles.Bold;
-
-            // Khong chan tia raycast, neu khong o chu se nuot cu bam vao nut.
-            label.raycastTarget = false;
-            return label;
+                Destroy(existing.gameObject);
         }
 
         private static TMP_Text FirstDirectChildText(Transform parent)
@@ -680,19 +641,6 @@ namespace EternalClash.UI
                 pointsText.text = pointsTextIsSceneObject
                     ? stats.StatPoints.ToString()
                     : (stats.CanAllocate ? $"Diem cong: {stats.StatPoints}" : "Het diem cong");
-            }
-
-            // Chi phi hien tren mat tung nut. Doi mau khi khong du diem de nguoi choi
-            // thay ngay la dang thieu chu khong phai nut hong.
-            bool canAfford = stats.CanAllocate;
-            string cost = stats.StatPointCost.ToString();
-            for (int i = 0; i < costLabels.Count; i++)
-            {
-                if (costLabels[i] == null)
-                    continue;
-
-                costLabels[i].text = cost;
-                costLabels[i].color = canAfford ? CostAffordableColor : CostBlockedColor;
             }
 
             // Het diem thi lam mo 4 nut de nguoi choi biet khong bam duoc nua.
