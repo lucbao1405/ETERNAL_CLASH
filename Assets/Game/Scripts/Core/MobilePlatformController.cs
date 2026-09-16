@@ -106,9 +106,6 @@ namespace EternalClash.Core
                     candidates.Add((dialogue, dialogue.CloseDialogue));
             }
 
-            foreach (BlacksmithUpgradeConfirmUI confirm in FindObjectsOfType<BlacksmithUpgradeConfirmUI>())
-                candidates.Add((confirm, confirm.Close));
-
             foreach (ShopPanelAnimator shop in FindObjectsOfType<ShopPanelAnimator>())
             {
                 if (shop.State == ShopPanelAnimator.PanelState.Opened ||

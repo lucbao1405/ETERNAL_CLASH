@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,35 +15,69 @@ namespace EternalClash.UI
     /// </summary>
     public class BlacksmithShopUI : MonoBehaviour
     {
+        public event Action<ItemData> OnUpgradeSuccess;
+
         [Serializable]
         private class MaterialSlotReferences
         {
+            private GameObject slotObject;
             [SerializeField] private Image itemIcon;
             [SerializeField] private TMP_Text currentAmountText;
             [SerializeField] private TMP_Text requiredAmountText;
 
-            public void Refresh(string label, int currentAmount, int requiredAmount)
+            public void Clear()
             {
                 if (itemIcon != null)
-                    itemIcon.gameObject.name = label + "_Icon";
-
-                if (currentAmountText != null)
                 {
-                    currentAmountText.text = currentAmount.ToString();
-                    currentAmountText.color = currentAmount >= requiredAmount ? Color.green : Color.red;
+                    itemIcon.sprite = null;
+                    itemIcon.gameObject.SetActive(false);
                 }
 
                 if (requiredAmountText != null)
-                    requiredAmountText.text = requiredAmount.ToString();
+                {
+                    requiredAmountText.text = string.Empty;
+                    requiredAmountText.gameObject.SetActive(false);
+                }
+
+                SetActive(false);
+            }
+
+            public void SetIcon(Sprite icon)
+            {
+                if (itemIcon == null)
+                    return;
+                itemIcon.sprite = icon;
+                itemIcon.gameObject.SetActive(icon != null);
+            }
+
+            public void SetAmount(int amount)
+            {
+                if (requiredAmountText != null)
+                {
+                    requiredAmountText.text = "x" + amount;
+                    requiredAmountText.gameObject.SetActive(true);
+                }
+            }
+
+            public void SetActive(bool active)
+            {
+                if (slotObject != null)
+                    slotObject.SetActive(active);
             }
 
             public void Bind(Transform root)
             {
                 if (root == null)
                     return;
-                itemIcon = root.Find("ItemIcon")?.GetComponent<Image>();
-                currentAmountText = root.Find("CurrentAmountText")?.GetComponent<TMP_Text>();
-                requiredAmountText = root.Find("RequiredAmountText")?.GetComponent<TMP_Text>();
+                slotObject = root.gameObject;
+                itemIcon = root.Find("ItemIcon")?.GetComponent<Image>()
+                    ?? root.Find("ItemPic")?.GetComponent<Image>()
+                    ?? root.GetComponentInChildren<Image>(true);
+                currentAmountText = root.Find("CurrentAmountText")?.GetComponent<TMP_Text>()
+                    ?? root.Find("Soluong")?.GetComponent<TMP_Text>();
+                requiredAmountText = root.Find("RequiredAmountText")?.GetComponent<TMP_Text>()
+                    ?? root.Find("Soluong")?.GetComponent<TMP_Text>()
+                    ?? root.GetComponentInChildren<TMP_Text>(true);
             }
         }
 
@@ -75,6 +110,19 @@ namespace EternalClash.UI
         [SerializeField] private Button upgradeButton;
         [SerializeField] private Button closeButton;
 
+        [Header("Upgrade Button Colors")]
+        [SerializeField] private ColorBlock activeButtonColors = ColorBlock.defaultColorBlock;
+        [SerializeField] private ColorBlock disabledButtonColors = new ColorBlock
+        {
+            normalColor = new Color(0.3f, 0.3f, 0.3f, 1f),
+            highlightedColor = new Color(0.3f, 0.3f, 0.3f, 1f),
+            pressedColor = new Color(0.25f, 0.25f, 0.25f, 1f),
+            selectedColor = new Color(0.3f, 0.3f, 0.3f, 1f),
+            disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.6f),
+            colorMultiplier = 1f,
+            fadeDuration = 0.1f
+        };
+
         private ItemSlot selectedSlot = ItemSlot.Weapon;
         private string selectedItemId;
         private ItemData selectedItem;
@@ -83,6 +131,7 @@ namespace EternalClash.UI
         private Transform weaponListRoot;
         private Transform shieldListRoot;
         private Transform armorListRoot;
+        private SaveManager subscribedSaveManager;
 
         private void Awake()
         {
@@ -116,16 +165,21 @@ namespace EternalClash.UI
             nextEquipmentNameText ??= next?.Find("ItemName")?.GetComponent<TMP_Text>();
             nextEquipmentStatsText ??= next?.Find("StatsText")?.GetComponent<TMP_Text>();
 
-            Transform requirements = transform.Find("RequirementPanel");
+            Transform requirements = transform.Find("RequirementPanel")
+                ?? FindChildRecursive(transform, "VatPham_Can")
+                ?? FindChildRecursive(transform, "Vat_Pham_Can");
             Transform gold = requirements?.Find("GoldRequirement");
             goldAmountText ??= gold?.Find("GoldAmountText")?.GetComponent<TMP_Text>();
-            Transform materials = requirements?.Find("MaterialRequirement");
+            Transform materials = requirements?.Find("MaterialRequirement") ?? requirements?.Find("Hientv")
+                ?? requirements?.Find("Hienthivp") ?? FindChildRecursive(requirements, "Hientv")
+                ?? FindChildRecursive(requirements, "Hienthivp");
             if (materialSlots == null || materialSlots.Length != 3)
                 materialSlots = new MaterialSlotReferences[3];
             for (int i = 0; i < materialSlots.Length; i++)
             {
                 materialSlots[i] ??= new MaterialSlotReferences();
-                materialSlots[i].Bind(materials?.Find("MaterialSlot_" + (i + 1)));
+                materialSlots[i].Bind(materials?.Find("MaterialSlot_" + (i + 1))
+                    ?? materials?.Find((i + 1).ToString()));
             }
 
             Transform upgradePreview = transform.Find("UpgradePreview");
@@ -137,6 +191,7 @@ namespace EternalClash.UI
             shieldButton ??= transform.Find("CategoryTab/Shield_Button")?.GetComponent<Button>();
             upgradeButton ??= transform.Find("Upgrade_Button")?.GetComponent<Button>();
             closeButton ??= transform.Find("Header/Close_Button")?.GetComponent<Button>();
+            DisableRequirementLabels();
 
             BindLegacyButton("KhungKiem", ref weaponButton);
             BindLegacyButton("KhungSetAoGiap", ref armorButton);
@@ -154,7 +209,34 @@ namespace EternalClash.UI
 
         private void OnEnable()
         {
+            SubscribeToSaveChanges();
             Open();
+        }
+
+        private void OnDisable()
+        {
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+            subscribedSaveManager = null;
+        }
+
+        private void SubscribeToSaveChanges()
+        {
+            SaveManager saveManager = SaveManager.Instance;
+            if (saveManager == subscribedSaveManager)
+                return;
+
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
+
+            subscribedSaveManager = saveManager;
+            if (subscribedSaveManager != null)
+                subscribedSaveManager.SaveChanged += OnSaveDataChanged;
+        }
+
+        private void OnSaveDataChanged(SaveData _)
+        {
+            RefreshCurrentView();
         }
 
         public void Open()
@@ -166,6 +248,7 @@ namespace EternalClash.UI
             selectedItem = null;
             selectedRecipe = null;
             ClearDetail();
+            ClearRequirementSlots();
             RefreshInventory();
         }
 
@@ -220,32 +303,107 @@ namespace EternalClash.UI
 
         private void UpgradeSelected()
         {
-            BlacksmithCraftingSystem smith = BlacksmithCraftingSystem.Instance;
-            if (smith == null || !smith.CanUpgrade(selectedSlot))
+            if (selectedItem == null || !CanUpgrade())
+            {
+                Debug.Log("Can Upgrade: false");
+                UpdateUpgradeButtonState();
                 return;
-            if (smith.TryUpgrade(selectedSlot))
+            }
+
+            Debug.Log("Can Upgrade: true - Attempting upgrade for " + selectedItem.itemName);
+
+            BlacksmithCraftingSystem smith = BlacksmithCraftingSystem.Instance;
+            if (smith == null)
+            {
+                Debug.LogError("[BLACKSMITH] CraftingSystem instance is null!");
+                return;
+            }
+
+            bool success = false;
+            if (selectedRecipe != null)
+            {
+                Debug.Log("[UpgradeSelected] Using selectedRecipe: " + selectedRecipe.itemId);
+                success = smith.TryUpgradeWithRecipe(selectedRecipe, selectedSlot);
+            }
+            else
+            {
+                Debug.Log("[UpgradeSelected] No selectedRecipe, using slot-based upgrade");
+                BlacksmithUpgradeFlowController flow = GetComponent<BlacksmithUpgradeFlowController>()
+                    ?? FindObjectOfType<BlacksmithUpgradeFlowController>();
+                if (flow != null)
+                    success = flow.TryPerformUpgrade(selectedSlot);
+                else
+                    success = smith.TryUpgrade(selectedSlot);
+            }
+
+            if (success)
             {
                 SaveCoordinator.RequestSave();
                 RefreshAfterUpgrade();
+                FireUpgradeSuccess(selectedItem);
+            }
+            else
+            {
+                Debug.LogWarning("[UpgradeSelected] Upgrade failed!");
+                UpdateUpgradeButtonState();
             }
         }
 
         private void ShowDetail(ItemSlot slot)
         {
             selectedSlot = slot;
+            selectedItem ??= ResolveItem(slot);
+            selectedItemId ??= selectedItem?.itemId;
+
+            if (selectedRecipe == null && selectedItem != null)
+            {
+                selectedRecipe = FindRecipeForItem(selectedItem.itemId) ?? BlacksmithCraftingSystem.Instance?.GetRecipe(slot);
+            }
+            else if (selectedRecipe == null)
+            {
+                selectedRecipe = BlacksmithCraftingSystem.Instance?.GetRecipe(slot);
+            }
+
+            Debug.Log("[ShowDetail] slot=" + slot + " item=" + selectedItem?.itemName + " recipe=" + selectedRecipe?.itemId);
+
             RefreshEquipment();
-            RefreshRequirement();
-            if (upgradeButton != null)
-                upgradeButton.interactable = BlacksmithCraftingSystem.Instance?.CanUpgrade(selectedSlot) == true;
+            RefreshRequirementSlots(selectedItem ?? ResolveItem(slot));
+            UpdateUpgradeButtonState();
+        }
+
+        private UpgradeRecipeData FindRecipeForItem(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+                return null;
+            UpgradeRecipeData[] recipes = Resources.LoadAll<UpgradeRecipeData>("UpgradeRecipes");
+            foreach (UpgradeRecipeData recipe in recipes)
+            {
+                if (recipe == null || string.IsNullOrEmpty(recipe.itemId))
+                    continue;
+                if (string.Equals(recipe.itemId, itemId, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(NormalizeRecipeItemId(recipe.itemId), NormalizeRecipeItemId(itemId), StringComparison.OrdinalIgnoreCase))
+                    return recipe;
+            }
+            return null;
+        }
+
+        private static string NormalizeRecipeItemId(string itemId)
+        {
+            int tierMarker = itemId.LastIndexOf("_t", StringComparison.OrdinalIgnoreCase);
+            if (tierMarker >= 0 && int.TryParse(itemId.Substring(tierMarker + 2), out _))
+                return itemId.Substring(0, tierMarker);
+            return itemId;
         }
 
         private void RefreshAfterUpgrade()
         {
             // Keep the recipe selection so the details panel stays on the upgraded item.
-            selectedItem = FindItemData(selectedItemId);
+            selectedItem = ResolveItem(selectedSlot);
+            selectedItemId = selectedItem?.itemId;
             RefreshEquipment();
-            RefreshRequirement();
+            RefreshRequirementSlots(selectedItem);
             RefreshInventory();
+            UpdateUpgradeButtonState();
         }
 
         public void RefreshCurrentView()
@@ -253,13 +411,14 @@ namespace EternalClash.UI
             if (detailShown)
             {
                 RefreshEquipment();
-                RefreshRequirement();
+                RefreshRequirementSlots(selectedItem ?? ResolveItem(selectedSlot));
             }
             else
             {
                 ClearDetail();
             }
             RefreshInventory();
+            UpdateUpgradeButtonState();
         }
 
         private void ClearDetail()
@@ -322,40 +481,117 @@ namespace EternalClash.UI
                 afterStatsText.text = "Bậc " + (tier + 1) + "\n" + FormatUpgradeStat(current);
         }
 
-        public void RefreshRequirement()
+        public void RefreshRequirementSlots(ItemData item)
         {
-            UpgradeRecipeData recipe = selectedRecipe ?? BlacksmithCraftingSystem.Instance?.GetRecipe(selectedSlot);
-            GoldSystem resources = GoldSystem.Instance;
-            int gold = recipe != null ? recipe.goldCost : 0;
-            int ore = GetRequirement(recipe, MaterialType.Ore);
-            int leather = GetRequirement(recipe, MaterialType.Leather);
-            int wood = GetRequirement(recipe, MaterialType.Wood);
+            ClearRequirementSlots();
+
+            if (item == null)
+            {
+                Debug.Log("[RefreshRequirementSlots] item is null");
+                UpdateUpgradeButtonState();
+                return;
+            }
+
+            UpgradeRecipeData recipe = selectedRecipe ?? FindRecipeForItem(item.itemId) ?? BlacksmithCraftingSystem.Instance?.GetRecipe(selectedSlot);
+            if (recipe == null)
+            {
+                Debug.LogWarning("[RefreshRequirementSlots] No recipe found for item: " + item.itemId);
+                UpdateUpgradeButtonState();
+                return;
+            }
+
+            Debug.Log("Requirement count: " + (recipe.requiredMaterials?.Length ?? 0) + " for " + recipe.itemId);
+
+            SaveData saveData = SaveManager.Instance?.Data;
+            int upgradeLevel = GetSavedUpgradeLevel(selectedItemId ?? item.itemId, item);
+            int gold = BlacksmithCraftingSystem.GetGoldCost(recipe, upgradeLevel);
 
             if (goldAmountText != null)
             {
-                int currentGold = resources != null ? resources.Gold : 0;
-                goldAmountText.text = currentGold + " / " + gold;
-                goldAmountText.color = currentGold >= gold ? Color.green : Color.red;
+                goldAmountText.text = "x" + gold;
             }
 
-            if (materialSlots == null || materialSlots.Length < 3)
-                return;
+            int slotIndex = 0;
+            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
+            {
+                int requiredAmount = BlacksmithCraftingSystem.GetMaterialCost(requirement.amount, upgradeLevel);
+                if (requiredAmount <= 0 || materialSlots == null || slotIndex >= materialSlots.Length)
+                    continue;
 
-            materialSlots[0]?.Refresh("Ore", resources != null ? resources.OreMaterial : 0, ore);
-            materialSlots[1]?.Refresh("Leather", resources != null ? resources.LeatherMaterial : 0, leather);
-            materialSlots[2]?.Refresh("Wood", resources != null ? resources.WoodMaterial : 0, wood);
-            if (upgradeButton != null)
-                upgradeButton.interactable = BlacksmithCraftingSystem.Instance?.CanUpgrade(selectedSlot) == true;
+                string materialItemId = BlacksmithCraftingSystem.GetMaterialItemId(requirement.materialType);
+                ItemData material = ItemCatalog.Find(materialItemId);
+                Debug.Log("[RefreshRequirementSlots] Material " + slotIndex + ": " + materialItemId + " x" + requiredAmount +
+                    (material != null ? " (has icon)" : " (NO ICON!)"));
+                materialSlots[slotIndex].SetIcon(material?.icon);
+                materialSlots[slotIndex].SetAmount(requiredAmount);
+                materialSlots[slotIndex].SetActive(true);
+                slotIndex++;
+            }
+            UpdateUpgradeButtonState();
         }
 
-        private static int GetRequirement(UpgradeRecipeData recipe, MaterialType type)
+        public void RefreshRequirement()
         {
-            if (recipe == null || recipe.requiredMaterials == null)
-                return 0;
-            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials)
-                if (requirement.materialType == type)
-                    return requirement.amount;
-            return 0;
+            RefreshRequirementSlots(selectedItem ?? ResolveItem(selectedSlot));
+        }
+
+        private void ClearRequirementSlots()
+        {
+            if (materialSlots == null)
+                return;
+            foreach (MaterialSlotReferences slot in materialSlots)
+                slot?.Clear();
+        }
+
+        private void DisableRequirementLabels()
+        {
+            Transform[] labels = GetComponentsInChildren<Transform>(true);
+            foreach (Transform label in labels)
+                if (string.Equals(label.name, "REQUIRES", StringComparison.OrdinalIgnoreCase))
+                    label.gameObject.SetActive(false);
+        }
+
+        private void UpdateUpgradeButtonState()
+        {
+            if (upgradeButton == null)
+                return;
+
+            bool canUpgrade = CanUpgrade();
+            upgradeButton.interactable = canUpgrade;
+            upgradeButton.colors = canUpgrade ? activeButtonColors : disabledButtonColors;
+        }
+
+        private bool CanUpgrade()
+        {
+            if (selectedItem == null)
+                return false;
+
+            BlacksmithCraftingSystem smith = BlacksmithCraftingSystem.Instance;
+            if (smith == null)
+                return false;
+
+            if (selectedRecipe != null)
+            {
+                int upgradeLevel = GetSavedUpgradeLevel(selectedItemId ?? selectedItem.itemId, selectedItem);
+                bool canUpgrade = smith.CanUpgradeWithRecipe(selectedRecipe, upgradeLevel);
+                Debug.Log("[CanUpgrade] With recipe " + selectedRecipe.itemId + " level " + upgradeLevel + ": " + canUpgrade);
+                return canUpgrade;
+            }
+
+            return smith.CanUpgrade(selectedSlot);
+        }
+
+        private void FireUpgradeSuccess(ItemData item)
+        {
+            try
+            {
+                Debug.Log("Upgrade Success: " + item.itemName);
+                OnUpgradeSuccess?.Invoke(item);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
 
         private int GetSelectedTier()
@@ -601,18 +837,31 @@ namespace EternalClash.UI
             }
 
             string description = string.IsNullOrEmpty(item.description) ? "-" : item.description;
-            itemDetailsText.text = string.Format(
-                "{0}\n{1} | Tier {2} | +{3}\n\nDescription\n{4}\n\nStats\nSTR bonus: +{5}\nINT bonus: +{6}\nVIT bonus: +{7}\nLUCK bonus: +{8}\n\nREQUIRES\n{9}",
-                item.itemName,
-                GetEquipmentLabelFor(selectedSlot),
-                tier,
-                GetSavedUpgradeLevel(selectedItemId ?? item.itemId, item),
-                description,
-                item.strBonus,
-                item.intBonus,
-                item.vitBonus,
-                item.luckBonus,
-                FormatRequirements(selectedRecipe));
+            int upgradeLevel = GetSavedUpgradeLevel(selectedItemId ?? item.itemId, item);
+            int upgradeValue = selectedRecipe != null ? Mathf.Max(1, selectedRecipe.upgradeValue) : 0;
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(item.itemName);
+            sb.AppendLine("Upgrade Level: +" + upgradeLevel);
+            if (!string.IsNullOrEmpty(description) && description != "-")
+                sb.AppendLine().AppendLine(description);
+
+            sb.AppendLine().AppendLine("Stats");
+            AppendStat(sb, "STR", item.strBonus);
+            AppendStat(sb, "INT", item.intBonus);
+            AppendStat(sb, "VIT", item.vitBonus);
+            AppendStat(sb, "LUCK", item.luckBonus);
+
+            if (upgradeValue > 0)
+            {
+                sb.AppendLine().AppendLine("After Upgrade");
+                if (selectedSlot == ItemSlot.Weapon)
+                    sb.Append("STR: +" + (item.strBonus + upgradeValue));
+                else
+                    sb.Append("VIT: +" + (item.vitBonus + upgradeValue));
+            }
+
+            itemDetailsText.text = sb.ToString();
 
             ResetItemDetailsScroll();
         }
@@ -629,37 +878,13 @@ namespace EternalClash.UI
             Canvas.ForceUpdateCanvases();
         }
 
-        private static string FormatRequirements(UpgradeRecipeData recipe)
+        private static void AppendStat(StringBuilder result, string label, int amount)
         {
-            if (recipe == null)
-                return "-";
-
-            string requirements = string.Empty;
-            foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
-            {
-                if (requirement.amount <= 0)
-                    continue;
-                if (requirements.Length > 0)
-                    requirements += "\n";
-                requirements += GetMaterialLabel(requirement.materialType) + " x" + requirement.amount;
-            }
-
-            if (recipe.goldCost > 0)
-            {
-                if (requirements.Length > 0)
-                    requirements += "\n";
-                requirements += "Gold " + recipe.goldCost;
-            }
-            return requirements.Length > 0 ? requirements : "-";
-        }
-
-        private static string GetMaterialLabel(MaterialType materialType)
-        {
-            return materialType == MaterialType.Ore ? "Copper Ore"
-                : materialType == MaterialType.Leather ? "Leather"
-                : materialType == MaterialType.Wood ? "Wood"
-                : materialType == MaterialType.Steel ? "Steel Ore"
-                : materialType.ToString();
+            if (amount == 0)
+                return;
+            if (result.Length > 0)
+                result.AppendLine();
+            result.Append(label).Append(" +").Append(amount);
         }
 
         private static void LogSelectedItem(string itemId, ItemData item)
@@ -671,6 +896,7 @@ namespace EternalClash.UI
             }
 
             Debug.Log("[Blacksmith Detail]\nItemId:\n" + itemId + "\n\nItemData:\n" + item.itemName);
+            Debug.Log("Selected upgrade item: " + item.itemName);
         }
 
         private static int GetSavedUpgradeLevel(string itemId, ItemData fallback)

@@ -41,12 +41,27 @@ namespace EternalClash.Village
             return FindRecipe(item != null ? item.itemId : GetSavedItemId(slot));
         }
 
+        public UpgradeRecipeData GetRecipeByItemId(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+                return null;
+            return FindRecipe(itemId);
+        }
+
         public bool CanUpgrade(ItemSlot slot)
         {
             UpgradeRecipeData recipe = GetRecipe(slot);
             EquipmentItemSaveData savedItem = GetSavedItem(SaveManager.Instance?.Data, slot);
             return recipe != null && HasResources(SaveManager.Instance?.Data, recipe,
                 savedItem != null ? savedItem.upgradeLevel : 0, false);
+        }
+
+        public bool CanUpgradeWithRecipe(UpgradeRecipeData recipe, int upgradeLevel)
+        {
+            if (recipe == null)
+                return false;
+            SaveData data = SaveManager.Instance?.Data;
+            return HasResources(data, recipe, upgradeLevel, false);
         }
 
         public bool TryUpgrade(ItemSlot slot)
@@ -57,8 +72,24 @@ namespace EternalClash.Village
             if (recipe == null || savedItem == null || !HasResources(data, recipe, savedItem.upgradeLevel, true))
                 return false;
 
+            PerformUpgradeInternal(data, recipe, savedItem, slot);
+            return true;
+        }
+
+        public bool TryUpgradeWithRecipe(UpgradeRecipeData recipe, ItemSlot slot)
+        {
+            SaveData data = SaveManager.Instance?.Data;
+            EquipmentItemSaveData savedItem = GetSavedItem(data, slot);
+            if (recipe == null || savedItem == null || !HasResources(data, recipe, savedItem.upgradeLevel, true))
+                return false;
+
+            PerformUpgradeInternal(data, recipe, savedItem, slot);
+            return true;
+        }
+
+        private void PerformUpgradeInternal(SaveData data, UpgradeRecipeData recipe, EquipmentItemSaveData savedItem, ItemSlot slot)
+        {
             data.currency.gold -= GetGoldCost(recipe, savedItem.upgradeLevel);
-            // Save migration still mirrors legacy currency fields during persistence.
             data.gold = data.currency.gold;
             foreach (UpgradeMaterialRequirement requirement in recipe.requiredMaterials ?? Array.Empty<UpgradeMaterialRequirement>())
             {
@@ -77,12 +108,10 @@ namespace EternalClash.Village
             else if (slot == ItemSlot.Armor)
                 ArmorTier = Mathf.Max(ArmorTier, savedItem.level);
 
-            // Upgrade only reloads persistent item data and stats. It must not refresh player visuals.
             EquipmentSystem.Instance?.RefreshFromSaveWithoutVisuals();
             SaveCoordinator.RequestSave();
             EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.ItemUpgrade);
-            Debug.Log($"[BLACKSMITH] {savedItem.itemId} upgraded to +{savedItem.upgradeLevel}");
-            return true;
+            Debug.Log($"[BLACKSMITH] {savedItem.itemId} upgraded to +{savedItem.upgradeLevel} | Gold deducted: {recipe.goldCost} | Materials consumed");
         }
 
         public bool CanUpgradeWeapon() => CanUpgrade(ItemSlot.Weapon);
