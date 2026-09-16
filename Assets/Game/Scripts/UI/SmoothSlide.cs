@@ -6,9 +6,6 @@ public class SmoothSlide : MonoBehaviour
     [Header("UI Cần Trượt")]
     public RectTransform panelRect;
 
-    [Header("Màn Tối")]
-    public CanvasGroup darkOverlay;
-
     [Header("Tọa độ")]
     public Vector2 offScreenPos = new Vector2(0, 1500);
     public Vector2 onScreenPos = new Vector2(0, 0);
@@ -62,14 +59,19 @@ public class SmoothSlide : MonoBehaviour
 
         isOpen = false;
         panelRect.anchoredPosition = offScreenPos;
-        if (darkOverlay != null)
-        {
-            darkOverlay.alpha = 0f;
-            darkOverlay.blocksRaycasts = false;
-        }
 
         initialized = true;
         return true;
+    }
+
+    private void OnEnable()
+    {
+        PanelDim.Acquire(this);
+    }
+
+    private void OnDisable()
+    {
+        PanelDim.Release(this);
     }
 
 
@@ -115,22 +117,11 @@ public class SmoothSlide : MonoBehaviour
             activationRequested = true;
             gameObject.SetActive(true);
             activationRequested = false;
-            if (darkOverlay != null)
-            {
-                darkOverlay.alpha = 1f;
-                darkOverlay.blocksRaycasts = true;
-            }
 
             slideCoroutine = StartCoroutine(OpenPanelRoutine());
         }
         else
         {
-            if (darkOverlay != null)
-            {
-                darkOverlay.alpha = 0f;
-                darkOverlay.blocksRaycasts = false;
-            }
-
             slideCoroutine = StartCoroutine(ClosePanelRoutine());
         }
     }

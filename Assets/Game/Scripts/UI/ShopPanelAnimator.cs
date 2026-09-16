@@ -36,6 +36,16 @@ public sealed class ShopPanelAnimator : MonoBehaviour
             closeButton.onClick.RemoveListener(Close);
     }
 
+    private void OnEnable()
+    {
+        PanelDim.Acquire(this);
+    }
+
+    private void OnDisable()
+    {
+        PanelDim.Release(this);
+    }
+
     public void Open()
     {
         if (shopPanel == null)

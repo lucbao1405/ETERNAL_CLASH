@@ -109,6 +109,7 @@ public class DialogueManager : MonoBehaviour
         Debug.Log($"[Dialogue] Opening {newLines.Length} line(s) for '{characterName}'.", this);
 
         dialoguePanel.SetActive(true);
+        PanelDim.Acquire(this);
         panelRectTransform = dialoguePanel.GetComponent<RectTransform>();
         panelRectTransform.anchoredPosition = HiddenAnchoredPosition;
 
@@ -274,6 +275,7 @@ public class DialogueManager : MonoBehaviour
         if (!deactivateAtEnd)
             yield break;
 
+        PanelDim.Release(this);
         dialoguePanel.SetActive(false);
 
         DialogueCompleted?.Invoke();

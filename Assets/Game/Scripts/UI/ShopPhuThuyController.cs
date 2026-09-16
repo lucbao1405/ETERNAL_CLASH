@@ -27,16 +27,14 @@ namespace EternalClash.UI
             public string fallbackName;
             public string fallbackDescription;
             public WitchAbility ability;
-            public Color barColor;
 
             public BrewMaterial(string itemId, string fallbackName, string fallbackDescription,
-                WitchAbility ability, Color barColor)
+                WitchAbility ability)
             {
                 this.itemId = itemId;
                 this.fallbackName = fallbackName;
                 this.fallbackDescription = fallbackDescription;
                 this.ability = ability;
-                this.barColor = barColor;
             }
         }
 
@@ -44,13 +42,13 @@ namespace EternalClash.UI
         {
             new BrewMaterial("wood_small", "Small Wood",
                 "Branches collected around the village. Strengthens the potion's healing power.",
-                WitchAbility.Healing, new Color(0.90f, 0.35f, 0.30f)),
+                WitchAbility.Healing),
             new BrewMaterial("copper_ore", "Copper Ore",
                 "Conductive ore that lets the brew recharge faster.",
-                WitchAbility.Cooldown, new Color(0.31f, 0.49f, 0.90f)),
+                WitchAbility.Cooldown),
             new BrewMaterial("wolf_hide", "Wolf Hide",
                 "Tough hide that hardens the knight's guard when brewed into the potion.",
-                WitchAbility.Defense, new Color(0.36f, 0.70f, 0.30f))
+                WitchAbility.Defense)
         };
 
         private static readonly string[] BadgeLabels = { "HEAL", "COOLDOWN", "SHIELD" };
@@ -187,7 +185,12 @@ namespace EternalClash.UI
                 return;
 
             BrewMaterial material = Materials[selectedMaterial];
-            if (!witch.TryUpgrade(material.ability))
+            if (witch.IsMaxed(material.ability))
+            {
+                ToastMessage.Show("Cooldown fully upgraded.");
+                return;
+            }
+            if (!witch.TryInfuse(material.ability))
             {
                 ToastMessage.Show("Not enough " + ResolveMaterialName(material) + ".");
                 return;
@@ -439,7 +442,6 @@ namespace EternalClash.UI
             fill.anchoredPosition = new Vector2(4f, 0f);
             Image fillImage = fill.gameObject.AddComponent<Image>();
             fillImage.sprite = WhiteSprite;
-            fillImage.color = Materials[0].barColor;
 
             MakeArrow(inner, new Vector2(-365f, 0f), "<");
             MakeArrow(inner, new Vector2(365f, 0f), ">");
@@ -492,11 +494,14 @@ namespace EternalClash.UI
                 badgeValues[2].text = "+" + AlchemistUpgradeSystem.GetShieldValue(defenseLevel);
 
             BrewMaterial material = Materials[selectedMaterial];
-            ItemData item = ItemCatalog.Find(material.itemId);
-            int cost = witch != null ? witch.GetUpgradeCost(material.ability) : 0;
             int owned = AlchemistUpgradeSystem.GetMaterialAmount(
                 SaveManager.Instance?.Data?.inventory?.items, material.itemId);
+            int currentExp = witch != null ? witch.GetCurrentExp(material.ability) : 0;
+            int expToNext = witch != null
+                ? AlchemistUpgradeSystem.GetExpToNextLevel(material.ability, witch.GetLevel(material.ability))
+                : 1;
 
+            ItemData item = ItemCatalog.Find(material.itemId);
             if (materialIcon != null)
             {
                 materialIcon.sprite = item != null ? item.icon : null;
@@ -512,23 +517,25 @@ namespace EternalClash.UI
                 materialQuantityText.text = "x" + owned;
             if (progressFill != null)
             {
-                float ratio = cost > 0 ? Mathf.Clamp01((float)owned / cost) : 0f;
+                float ratio = expToNext > 0 ? Mathf.Clamp01((float)currentExp / expToNext) : 0f;
                 progressFill.sizeDelta = new Vector2(4f + (ProgressWidth - 8f) * ratio, 22f);
-                progressFill.GetComponent<Image>().color = material.barColor;
             }
             for (int index = 0; index < dots.Length; index++)
                 if (dots[index] != null)
                     dots[index].color = index == selectedMaterial ? new Color(1f, 0.84f, 0.37f) : new Color(0.42f, 0.36f, 0.27f);
             if (previewText != null)
-                previewText.text = FormatPreview(material.ability, witch);
+                previewText.text = FormatPreview(material.ability, witch, currentExp, expToNext);
             if (infuseButton != null)
-                infuseButton.interactable = witch != null && owned >= cost;
+                infuseButton.interactable = witch != null && owned >= 1 && !witch.IsMaxed(material.ability);
         }
 
-        private static string FormatPreview(WitchAbility ability, AlchemistUpgradeSystem witch)
+        private static string FormatPreview(WitchAbility ability, AlchemistUpgradeSystem witch, int currentExp, int expToNext)
         {
-            int level = witch != null ? GetLevel(witch, ability) : 0;
-            return FormatStatChange(ability, level, level + 1);
+            if (witch != null && witch.IsMaxed(ability))
+                return "Cooldown " + AlchemistUpgradeSystem.GetCooldownValue(witch.CooldownLevel) + "s (MAX)";
+
+            int level = witch != null ? witch.GetLevel(ability) : 0;
+            return FormatStatChange(ability, level, level + 1) + "  (EXP " + currentExp + "/" + expToNext + ")";
         }
 
         private static string FormatStatChange(WitchAbility ability, int before, int after)
@@ -544,19 +551,6 @@ namespace EternalClash.UI
                 default:
                     return "Shield +" + AlchemistUpgradeSystem.GetShieldValue(before) + " -> +" +
                         AlchemistUpgradeSystem.GetShieldValue(after);
-            }
-        }
-
-        private static int GetLevel(AlchemistUpgradeSystem witch, WitchAbility ability)
-        {
-            switch (ability)
-            {
-                case WitchAbility.Healing:
-                    return witch.HealingLevel;
-                case WitchAbility.Cooldown:
-                    return witch.CooldownLevel;
-                default:
-                    return witch.DefenseLevel;
             }
         }
 
@@ -600,17 +594,6 @@ namespace EternalClash.UI
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-        }
-
-        private static GameObject FindDirectChild(Transform root, string name)
-        {
-            for (int index = 0; index < root.childCount; index++)
-            {
-                Transform child = root.GetChild(index);
-                if (string.Equals(child.name.Trim(), name, System.StringComparison.OrdinalIgnoreCase))
-                    return child.gameObject;
-            }
-            return null;
         }
 
         private static Transform FindDeepChild(Transform root, string objectName)

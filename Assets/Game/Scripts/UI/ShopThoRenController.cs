@@ -12,8 +12,6 @@ namespace EternalClash.UI
 {
     public sealed class ShopThoRenController : MonoBehaviour
     {
-        public static event Action<ItemData> OnUpgradeSuccess;
-
         [Header("Item Slots")]
         public ShopItemSlot[] weaponSlots;
         public ShopItemSlot[] shieldSlots;
@@ -39,47 +37,6 @@ namespace EternalClash.UI
 
         [Header("Upgrade Success")]
         [SerializeField] private GameObject upgradeSuccessPanel;
-
-        [ContextMenu("Debug: Test Upgrade Selected")]
-        public void DebugTestUpgradeSelected()
-        {
-            Debug.Log("=== DEBUG UpgradeSelected ===");
-            Debug.Log("selectedItem: " + (selectedItem != null ? selectedItem.itemName : "NULL"));
-            Debug.Log("upgradeButton: " + (upgradeButton != null ? upgradeButton.name + " (interactable=" + upgradeButton.interactable + ")" : "NULL"));
-            Debug.Log("selectedItem.equipmentSlot: " + (selectedItem != null ? selectedItem.equipmentSlot.ToString() : "N/A"));
-            UpgradeSelected();
-        }
-
-        [ContextMenu("Debug: Force Enable Upgrade Button")]
-        public void DebugForceEnableUpgradeButton()
-        {
-            if (upgradeButton != null)
-            {
-                upgradeButton.interactable = true;
-                Debug.Log("[DEBUG] upgradeButton set interactable=true");
-            }
-            else
-            {
-                Debug.LogWarning("[DEBUG] upgradeButton is NULL");
-            }
-        }
-
-        [ContextMenu("Debug: Print Full Hierarchy")]
-        public void DebugPrintHierarchy()
-        {
-            Debug.Log("=== Hierarchy under " + name + " ===");
-            PrintChildren(transform, 0);
-        }
-
-        private static void PrintChildren(Transform t, int depth)
-        {
-            string indent = new string(' ', depth * 2);
-            foreach (Transform child in t)
-            {
-                Debug.Log(indent + child.name + " (has Button: " + (child.GetComponent<UnityEngine.UI.Button>() != null) + ")");
-                PrintChildren(child, depth + 1);
-            }
-        }
 
         [Header("Button Colors")]
         [SerializeField] private ColorBlock activeButtonColors = ColorBlock.defaultColorBlock;
@@ -148,11 +105,8 @@ namespace EternalClash.UI
             RefreshSlots(listKiem);
             RefreshSlots(listKhien);
             RefreshSlots(listSetAoGiap);
-            if (selectedItem == null)
-            {
-                // Do not auto-select an item while opening the panel. The user
-                // must select the equipment slot before Upgrade is enabled.
-            }
+            // Do not auto-select an item while opening the panel. The user
+            // must select the equipment slot before Upgrade is enabled.
             UpdateUpgradeButtonState();
             EnsurePanelInteractable();
         }
@@ -203,6 +157,15 @@ namespace EternalClash.UI
         {
             if (itemData == null)
                 return;
+
+            // Slot buttons can hold stale instances (e.g. a copy captured before
+            // the last upgrade). Always select the live equipped instance when
+            // the clicked item matches it, so the displayed level is current.
+            ItemSlot slot = ToItemSlot(itemData.equipmentSlot);
+            ItemData live = EquipmentSystem.Instance?.GetEquippedItem(slot);
+            if (live != null && live.equipmentSlot == itemData.equipmentSlot &&
+                string.Equals(live.itemId, itemData.itemId, StringComparison.OrdinalIgnoreCase))
+                itemData = live;
 
             selectedItem = itemData;
             Debug.Log("Selected upgrade item: " + itemData.itemName);
@@ -285,7 +248,6 @@ namespace EternalClash.UI
                 ShowUpgradeSuccessPopup(selectedItem, previousUpgradeLevel, previousStat, slot, recipe);
                 RefreshRequirementSlots(selectedItem);
                 RefreshItemDetail();
-                FireUpgradeSuccess(selectedItem);
                 ActivateUpgradeSuccessPanel();
                 UpdateUpgradeButton();
             }
@@ -457,42 +419,9 @@ namespace EternalClash.UI
                 : slot == ItemSlot.Armor ? EquipmentSlot.Armor : EquipmentSlot.Shield;
             if (equipped != null && equipped.equipmentSlot != expectedSlot)
                 equipped = null;
-            if (equipped != null && equipped.icon == null)
-                equipped = ItemCatalog.Find(equipped.itemId) ?? equipped;
             slots[0].SetItemData(equipped);
             for (int index = 1; index < slots.Length; index++)
                 slots[index].SetItemData(null);
-        }
-
-        private static ItemData ResolveBaseItem(ItemSlot slot)
-        {
-            // Empty save slots intentionally return null; the UI must stay empty.
-            return EquipmentSystem.Instance?.GetEquippedItem(slot);
-        }
-
-        private static ItemData CreateTierVariant(ItemData source, int tier)
-        {
-            if (source == null)
-                return null;
-
-            ItemData variant = ScriptableObject.CreateInstance<ItemData>();
-            variant.itemId = NormalizeItemId(source.itemId) + "_t" + tier;
-            variant.itemName = source.itemName + " - Bậc " + tier;
-            variant.itemType = source.itemType;
-            variant.equipmentSlot = source.equipmentSlot;
-            variant.rarity = source.rarity;
-            variant.stars = Mathf.Clamp(source.stars + tier - 1, 1, 5);
-            variant.weaponTier = source.equipmentSlot == EquipmentSlot.Weapon ? tier : 0;
-            variant.armorTier = source.equipmentSlot == EquipmentSlot.Armor ? tier : 0;
-            variant.strBonus = source.strBonus + (source.strBonus > 0 ? tier - 1 : 0);
-            variant.vitBonus = source.vitBonus + (source.vitBonus > 0 ? tier - 1 : 0);
-            variant.intBonus = source.intBonus + (source.intBonus > 0 ? tier - 1 : 0);
-            variant.luckBonus = source.luckBonus + (source.luckBonus > 0 ? tier - 1 : 0);
-            variant.level = tier;
-            variant.upgradeLevel = 0;
-            variant.description = source.description;
-            variant.icon = source.icon;
-            return variant;
         }
 
         private void AutoWireRequirementSlots()
@@ -785,19 +714,6 @@ namespace EternalClash.UI
             if (result.Length > 0)
                 result.AppendLine();
             result.Append(label).Append(" +").Append(amount);
-        }
-
-        private static void FireUpgradeSuccess(ItemData item)
-        {
-            try
-            {
-                Debug.Log("Upgrade Success: " + item.itemName);
-                OnUpgradeSuccess?.Invoke(item);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
         }
 
         private void ActivateUpgradeSuccessPanel()

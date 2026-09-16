@@ -48,6 +48,17 @@ namespace EternalClash.Combat
         {
             if (!isKnockback) return;
 
+            // Ride the scrolling ground while knocked back, otherwise the frozen
+            // enemy visibly slides against the moving world.
+            if (worldScroller == null)
+                worldScroller = FindObjectOfType<WorldScroller>();
+            if (worldScroller != null)
+            {
+                float worldDeltaX = worldScroller.GetWorldVelocity().x * Time.deltaTime;
+                originalPosition.x += worldDeltaX;
+                targetPosition.x += worldDeltaX;
+            }
+
             knockbackElapsed += Time.deltaTime;
             float t = Mathf.Clamp01(knockbackElapsed / Mathf.Max(0.01f, knockbackDuration));
             float easedT = Mathf.SmoothStep(0f, 1f, t);
@@ -114,7 +125,7 @@ namespace EternalClash.Combat
             if (DistanceProgress.Instance != null)
                 DistanceProgress.Instance.ReduceDistance(knockbackDistance);
 
-            float totalLockTime = recoveryTime + (worldScroller != null ? 0.15f : 0f);
+            float totalLockTime = recoveryTime + (worldScroller != null ? worldScroller.KnockbackTotalDuration : 0f);
             Invoke(nameof(RecoverFromHit), totalLockTime);
 
             Debug.Log("[KNOCKBACK] Player environment knockback: force=" + force);

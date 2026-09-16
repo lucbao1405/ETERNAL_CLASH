@@ -282,20 +282,9 @@ namespace EternalClash.Village
                 return false;
 
             EquipmentItemSaveData saved = inventory[index];
-            ItemData item = ScriptableObject.CreateInstance<ItemData>();
-            item.itemId = saved.itemId;
-            item.itemName = string.IsNullOrEmpty(saved.itemId) ? "Equipment" : saved.itemId;
-            item.equipmentSlot = (EquipmentSlot)saved.slot;
-            item.level = Mathf.Max(1, saved.level);
-            item.upgradeLevel = saved.upgradeLevel;
-            item.strBonus = saved.strength;
-            item.intBonus = saved.intelligence;
-            item.vitBonus = saved.vitality;
-            item.luckBonus = saved.luck;
-            if (item.equipmentSlot == EquipmentSlot.Weapon)
-                item.weaponTier = item.level;
-            else if (item.equipmentSlot == EquipmentSlot.Armor)
-                item.armorTier = item.level;
+            ItemData item = CreateItemFromSave(saved, (EquipmentSlot)saved.slot, 0);
+            if (item == null)
+                return false;
 
             saved.isNew = false;
             EquipItem(item, false);
@@ -330,9 +319,14 @@ namespace EternalClash.Village
             if (saved == null || (string.IsNullOrEmpty(saved.itemId) && saved.level <= 0))
                 return null;
 
+            ItemData template = ItemCatalog.Find(saved.itemId);
             ItemData item = ScriptableObject.CreateInstance<ItemData>();
             item.itemId = saved.itemId;
-            item.itemName = string.IsNullOrEmpty(saved.itemId) ? "Equipment" : saved.itemId;
+            item.itemName = template != null && !string.IsNullOrEmpty(template.itemName)
+                ? template.itemName
+                : (string.IsNullOrEmpty(saved.itemId) ? "Equipment" : saved.itemId);
+            item.description = template != null ? template.description : null;
+            item.icon = template != null ? template.icon : null;
             item.equipmentSlot = slot;
             item.level = Mathf.Max(1, saved.level > 0 ? saved.level : legacyTier);
             item.upgradeLevel = Mathf.Max(0, saved.upgradeLevel);
