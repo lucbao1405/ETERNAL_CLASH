@@ -164,4 +164,5 @@ public class AbilitySaveData
 {
     public int healingLevel;
     public int cooldownLevel;
+    public int defenseLevel;
 }

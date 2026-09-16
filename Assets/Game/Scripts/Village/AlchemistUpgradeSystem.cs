@@ -16,9 +16,12 @@ namespace EternalClash.Village
         public const int HealingBonusPerLevelPercent = 2;
         public const int BaseCooldownSeconds = 15;
         public const int CooldownReductionPerLevelSeconds = 1;
+        public const int BaseShieldValue = 5;
+        public const int ShieldValuePerLevel = 2;
 
         public int HealingLevel { get; private set; }
         public int CooldownLevel { get; private set; }
+        public int DefenseLevel { get; private set; }
 
         private void Awake()
         {
@@ -34,12 +37,23 @@ namespace EternalClash.Village
 
         public MaterialType GetRequiredMaterial(WitchAbility ability)
         {
-            return ability == WitchAbility.Healing ? MaterialType.Wood : MaterialType.Ore;
+            if (ability == WitchAbility.Healing)
+                return MaterialType.Wood;
+            if (ability == WitchAbility.Cooldown)
+                return MaterialType.Ore;
+            return MaterialType.Leather;
         }
 
         public int GetUpgradeCost(WitchAbility ability)
         {
-            int level = ability == WitchAbility.Healing ? HealingLevel : CooldownLevel;
+            int level = ability == WitchAbility.Healing ? HealingLevel
+                : ability == WitchAbility.Cooldown ? CooldownLevel
+                : DefenseLevel;
+            return GetUpgradeCost(ability, level);
+        }
+
+        public static int GetUpgradeCost(WitchAbility ability, int level)
+        {
             int baseCost = ability == WitchAbility.Healing ? 3 : 2;
             return Mathf.CeilToInt(baseCost * Mathf.Pow(1.25f, Mathf.Max(0, level)));
         }
@@ -61,7 +75,22 @@ namespace EternalClash.Village
 
         public int GetCooldownValue()
         {
-            return Mathf.Max(0, BaseCooldownSeconds - CooldownLevel * CooldownReductionPerLevelSeconds);
+            return GetCooldownValue(CooldownLevel);
+        }
+
+        public static int GetCooldownValue(int level)
+        {
+            return Mathf.Max(0, BaseCooldownSeconds - Mathf.Max(0, level) * CooldownReductionPerLevelSeconds);
+        }
+
+        public int GetShieldValue()
+        {
+            return GetShieldValue(DefenseLevel);
+        }
+
+        public static int GetShieldValue(int level)
+        {
+            return BaseShieldValue + Mathf.Max(0, level) * ShieldValuePerLevel;
         }
 
         public bool CanUpgrade(WitchAbility ability)
@@ -85,12 +114,15 @@ namespace EternalClash.Village
 
             if (ability == WitchAbility.Healing)
                 HealingLevel++;
-            else
+            else if (ability == WitchAbility.Cooldown)
                 CooldownLevel++;
+            else
+                DefenseLevel++;
 
             data.abilities ??= new AbilitySaveData();
             data.abilities.healingLevel = HealingLevel;
             data.abilities.cooldownLevel = CooldownLevel;
+            data.abilities.defenseLevel = DefenseLevel;
             SaveCoordinator.RequestSave();
             RefreshBags();
 
@@ -103,6 +135,38 @@ namespace EternalClash.Village
         {
             HealingLevel = Mathf.Max(0, data?.abilities?.healingLevel ?? 0);
             CooldownLevel = Mathf.Max(0, data?.abilities?.cooldownLevel ?? 0);
+            DefenseLevel = Mathf.Max(0, data?.abilities?.defenseLevel ?? 0);
+        }
+
+        [ContextMenu("Self Check")]
+        public void SelfCheck()
+        {
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Healing)) == "wood_small", "healing brews wood");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Cooldown)) == "copper_ore", "cooldown brews ore");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Defense)) == "wolf_hide", "defense brews hide");
+            Debug.Assert(GetUpgradeCost(WitchAbility.Defense, 0) == 2 && GetUpgradeCost(WitchAbility.Healing, 0) == 3, "base costs");
+            Debug.Assert(GetUpgradeCost(WitchAbility.Healing, 4) > GetUpgradeCost(WitchAbility.Healing, 0), "cost grows with level");
+            Debug.Assert(GetShieldValue(0) == BaseShieldValue && GetShieldValue(3) == BaseShieldValue + 3 * ShieldValuePerLevel, "shield value");
+            Debug.Assert(GetCooldownValue(0) == BaseCooldownSeconds && GetCooldownValue(99) == 0, "cooldown clamps");
+
+            int previousHealing = HealingLevel;
+            int previousCooldown = CooldownLevel;
+            int previousDefense = DefenseLevel;
+            SaveData probe = new SaveData();
+            probe.abilities = new AbilitySaveData { healingLevel = 2, cooldownLevel = 1, defenseLevel = 4 };
+            LoadFromSave(probe);
+            Debug.Assert(HealingLevel == 2 && CooldownLevel == 1 && DefenseLevel == 4, "save roundtrip");
+            LoadFromSave(new SaveData
+            {
+                abilities = new AbilitySaveData
+                {
+                    healingLevel = previousHealing,
+                    cooldownLevel = previousCooldown,
+                    defenseLevel = previousDefense
+                }
+            });
+
+            Debug.Log("[WITCH] SelfCheck passed.");
         }
 
         public static string GetMaterialItemId(MaterialType materialType)
@@ -150,6 +214,7 @@ namespace EternalClash.Village
     public enum WitchAbility
     {
         Healing,
-        Cooldown
+        Cooldown,
+        Defense
     }
 }
