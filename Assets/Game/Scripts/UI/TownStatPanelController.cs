@@ -43,6 +43,15 @@ namespace EternalClash.UI
         private readonly List<TMP_Text> gemTexts = new List<TMP_Text>();
         private readonly List<TMP_Text> hpTexts = new List<TMP_Text>();
 
+        // Thanh mau Stat/Hp: khung + ruot do tu HpBarSprites (dung chung voi Battle),
+        // ruot co theo ti le mau. Thieu anh thi quay ve cach cu: to toi anh goc lam nen,
+        // Hp_Fill dung chung anh goc.
+        private const float HpEmptyTintFactor = 0.3f;
+        private const float HpFillSpeed = 1.5f; // phan thanh moi giay
+        private readonly List<Image> hpFills = new List<Image>();
+        private float hpFillTarget = 1f;
+        private bool hpFillInitialized;
+
         // Cum "Lv" trong panel Trang_Bi:
         //   Lv                       -> Slider hien tien do EXP
         //   Lv/lv text               -> nhan dang "Lv 5"
@@ -126,6 +135,8 @@ namespace EternalClash.UI
 
         private void Update()
         {
+            AnimateHpFill();
+
             // GameBootstrap tao PlayerStatSystem o BeforeSceneLoad nen thuong da co
             // san luc Start(). Neu vi ly do nao do no xuat hien muon hon thi thu
             // dang ky lai cho toi khi duoc, roi thoi khong kiem tra nua.
@@ -276,6 +287,16 @@ namespace EternalClash.UI
 
             // --- Thanh mau: Stat/Hp/So_Hp ---
             CollectDirectChildTexts(scene, "Hp", hpTexts);
+            foreach (Transform hp in FindAllInScene(scene, "Hp"))
+            {
+                Image fill = EnsureHpFill(hp);
+                if (fill != null && !hpFills.Contains(fill))
+                    hpFills.Add(fill);
+
+                // Nhap nhay thanh mau khi bam GO ma chua du mau vao tran.
+                if (hp.GetComponent<HpLowBlink>() == null)
+                    hp.gameObject.AddComponent<HpLowBlink>();
+            }
 
             // --- Cum "Lv": thanh EXP + nhan cap + so EXP ---
             foreach (Transform lv in FindAllInScene(scene, "Lv"))
@@ -347,6 +368,88 @@ namespace EternalClash.UI
             TMP_Text text = FirstDirectChildText(group);
             if (text != null && !into.Contains(text))
                 into.Add(text);
+        }
+
+        /// <summary>
+        /// Tao (hoac tim lai) lop Hp_Fill trong thanh mau, nam duoi chu so HP.
+        /// </summary>
+        private static Image EnsureHpFill(Transform hp)
+        {
+            Image background = hp != null ? hp.GetComponent<Image>() : null;
+            if (background == null || background.sprite == null)
+                return null;
+
+            Transform existing = hp.Find(HpBarSprites.FillObjectName);
+            if (existing != null)
+                return existing.GetComponent<Image>();
+
+            // Bo khung + ruot tach tu "UI blood": chi dung khi Hp dang dung dung anh do,
+            // tranh thay nham neu sau nay co thanh mau thiet ke khac cung ten Hp.
+            if (background.sprite.name == HpBarSprites.OriginalSpriteName)
+            {
+                Image split = HpBarSprites.ApplyTo(background);
+                if (split != null)
+                    return split;
+            }
+
+            // Cach cu: anh goc to toi lam nen, lop fill dung chung anh goc phu kin thanh.
+            var go = new GameObject(HpBarSprites.FillObjectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.layer = hp.gameObject.layer;
+
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(hp, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            // Nam duoi chu So_Hp (con dau tien duoc ve truoc).
+            rect.SetAsFirstSibling();
+
+            Image fill = go.GetComponent<Image>();
+            fill.sprite = background.sprite;
+            fill.color = background.color;
+            fill.material = background.material;
+            fill.preserveAspect = background.preserveAspect;
+            fill.raycastTarget = false;
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fill.fillAmount = 1f;
+
+            Color c = background.color;
+            background.color = new Color(c.r * HpEmptyTintFactor, c.g * HpEmptyTintFactor, c.b * HpEmptyTintFactor, c.a);
+
+            return fill;
+        }
+
+        private void SetHpFillTarget(float ratio)
+        {
+            hpFillTarget = Mathf.Clamp01(ratio);
+
+            // Lan dau mo Town: hien dung ngay, khong chay tu 100% xuong.
+            if (hpFillInitialized)
+                return;
+
+            hpFillInitialized = true;
+            foreach (Image fill in hpFills)
+            {
+                if (fill != null)
+                    fill.fillAmount = hpFillTarget;
+            }
+        }
+
+        /// <summary>Thanh mau chay mu dan toi gia tri moi (vd dang hoi mau theo dot).</summary>
+        private void AnimateHpFill()
+        {
+            if (!hpFillInitialized)
+                return;
+
+            float step = HpFillSpeed * Time.unscaledDeltaTime;
+            foreach (Image fill in hpFills)
+            {
+                if (fill != null && !Mathf.Approximately(fill.fillAmount, hpFillTarget))
+                    fill.fillAmount = Mathf.MoveTowards(fill.fillAmount, hpFillTarget, step);
+            }
         }
 
         private static void CollectDirectChildTexts(Scene scene, string objectName, List<TMP_Text> into)
@@ -645,9 +748,6 @@ namespace EternalClash.UI
 
         private void ApplyHealthTexts(PlayerStatSystem stats)
         {
-            if (hpTexts.Count == 0)
-                return;
-
             int maxHp = stats.TotalMaxHealth;
             int currentHp = maxHp;
 
@@ -658,6 +758,11 @@ namespace EternalClash.UI
                 // la TotalMaxHealth de khong lech voi chi so VIT vua cong.
                 currentHp = Mathf.Clamp(condition.CurrentHp, 0, maxHp);
             }
+
+            SetHpFillTarget(maxHp > 0 ? (float)currentHp / maxHp : 1f);
+
+            if (hpTexts.Count == 0)
+                return;
 
             string line = $"{currentHp}/{maxHp}";
             for (int i = 0; i < hpTexts.Count; i++)

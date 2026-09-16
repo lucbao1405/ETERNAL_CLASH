@@ -378,24 +378,19 @@ namespace EternalClash.Stage
             isProcessing = false;
             defeatProcessed = false;
 
-            // Chi hoi day mau khi THANG. Neu vua thua thi phai giu nguyen trang thai
-            // thuong tich ma BeginDefeatFlow() vua dat - truoc day doan nay chay vo
-            // dieu kien nen no xoa sach trang thai do va co che hoi phuc khong bao
-            // gio chay duoc.
-            bool injured = EternalClash.Core.PlayerConditionSystem.Instance != null
-                && EternalClash.Core.PlayerConditionSystem.Instance.IsInjured;
+            // Dong bo mau voi Town. THUA (chet / bo cuoc): giu trang thai thuong tich ma
+            // luong thua vua dat (ve lang voi 10% mau) - khong ghi de. Con lai (thang):
+            // mang dung so mau con lai trong tran ve Town, thieu mau thi tiep tuc hoi.
+            bool defeated = StageManager.Instance != null &&
+                            StageManager.Instance.CurrentState == StageManager.StageState.Defeat;
 
-            var data = SaveManager.Instance?.Data;
-            if (data != null && !injured)
+            var condition = EternalClash.Core.PlayerConditionSystem.Instance;
+            if (!defeated && condition != null)
             {
-                data.playerCondition = (int)PlayerCondition.Normal;
                 var player = GameObject.FindGameObjectWithTag("Player");
                 var health = player != null ? player.GetComponent<EternalClash.Character.HealthSystem>() : null;
-                if (health != null)
-                {
-                    data.maxHp = health.MaxHealth;
-                    data.currentHp = health.MaxHealth;
-                }
+                if (health != null && !health.IsDead)
+                    condition.SetHpAfterBattle(health.CurrentHealth, health.MaxHealth);
             }
 
             SaveCoordinator.RequestSave();

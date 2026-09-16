@@ -37,6 +37,12 @@ namespace EternalClash.Core
         /// <summary>Phan tram Max HP duoc hoi ngay khi ve lang sau khi chet.</summary>
         public const int REVIVE_HP_PERCENT = 10;
 
+        /// <summary>
+        /// Phai co it nhat bay nhieu phan tram Max HP moi duoc vao tran. Khac voi
+        /// muc hoi (hoi toi 100%): day chi la nguong cho phep bam GO.
+        /// </summary>
+        public const int MIN_BATTLE_HP_PERCENT = 60;
+
         public event Action<PlayerCondition> OnConditionChanged;
         public event Action<int, int> OnRecoveredHpChanged;
         public event Action OnRecoveryCompleted;
@@ -200,19 +206,72 @@ namespace EternalClash.Core
             Debug.Log("[CONDITION] Player recovered from Injured.");
         }
 
+        /// <summary>So mau toi thieu de vao tran (MIN_BATTLE_HP_PERCENT% Max HP).</summary>
+        public int MinBattleHp => Mathf.CeilToInt(Mathf.Max(1, maxHp) * MIN_BATTLE_HP_PERCENT / 100f);
+
+        /// <summary>Du mau de vao tran: khong bi thuong, hoac dang hoi nhung da dat nguong.</summary>
         public bool CanStartBattle()
         {
             if (Condition == PlayerCondition.Normal) return true;
             if (maxHp <= 0) return true;
 
-            int targetHp = Mathf.CeilToInt(maxHp * recoveryTargetPercent / 100f);
-            return currentHp >= targetHp;
+            return currentHp >= MinBattleHp;
         }
 
         public string GetInjuredBlockReason()
         {
+            return $"Not enough HP!\nNeed {MIN_BATTLE_HP_PERCENT}% HP to battle ({currentHp}/{MinBattleHp})";
+        }
+
+        /// <summary>
+        /// Mau cua Player luc bat dau tran = mau dang co o Town. Khong bi thuong thi day
+        /// mau. Dung Max HP cua tran (co the vua cong VIT) lam tran.
+        /// </summary>
+        public int GetBattleStartHp(int battleMaxHp)
+        {
+            battleMaxHp = Mathf.Max(1, battleMaxHp);
+            if (Condition == PlayerCondition.Normal || maxHp <= 0)
+                return battleMaxHp;
+
+            return Mathf.Clamp(currentHp, 1, battleMaxHp);
+        }
+
+        /// <summary>
+        /// Mang mau con lai sau tran THANG ve Town. Day mau thi binh thuong; con thieu
+        /// thi chuyen sang dang hoi (cung co che hoi theo dot nhu khi bi thuong).
+        /// Thua van dung MarkInjured (ve lang voi REVIVE_HP_PERCENT%).
+        /// </summary>
+        public void SetHpAfterBattle(int hp, int playerMaxHp)
+        {
+            maxHp = Mathf.Max(1, playerMaxHp);
+            currentHp = Mathf.Clamp(hp, 1, maxHp);
+            recoveryRatePerSecond = DEFAULT_RECOVERY_RATE;
+            recoveryTargetPercent = DEFAULT_RECOVERY_TARGET_PERCENT;
+            recoveryAccumulator = 0f;
+
+            var data = SaveManager.Instance?.Data;
             int targetHp = Mathf.CeilToInt(maxHp * recoveryTargetPercent / 100f);
-            return $"Character is injured.\nWait until HP recovers.\n({currentHp}/{targetHp})";
+
+            if (currentHp >= targetHp)
+            {
+                currentHp = maxHp;
+                SetCondition(PlayerCondition.Normal);
+                if (data != null)
+                    data.recoveryStartUnixTime = 0;
+            }
+            else
+            {
+                SetCondition(PlayerCondition.Injured);
+                // Moc tinh hoi mau offline bat dau lai tu luc ve lang.
+                if (data != null)
+                    data.recoveryStartUnixTime = NowUnix();
+            }
+
+            SyncToSave();
+            SaveCoordinator.RequestSave();
+            OnRecoveredHpChanged?.Invoke(currentHp, maxHp);
+
+            Debug.Log($"[CONDITION] HP sau tran: {currentHp}/{maxHp} ({Condition}).");
         }
 
         public void LoadFromSave(SaveData data)
