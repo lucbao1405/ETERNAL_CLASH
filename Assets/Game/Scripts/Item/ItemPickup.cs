@@ -16,7 +16,8 @@ namespace EternalClash.Item
         // prefab da cau hinh tu truoc khong bi lech loai.
         Ore,
         Leather,
-        Wood
+        Wood,
+        Gem
     }
 
     public class ItemPickup : MonoBehaviour
@@ -136,6 +137,10 @@ namespace EternalClash.Item
 
                 case ItemType.Wood:
                     AddNormalItem("Wood", amount);
+                    break;
+
+                case ItemType.Gem:
+                    EternalClash.Village.GoldSystem.Instance?.AddGem(amount);
                     break;
             }
 

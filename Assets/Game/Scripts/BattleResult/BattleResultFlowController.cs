@@ -331,6 +331,9 @@ namespace EternalClash.BattleResult
                 case ItemType.Wood:
                     entry = BattleRewardData.CreateEntry("Wood", "Wood", amount);
                     break;
+                case ItemType.Gem:
+                    entry = BattleRewardData.CreateEntry("Gem", "Gem", amount);
+                    break;
             }
 
             if (entry != null)

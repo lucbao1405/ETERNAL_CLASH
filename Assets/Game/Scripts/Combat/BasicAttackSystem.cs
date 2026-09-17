@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections;
 using EternalClash.Character;
+using EternalClash.Animation;
 
 namespace EternalClash.Combat
 {
@@ -9,6 +11,7 @@ namespace EternalClash.Combat
         [SerializeField] private float attackCooldown = 1f;
         [SerializeField] private float knockbackForce = 5f;
         [SerializeField] private float attackRange = 0.85f;
+        [SerializeField, Range(0.1f, 0.9f)] private float hitMoment = 0.5f;
         private float cooldownTimer;
         private GameObject target;
         private CharacterStateMachine stateMachine;
@@ -23,12 +26,24 @@ namespace EternalClash.Combat
         public void ClearTarget()=>target=null;
         public void StartAttack()
         {
-            if (target == null || !IsValidTarget(target)) return;
+            if (target == null || !IsValidTarget(target) || cooldownTimer > 0f) return;
             Debug.Log("[ATTACK START] " + name + " -> " + target.name);
             if (stateMachine != null) stateMachine.ChangeState(CharacterState.Attack);
             // Animation-layer hook only (no gameplay impact).
-            GetComponent<EternalClash.Animation.IPlayerAnimationFeedback>()?.NotifyAttack();
+            GetComponent<IPlayerAnimationFeedback>()?.NotifyAttack();
             EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerAttack);
+            cooldownTimer = attackCooldown;
+            StartCoroutine(HitRoutine());
+        }
+
+        // Dmg den o giua state Attack (theo do dai clip Spine) thay vi ngay khi vao state.
+        private IEnumerator HitRoutine()
+        {
+            IPlayerAnimationFeedback feedback = GetComponent<IPlayerAnimationFeedback>();
+            float clipDuration = feedback != null ? feedback.GetAttackDuration() : 0f;
+            yield return new WaitForSeconds(AttackTiming.HitDelay(clipDuration, hitMoment));
+            if (!enabled) yield break; // player chet / stage ket thuc giua chu danh
+            if (stateMachine != null && stateMachine.CurrentState != CharacterState.Attack) yield break; // bi gian doan
             DealDamage();
         }
         public void AnimationDealDamage()=>DealDamage();
@@ -40,9 +55,8 @@ namespace EternalClash.Combat
             // ngay trong luc dang chay ham nay. Neu cu doc lai field "target" sau do se
             // NullReferenceException - dung ban local nay thi khong bi anh huong.
             GameObject currentTarget = target;
-            if(currentTarget==null||cooldownTimer>0f||!IsValidTarget(currentTarget))return;
+            if(currentTarget==null||!IsValidTarget(currentTarget))return;
             if(CombatDamageResolver.Instance==null)return;
-            cooldownTimer=attackCooldown;
             int finalDamage=Village.PlayerStatSystem.Instance!=null?Village.PlayerStatSystem.Instance.BasicAttackDamage:damage;
             Debug.Log("[DAMAGE SENT] "+currentTarget.name+" Damage: "+finalDamage);
             CombatDamageResolver.Instance.DealDamage(currentTarget,finalDamage,DamageSource.BasicAttack);

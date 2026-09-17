@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using EternalClash.Skill;
 using EternalClash.Enemy;
@@ -10,6 +11,7 @@ namespace EternalClash.Combat
         public float attackInterval = 2f;
         public float attackRange = 1.2f;
         public float knockbackForce = 1f;
+        [SerializeField, Range(0.1f, 0.9f)] private float hitMoment = 0.5f;
 
         [Header("Ranged (GDD 3.4 Goblin Cung)")]
         [SerializeField] private GameObject projectilePrefab;
@@ -57,6 +59,25 @@ namespace EternalClash.Combat
                     ep.Initialize(damage, projectileSpeed, (player.position - transform.position).normalized);
                 return;
             }
+
+            // Melee: dmg den o giua state Attack (theo do dai clip Spine)
+            // thay vi ngay khi bat dau state.
+            StartCoroutine(MeleeHitRoutine());
+        }
+
+        private IEnumerator MeleeHitRoutine()
+        {
+            var feedback = GetComponentInParent<EternalClash.Animation.IEnemyAnimationFeedback>();
+            float clipDuration = feedback != null ? feedback.GetAttackDuration() : 0f;
+            yield return new WaitForSeconds(AttackTiming.HitDelay(clipDuration, hitMoment));
+            if (!enabled) yield break; // enemy chet / player chet giua chu danh
+            MeleeHit();
+        }
+
+        private void MeleeHit()
+        {
+            if (player == null)
+                return;
 
             // Truyen gameObject lam attacker de Khien phan lai 5 DMG ve chinh con quai
             // vua danh (GDD 3.3). Thieu tham so nay thi phan don khong kich hoat.

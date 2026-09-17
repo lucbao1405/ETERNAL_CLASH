@@ -163,7 +163,10 @@ namespace EternalClash.Tutorial
                     break;
 
                 case TutorialStep.SelectIronSword:
-                    OpenBlacksmith();
+                    // Resuming mid-step must not force the shop open on every
+                    // Town load; the player opens it via the blacksmith NPC.
+                    // The one-time open after BlacksmithIntroduction still calls
+                    // OpenBlacksmith directly.
                     WireIronSwordButton();
                     break;
 
@@ -254,6 +257,13 @@ namespace EternalClash.Tutorial
             ShopThoRenController oldBlacksmithUi = FindObjectOfType<ShopThoRenController>(true);
             if (oldBlacksmithUi != null)
             {
+                ShopPanelAnimator animator = oldBlacksmithUi.GetComponent<ShopPanelAnimator>();
+                if (animator != null)
+                {
+                    animator.Open();
+                    return;
+                }
+
                 oldBlacksmithUi.gameObject.SetActive(true);
                 return;
             }
