@@ -23,6 +23,7 @@ namespace EternalClash.Character
 
         private Transform shadowTransform;
         private SpriteRenderer shadowRenderer;
+        private Camera mainCamera;
         private static Sprite softEllipse;
 
         public int SortOrderOffset
@@ -52,13 +53,28 @@ namespace EternalClash.Character
             if (width <= 0.0001f)
                 return;
 
+            // Khi bong cung sorting order voi nhan vat (NPC chung layer Default voi
+            // canvas nha cua, panel), hang doi transparent xep theo khoang cach:
+            // xa ve truoc. Day bong lui xa camera mot ti de nam giua duong dat va
+            // than nguoi thay vi de chan voi than.
+            if (mainCamera == null)
+                mainCamera = Camera.main;
+            float z = bounds.center.z;
+            if (mainCamera != null)
+            {
+                float away = Mathf.Sign(z - mainCamera.transform.position.z);
+                if (away == 0f)
+                    away = 1f;
+                z += away * 0.01f;
+            }
+
             // Shadow la con cua nhan vat nen chia lai cho scale cua cha de kich
             // thuoc dat bang don vi the gioi (prefab co the bi scale khac 1).
             Vector3 parentScale = transform.lossyScale;
             shadowTransform.position = new Vector3(
                 bounds.center.x,
                 bounds.min.y + yOffset,
-                bounds.center.z);
+                z);
             shadowTransform.localScale = new Vector3(
                 width / Mathf.Abs(parentScale.x),
                 width * heightScale / Mathf.Abs(parentScale.y),
@@ -245,12 +261,18 @@ namespace EternalClash.Character
                 foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
                     Ensure(go.transform.root.gameObject, -1);
 
-                // Nhan vat UI con lai (Nhan_Vat_Chinh o Town...): moi
-                // SkeletonGraphic deu la nhan vat can bong. NPC da duoc them o
-                // tren nen check GetComponent cho idempotent.
+                // Chi nhan vat moi co bong, khong anh huong nha cua (Nha_*),
+                // banner, ruong hay panel trang tri dang SkeletonGraphic.
+                // NPC nhan dien qua NPCShopDialogueController, nhan vat chinh
+                // theo ten (quy uoc code dang dung de tim Nhan_Vat_Chinh).
                 foreach (SkeletonGraphic skeleton in
                     FindObjectsByType<SkeletonGraphic>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
+                    bool isNpc = skeleton.GetComponentInParent<NPCShopDialogueController>(true) != null;
+                    bool isMainCharacter = skeleton.gameObject.name == "Nhan_Vat_Chinh";
+                    if (!isNpc && !isMainCharacter)
+                        continue;
+
                     if (skeleton.GetComponent<CharacterShadowUi>() == null)
                         skeleton.gameObject.AddComponent<CharacterShadowUi>();
                 }

@@ -35,7 +35,10 @@ namespace EternalClash.Audio
         // Lang
         StatSelect = 50,
         UpgradeAccept = 51,
-        ItemUpgrade = 52
+        ItemUpgrade = 52,
+
+        // Truot (cuon) panel mo/dong o Town
+        PanelScroll = 53
     }
 
     /// <summary>Loai am thanh cua quai, gan theo tung quai trong SoundLibrary.</summary>

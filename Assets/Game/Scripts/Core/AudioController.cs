@@ -320,7 +320,8 @@ namespace EternalClash.Core
         private static bool IsButtonFeedback(SoundId id)
         {
             return id == SoundId.StatSelect || id == SoundId.UpgradeAccept ||
-                   id == SoundId.ItemUpgrade || id == SoundId.ChestOpen;
+                   id == SoundId.ItemUpgrade || id == SoundId.ChestOpen ||
+                   id == SoundId.PanelScroll;
         }
 
         public void PlayEnemy(GameObject enemy, EnemySound type)
