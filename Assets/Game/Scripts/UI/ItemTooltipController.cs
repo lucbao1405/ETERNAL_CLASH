@@ -30,8 +30,8 @@ namespace EternalClash.UI
         {
             rootCanvas = GetComponentInParent<Canvas>();
 
-            // Con "StartToolTip" cua o: khoi tao som de neu nguoi dung de object o trang
-            // thai active trong editor (de xem truoc) thi no tu TAT khi vao scene.
+            // Con "StartToolTip" rieng cua o (neu nguoi dung da tao): khoi tao som de tu
+            // TAT khi vao scene — tranh tooltip placeholder hien san truoc khi bam.
             Transform own = transform.Find("StartToolTip");
             if (own != null)
             {
@@ -97,7 +97,8 @@ namespace EternalClash.UI
             tooltipDescriptionText.text = string.IsNullOrEmpty(item.description) ? "No description." : item.description;
             HideEquipmentOnlyRows();
 
-            // Tooltip con cua o da duoc nguoi dung dat vi tri san trong Hierarchy.
+            // Tooltip con cua o dat vi tri san trong Hierarchy; bubble chung thi canh
+            // giua phia tren o.
             if (!usesOwnTooltip)
                 PositionAboveSlot();
             tooltipPanel.SetActive(true);
@@ -152,42 +153,9 @@ namespace EternalClash.UI
         {
             if (tooltipPanel == null)
             {
-                // 1) Con "StartToolTip" ngay tren o (tao bang menu Tools/UI hoac tu tao luc
-                //    chay) — chinh kich thuoc rieng tung o trong Hierarchy.
+                // 1) Con "StartToolTip" rieng cua o (nguoi dung tao trong Hierarchy) — hien
+                //    dung tai cho, khong di chuyen; thong tin se duoc fill dung item cua o.
                 Transform own = transform.Find("StartToolTip");
-                if (own == null)
-                {
-                    GameObject prefab = Resources.Load<GameObject>(PrefabPath);
-                    if (prefab != null)
-                    {
-                        GameObject go = Instantiate(prefab, transform);
-                        go.name = "StartToolTip";
-                        own = go.transform;
-
-                        if (own is RectTransform rt)
-                        {
-                            rt.anchorMin = new Vector2(0.5f, 1f);
-                            rt.anchorMax = new Vector2(0.5f, 1f);
-                            rt.pivot = new Vector2(0.5f, 0f);
-                            rt.anchoredPosition = new Vector2(0f, 8f);
-                            rt.localScale = Vector3.one;
-                            RectTransform slotRect = transform as RectTransform;
-                            float slotW = slotRect != null ? slotRect.rect.width : 100f;
-                            float slotH = slotRect != null ? slotRect.rect.height : 100f;
-                            rt.sizeDelta = new Vector2(
-                                Mathf.Clamp(slotW * 2.2f, 240f, 650f),
-                                Mathf.Clamp(slotH * 1.6f, 130f, 260f));
-                        }
-
-                        VerticalLayoutGroup layout = go.GetComponent<VerticalLayoutGroup>();
-                        if (layout != null)
-                            Destroy(layout);
-                        ContentSizeFitter fitter = go.GetComponent<ContentSizeFitter>();
-                        if (fitter != null)
-                            Destroy(fitter);
-                    }
-                }
-
                 if (own != null)
                 {
                     tooltipPanel = own.gameObject;
@@ -195,10 +163,9 @@ namespace EternalClash.UI
                 }
                 else
                 {
-                    usesOwnTooltip = false;
-
                     // 2) Bubble dung chung "ItemInfoBubble" trong scene Town; khong co thi
-                    //    instantiate prefab (fallback cu).
+                    //    instantiate tu prefab (fallback cho o chua co tooltip rieng).
+                    usesOwnTooltip = false;
                     if (rootCanvas == null)
                         rootCanvas = FindObjectOfType<Canvas>();
                     if (rootCanvas == null)
@@ -224,7 +191,6 @@ namespace EternalClash.UI
                     // Ghep ve canvas cua slot de dat vi tri va thu tu ve dung.
                     if (tooltipPanel.transform.parent != rootCanvas.transform)
                         tooltipPanel.transform.SetParent(rootCanvas.transform, false);
-                    Debug.Log($"[ItemTooltip] Dung bubble: {tooltipPanel.name}, size={((RectTransform)tooltipPanel.transform).sizeDelta}.");
                 }
                 tooltipPanel.SetActive(false);
             }
@@ -317,7 +283,11 @@ namespace EternalClash.UI
             slot.GetWorldCorners(corners);
             Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(rootCanvas.worldCamera, (corners[1] + corners[2]) * 0.5f);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPoint, rootCanvas.worldCamera, out Vector2 localPoint);
-            tooltipRect.anchoredPosition = localPoint + new Vector2(0f, tooltipRect.rect.height * 0.5f + 12f);
+
+            // Canh giua theo tam o, va cham canh khong cho tooltip tran man hinh.
+            float halfWidth = tooltipRect.rect.width * 0.5f;
+            float x = Mathf.Clamp(localPoint.x, canvasRect.rect.xMin + halfWidth + 8f, canvasRect.rect.xMax - halfWidth - 8f);
+            tooltipRect.anchoredPosition = new Vector2(x, localPoint.y + tooltipRect.rect.height * 0.5f + 12f);
         }
     }
 }
