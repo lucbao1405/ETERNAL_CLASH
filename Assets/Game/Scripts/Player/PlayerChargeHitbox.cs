@@ -116,8 +116,8 @@ namespace EternalClash.Player
                 DamageSource.Charge
             );
 
-            // Pull enemy just inside the hitbox edge so it stands within attack range
-            // of the player rather than on top of them.
+            // Push enemy toward the player: shove it just inside attack range
+            // instead of leaving it parked where the charge caught it.
             StartCoroutine(PullIntoRange(enemyObject));
         }
 
