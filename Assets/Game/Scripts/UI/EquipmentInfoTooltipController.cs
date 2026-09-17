@@ -12,7 +12,8 @@ using EternalClash.Village;
 namespace EternalClash.UI
 {
     /// <summary>
-    /// Bong bong thong tin vat pham kieu PostKnight cho panel "Trang_Bi" cua scene Town:
+    /// Tooltip thong tin vat pham kieu StartToolTip (khung giay + duoi tam giac, giong
+    /// tooltip chi so trong panel Town) cho panel "Trang_Bi" cua scene Town:
     ///   - Giu vao o Vu Khi / Khien / Giap / Lon: hien ten vat pham dang mang, chi so
     ///     tang them va mo ta (neu khong co thi bao "No equipment" / "Coming Soon").
     ///   - Giu vao loai thuoc o hang "RED POTION": hien cong dung cua thuoc.
@@ -57,11 +58,9 @@ namespace EternalClash.UI
 
         private static readonly Color ItemTitleColor = new Color(0.16f, 0.45f, 0.95f);
         private static readonly Color EmptyTitleColor = new Color(0.40f, 0.42f, 0.47f);
-        private static readonly Color SubtitleColor = new Color(0.42f, 0.38f, 0.30f);
-        private static readonly Color StatsColor = new Color(0.20f, 0.55f, 0.28f);
-        private static readonly Color DescColor = new Color(0.35f, 0.37f, 0.42f);
-        private static readonly Color BubbleFillColor = new Color(1f, 0.985f, 0.95f, 0.98f);
-        private static readonly Color BubbleBorderColor = new Color(0.28f, 0.24f, 0.20f, 1f);
+
+        // Ban cung StartToolTip.prefab trong Resources/UI — chinh sua giao dien truc tiep trong editor.
+        private const string StartToolTipPrefabPath = "UI/StartToolTip";
 
         private Canvas rootCanvas;
         private RectTransform bubbleRoot;
@@ -73,9 +72,6 @@ namespace EternalClash.UI
         private TMP_Text statsText;
         private TMP_Text descText;
         private CanvasGroup bubbleGroup;
-        private Sprite roundedSprite;
-        private Sprite tailDownSprite;
-        private Sprite tailUpSprite;
 
         private Coroutine showRoutine;
         private Coroutine hideRoutine;
@@ -167,6 +163,11 @@ namespace EternalClash.UI
 
                 Transform target = t;
                 EnsureClickTarget(target, () => ShowPotion(target), Hide);
+
+                // Tu tat StartToolTip con neu dang de active trong editor.
+                Transform ownPotionTooltip = target.Find("StartToolTip");
+                if (ownPotionTooltip != null)
+                    ownPotionTooltip.gameObject.SetActive(false);
                 potions++;
             }
 
@@ -222,6 +223,12 @@ namespace EternalClash.UI
 
             hold.Pressed = onPressed;
             hold.Released = onReleased;
+
+            // Neu nguoi dung de StartToolTip con o trang thai active trong editor (de xem
+            // truoc) thi tu tat khi vao scene, tranh tooltip placeholder hien loan.
+            Transform ownTooltip = slot.Find("StartToolTip");
+            if (ownTooltip != null)
+                ownTooltip.gameObject.SetActive(false);
         }
 
         // ------------------------------------------------------------------
@@ -275,18 +282,42 @@ namespace EternalClash.UI
             if (anchorRect == null)
                 return;
 
+            // 1) Con "StartToolTip" rieng cua o (tao bang menu Tools/UI) — hien dung tai cho,
+            //    khong di chuyen, de nguoi dung chinh kich thuoc rieng tung o trong Hierarchy.
+            Transform own = anchorRect.Find("StartToolTip");
+            if (own != null)
+            {
+                ShowOwnTooltip(own, title, titleColor, subtitle, stats, desc);
+                return;
+            }
+
+            // 2) Bubble dung chung (ItemInfoBubble scene / prefab) — logic cu.
             EnsureBuilt();
             if (bubbleRoot == null)
                 return;
 
+            // Chi Title va Description la bat buoc; cac dong phu/duoi la tuy chon de co the
+            // xua bot trong hierarchy ma khong lam hong tooltip.
+            if (titleText == null || descText == null)
+            {
+                Debug.LogWarning("[ItemInfoBubble] Bubble phai con Tooltip_Title va Tooltip_Description.");
+                return;
+            }
+
             titleText.text = title;
             titleText.color = titleColor;
 
-            subtitleText.gameObject.SetActive(!string.IsNullOrEmpty(subtitle));
-            subtitleText.text = subtitle ?? string.Empty;
+            if (subtitleText != null)
+            {
+                subtitleText.gameObject.SetActive(!string.IsNullOrEmpty(subtitle));
+                subtitleText.text = subtitle ?? string.Empty;
+            }
 
-            statsText.gameObject.SetActive(!string.IsNullOrEmpty(stats));
-            statsText.text = stats ?? string.Empty;
+            if (statsText != null)
+            {
+                statsText.gameObject.SetActive(!string.IsNullOrEmpty(stats));
+                statsText.text = stats ?? string.Empty;
+            }
 
             descText.gameObject.SetActive(!string.IsNullOrEmpty(desc));
             descText.text = desc ?? string.Empty;
@@ -304,10 +335,69 @@ namespace EternalClash.UI
             showRoutine = StartCoroutine(FadeIn());
         }
 
+        private Transform lastOwnTooltip;
+
+        // Hien con StartToolTip cua chinh o dang giu (giong tooltip chi so): chi doi chu
+        // va bat len, khong di chuyen vi vi tri/size do nguoi dung dat trong Hierarchy.
+        private void ShowOwnTooltip(Transform tooltip, string title, Color titleColor, string subtitle, string stats, string desc)
+        {
+            TMP_Text ownTitle = FindDescendant(tooltip, "Tooltip_Title")?.GetComponent<TMP_Text>();
+            TMP_Text ownDesc = FindDescendant(tooltip, "Tooltip_Description")?.GetComponent<TMP_Text>();
+            if (ownTitle == null || ownDesc == null)
+            {
+                Debug.LogWarning("[ItemInfoBubble] StartToolTip tren o thieu Tooltip_Title/Tooltip_Description.");
+                return;
+            }
+
+            TMP_Text ownSubtitle = FindDescendant(tooltip, "Tooltip_Subtitle")?.GetComponent<TMP_Text>();
+            TMP_Text ownStats = FindDescendant(tooltip, "Tooltip_Stats")?.GetComponent<TMP_Text>();
+
+            ownTitle.text = title;
+            ownTitle.color = titleColor;
+
+            if (ownSubtitle != null)
+            {
+                ownSubtitle.gameObject.SetActive(!string.IsNullOrEmpty(subtitle));
+                ownSubtitle.text = subtitle ?? string.Empty;
+            }
+
+            if (ownStats != null)
+            {
+                ownStats.gameObject.SetActive(!string.IsNullOrEmpty(stats));
+                ownStats.text = stats ?? string.Empty;
+            }
+
+            ownDesc.gameObject.SetActive(!string.IsNullOrEmpty(desc));
+            ownDesc.text = desc ?? string.Empty;
+
+            // Dam bao tooltip con cua o luon ve tren cac o xung quanh.
+            Canvas ownCanvas = tooltip.GetComponent<Canvas>();
+            if (ownCanvas == null)
+                ownCanvas = tooltip.gameObject.AddComponent<Canvas>();
+            ownCanvas.overrideSorting = true;
+            ownCanvas.sortingOrder = 500;
+
+            if (lastOwnTooltip != null && lastOwnTooltip != tooltip)
+                lastOwnTooltip.gameObject.SetActive(false);
+
+            tooltip.gameObject.SetActive(true);
+            tooltip.SetAsLastSibling();
+            lastOwnTooltip = tooltip;
+
+            bubbleVisible = true;
+            lastAnchor = tooltip;
+        }
+
         private void Hide()
         {
             bubbleVisible = false;
             lastAnchor = null;
+
+            if (lastOwnTooltip != null)
+            {
+                lastOwnTooltip.gameObject.SetActive(false);
+                lastOwnTooltip = null;
+            }
 
             if (showRoutine != null)
             {
@@ -355,7 +445,7 @@ namespace EternalClash.UI
             RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, topScreen, cam, out Vector2 topLocal);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, bottomScreen, cam, out Vector2 bottomLocal);
 
-            float tail = tailDownRect.rect.height;
+            float tail = tailDownRect != null ? tailDownRect.rect.height : 18f;
             float bodyHeight = bodyRect.rect.height;
             float gap = 8f;
             float margin = 16f;
@@ -377,12 +467,14 @@ namespace EternalClash.UI
             bubbleRoot.anchoredPosition = new Vector2(x, y);
 
             // Duoi bong bon chi xuong o (hoac len len neu bong nam duoi o).
-            tailDownRect.gameObject.SetActive(above);
-            tailUpRect.gameObject.SetActive(!above);
+            if (tailDownRect != null)
+                tailDownRect.gameObject.SetActive(above);
+            if (tailUpRect != null)
+                tailUpRect.gameObject.SetActive(!above);
         }
 
         // ------------------------------------------------------------------
-        // Tao giao dien bong bong bang code
+        // Ban cung StartToolTip.prefab: instantiate va noi cac tham chieu
         // ------------------------------------------------------------------
 
         private void EnsureBuilt()
@@ -395,174 +487,59 @@ namespace EternalClash.UI
             if (rootCanvas == null)
                 return;
 
-            if (roundedSprite == null)
-                roundedSprite = CreateRoundedSprite();
-            if (tailDownSprite == null)
-                tailDownSprite = CreateTailSprite(true);
-            if (tailUpSprite == null)
-                tailUpSprite = CreateTailSprite(false);
+            // Uu tien ban cung "ItemInfoBubble" trong scene — tim khap scene de bat chap
+            // nguoi dung keo object den dau (root, canvas khac...); khong co thi instantiate prefab.
+            Transform existing = FindInScene("ItemInfoBubble");
+            GameObject go;
+            if (existing != null)
+            {
+                go = existing.gameObject;
+            }
+            else
+            {
+                GameObject prefab = Resources.Load<GameObject>(StartToolTipPrefabPath);
+                if (prefab == null)
+                {
+                    Debug.LogWarning("[ItemInfoBubble] Khong tim thay Resources/" + StartToolTipPrefabPath + ".prefab.");
+                    return;
+                }
+                go = Instantiate(prefab, rootCanvas.transform);
+                go.name = "ItemInfoBubble";
+            }
 
-            bubbleRoot = new GameObject("ItemInfoBubble", typeof(RectTransform), typeof(CanvasGroup))
-                .GetComponent<RectTransform>();
-            bubbleRoot.SetParent(rootCanvas.transform, false);
-            bubbleRoot.anchorMin = new Vector2(0.5f, 0.5f);
-            bubbleRoot.anchorMax = new Vector2(0.5f, 0.5f);
-            bubbleRoot.pivot = new Vector2(0.5f, 0.5f);
-            bubbleRoot.sizeDelta = Vector2.zero;
-            bubbleRoot.localScale = Vector3.one;
+            // Ghep ve canvas cua panel de dat vi tri va thu tu ve dung.
+            if (go.transform.parent != rootCanvas.transform)
+                go.transform.SetParent(rootCanvas.transform, false);
+
+            Debug.Log($"[ItemInfoBubble] Dung bubble trong scene: size={bubbleRoot.sizeDelta}, scale={bubbleRoot.localScale}.");
+
+            bubbleRoot = go.GetComponent<RectTransform>();
+            if (bubbleRoot == null)
+                return;
 
             bubbleGroup = bubbleRoot.GetComponent<CanvasGroup>();
+            if (bubbleGroup == null)
+                bubbleGroup = go.AddComponent<CanvasGroup>();
             bubbleGroup.blocksRaycasts = false;
             bubbleGroup.interactable = false;
 
-            bubbleRoot.gameObject.SetActive(false);
+            // Bubble dung cung cung phai ve tren cac panel khac.
+            Canvas bubbleCanvas = bubbleRoot.GetComponent<Canvas>();
+            if (bubbleCanvas == null)
+                bubbleCanvas = go.AddComponent<Canvas>();
+            bubbleCanvas.overrideSorting = true;
+            bubbleCanvas.sortingOrder = 500;
 
-            // Than bong bon: nen bo tron co vien toi, chua cac dong chu.
-            GameObject body = new GameObject("Body", typeof(RectTransform), typeof(Image),
-                typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            body.transform.SetParent(bubbleRoot, false);
-            bodyRect = body.GetComponent<RectTransform>();
-            bodyRect.sizeDelta = new Vector2(460f, 0f);
+            go.SetActive(false);
 
-            Image bodyImage = body.GetComponent<Image>();
-            bodyImage.sprite = roundedSprite;
-            bodyImage.type = Image.Type.Sliced;
-            bodyImage.color = BubbleFillColor;
-            bodyImage.raycastTarget = false;
-
-            VerticalLayoutGroup layout = body.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(28, 28, 20, 20);
-            layout.spacing = 4f;
-            layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-
-            ContentSizeFitter fitter = body.GetComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            titleText = CreateText("Title", bodyRect, 34f, TextAlignmentOptions.Center, ItemTitleColor, true);
-            subtitleText = CreateText("Subtitle", bodyRect, 20f, TextAlignmentOptions.Center, SubtitleColor, false);
-            statsText = CreateText("Stats", bodyRect, 24f, TextAlignmentOptions.Center, StatsColor, true);
-            descText = CreateText("Description", bodyRect, 20f, TextAlignmentOptions.Left, DescColor, false);
-
-            // Hai duoi bong bon (chi xuong hoac len), khong tham gia layout.
-            tailDownRect = CreateTail("Tail_Down", bodyRect, tailDownSprite);
-            tailUpRect = CreateTail("Tail_Up", bodyRect, tailUpSprite);
-        }
-
-        private static RectTransform CreateTail(string name, RectTransform parent, Sprite sprite)
-        {
-            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-            go.transform.SetParent(parent, false);
-
-            Image image = go.GetComponent<Image>();
-            image.sprite = sprite;
-            image.color = BubbleFillColor;
-            image.raycastTarget = false;
-
-            LayoutElement element = go.GetComponent<LayoutElement>();
-            element.ignoreLayout = true;
-
-            RectTransform rect = go.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(36f, 20f);
-            rect.localRotation = Quaternion.identity;
-            rect.gameObject.SetActive(false);
-            return rect;
-        }
-
-        private static TMP_Text CreateText(string name, Transform parent, float size,
-            TextAlignmentOptions alignment, Color color, bool bold)
-        {
-            GameObject go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-
-            TMP_Text text = go.GetComponent<TMP_Text>();
-            text.fontSize = size;
-            text.alignment = alignment;
-            text.color = color;
-            text.enableWordWrapping = true;
-            text.raycastTarget = false;
-            if (bold)
-                text.fontStyle = FontStyles.Bold;
-            return text;
-        }
-
-        // ------------------------------------------------------------------
-        // Sprite nen bo tron va duoi bong bon (ve bang code, khong can asset)
-        // ------------------------------------------------------------------
-
-        private static Sprite CreateRoundedSprite()
-        {
-            const int size = 128;
-            const int radius = 26;
-            const int border = 5;
-
-            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            Color32[] pixels = new Color32[size * size];
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    // Khoang cach SDF den hinh chu nhat bo tron.
-                    float hx = Mathf.Abs(x - (size - 1) * 0.5f) - (size * 0.5f - radius);
-                    float hy = Mathf.Abs(y - (size - 1) * 0.5f) - (size * 0.5f - radius);
-                    float ox = Mathf.Max(hx, 0f);
-                    float oy = Mathf.Max(hy, 0f);
-                    float d = Mathf.Sqrt(ox * ox + oy * oy) + Mathf.Min(Mathf.Max(hx, hy), 0f) - radius;
-
-                    float inside = Mathf.Clamp01(-d + 0.5f);
-                    float band = Mathf.Clamp01(border + d + 0.5f); // 1 trong vien, 0 ben trong
-
-                    Color fill = band > 0.5f ? BubbleBorderColor : Color.white;
-                    byte a = (byte)Mathf.RoundToInt(inside * 255f);
-                    pixels[y * size + x] = new Color32(
-                        (byte)Mathf.RoundToInt(fill.r * 255f),
-                        (byte)Mathf.RoundToInt(fill.g * 255f),
-                        (byte)Mathf.RoundToInt(fill.b * 255f),
-                        a);
-                }
-            }
-
-            texture.SetPixels32(pixels);
-            texture.Apply(false, true);
-
-            Vector4 borderRect = new Vector4(radius, radius, radius, radius);
-            return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f),
-                100f, 0u, SpriteMeshType.FullRect, borderRect);
-        }
-
-        private static Sprite CreateTailSprite(bool apexDown)
-        {
-            const int w = 36;
-            const int h = 22;
-
-            Texture2D texture = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            Color32[] pixels = new Color32[w * h];
-
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    float u = x / (float)(w - 1);
-                    // v = 0 o day (canh rong), v = 1 o dinh (mut).
-                    float v = apexDown ? 1f - y / (float)(h - 1) : y / (float)(h - 1);
-                    float edge = (1f - v) - Mathf.Abs(u - 0.5f) * 2f;
-                    float alpha = Mathf.Clamp01(edge * (w * 0.5f));
-
-                    pixels[y * w + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha * 255f));
-                }
-            }
-
-            texture.SetPixels32(pixels);
-            texture.Apply(false, true);
-
-            return Sprite.Create(texture, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+            // Than tooltip chinh la root cua bubble (khung giay).
+            bodyRect = bubbleRoot;
+            titleText = FindDescendant(go.transform, "Tooltip_Title")?.GetComponent<TMP_Text>();
+            subtitleText = FindDescendant(go.transform, "Tooltip_Subtitle")?.GetComponent<TMP_Text>();
+            statsText = FindDescendant(go.transform, "Tooltip_Stats")?.GetComponent<TMP_Text>();
+            descText = FindDescendant(go.transform, "Tooltip_Description")?.GetComponent<TMP_Text>();
+            tailDownRect = FindDescendant(go.transform, "Tail_Down") as RectTransform;
+            tailUpRect = FindDescendant(go.transform, "Tail_Up") as RectTransform;
         }
 
         // ------------------------------------------------------------------
@@ -608,6 +585,26 @@ namespace EternalClash.UI
             {
                 if (t != root && t.name == name)
                     return t;
+            }
+
+            return null;
+        }
+
+        // Tim object theo ten trong toan bo scene hien tai (keo den dau cung tim thay).
+        private Transform FindInScene(string objectName)
+        {
+            Scene scene = gameObject.scene;
+            if (!scene.IsValid())
+                return null;
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == objectName)
+                    return root.transform;
+
+                Transform found = FindDescendant(root.transform, objectName);
+                if (found != null)
+                    return found;
             }
 
             return null;
