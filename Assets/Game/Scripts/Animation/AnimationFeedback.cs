@@ -8,11 +8,17 @@ namespace EternalClash.Animation
     public interface IPlayerAnimationFeedback
     {
         void NotifyAttack();
+
+        /// <summary>Do dai clip attack (giay), 0 neu khong ro. Combat dung de dinh thoi diem gay dmg.</summary>
+        float GetAttackDuration();
     }
 
     public interface IEnemyAnimationFeedback
     {
         void NotifyAttack();
+
+        /// <summary>Do dai clip attack (giay), 0 neu khong ro. Combat dung de dinh thoi diem gay dmg.</summary>
+        float GetAttackDuration();
     }
 
     /// <summary>

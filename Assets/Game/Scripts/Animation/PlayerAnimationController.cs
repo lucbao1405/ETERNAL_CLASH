@@ -221,6 +221,15 @@ namespace EternalClash.Animation
             PlayOneShot(AnimAttack, VisualState.Attack);
         }
 
+        public float GetAttackDuration()
+        {
+            if (skeletonAnimation == null || skeletonAnimation.Skeleton == null ||
+                skeletonAnimation.Skeleton.Data == null)
+                return 0f;
+            Spine.Animation clip = skeletonAnimation.Skeleton.Data.FindAnimation(AnimAttack);
+            return clip != null ? clip.Duration : 0f;
+        }
+
         public void NotifyPotion()
         {
             if (IsFinished)

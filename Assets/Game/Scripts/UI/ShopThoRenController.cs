@@ -107,15 +107,9 @@ namespace EternalClash.UI
             RefreshSlots(listSetAoGiap);
             // Do not auto-select an item while opening the panel. The user
             // must select the equipment slot before Upgrade is enabled.
+            // The panel is only opened explicitly via ShopPanelAnimator.Open;
+            // enabling it must never auto-open it.
             UpdateUpgradeButtonState();
-            EnsurePanelInteractable();
-        }
-
-        private void EnsurePanelInteractable()
-        {
-            ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
-            if (animator != null && animator.State == ShopPanelAnimator.PanelState.Closed)
-                animator.Open();
         }
 
         private void OnDisable()
