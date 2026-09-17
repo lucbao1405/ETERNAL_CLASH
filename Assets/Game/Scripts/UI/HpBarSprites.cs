@@ -13,9 +13,15 @@ namespace EternalClash.UI
     {
         public const string OriginalSpriteName = "UI blood";
         public const string FillObjectName = "Hp_Fill";
+        public const string GhostObjectName = "Hp_Ghost";
 
         private const string FramePath = "UI/HpBar/UI blood frame";
         private const string FillPath = "UI/HpBar/UI blood fill";
+        // Ban trang cua anh ruot (cung hinh dang), de to mau tuy y.
+        private const string FillWhitePath = "UI/HpBar/UI blood fill white";
+
+        /// <summary>Mau doan HP vua bi tru, hien ra sau ruot do.</summary>
+        public static readonly Color GhostColor = new Color(1f, 0.82f, 0.15f, 1f);
 
         // Vi tri long khung tren anh frame 2048x333 (ti le 0..1), do luc tach anh.
         private static readonly Vector2 FillAnchorMin = new Vector2(0.02407f, 0.25586f);
@@ -83,6 +89,56 @@ namespace EternalClash.UI
             image.fillMethod = Image.FillMethod.Horizontal;
             image.fillOrigin = (int)Image.OriginHorizontal.Left;
             image.fillAmount = 1f;
+            return image;
+        }
+
+        /// <summary>
+        /// Tao lop "mau vua mat" mau vang, dat NGAY DUOI ruot do va trung khop vi tri.
+        /// Ruot do tut xuong truoc, lop vang o lai mot luc nen doan vua bi tru hien ra
+        /// mau vang. Tra ve null neu thieu anh.
+        /// </summary>
+        public static Image ApplyDamageGhost(Image fill)
+        {
+            if (fill == null)
+                return null;
+
+            Transform parent = fill.transform.parent;
+            if (parent == null)
+                return null;
+
+            Transform existing = parent.Find(GhostObjectName);
+            if (existing != null)
+                return existing.GetComponent<Image>();
+
+            // Anh trang de to vang duoc; thieu thi dung luon anh do (van thay lech mau nhe).
+            Sprite ghostSprite = Resources.Load<Sprite>(FillWhitePath) ?? fill.sprite;
+            if (ghostSprite == null)
+                return null;
+
+            var go = new GameObject(GhostObjectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.layer = fill.gameObject.layer;
+
+            var source = (RectTransform)fill.transform;
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = source.anchorMin;
+            rect.anchorMax = source.anchorMax;
+            rect.pivot = source.pivot;
+            rect.offsetMin = source.offsetMin;
+            rect.offsetMax = source.offsetMax;
+            rect.localScale = source.localScale;
+            // Ve truoc ruot do -> mau vang chi lo ra o doan vua bi tru.
+            rect.SetSiblingIndex(source.GetSiblingIndex());
+
+            Image image = go.GetComponent<Image>();
+            image.sprite = ghostSprite;
+            image.material = fill.material;
+            image.color = GhostColor;
+            image.raycastTarget = false;
+            image.type = Image.Type.Filled;
+            image.fillMethod = Image.FillMethod.Horizontal;
+            image.fillOrigin = (int)Image.OriginHorizontal.Left;
+            image.fillAmount = fill.fillAmount;
             return image;
         }
     }

@@ -322,6 +322,15 @@ namespace EternalClash.UI
                         {
                             iconImg.sprite = skill.icon;
                             iconImg.enabled = true;
+                            // O icon co the dang bi tat (ShopItemButton an di khi chua co
+                            // item), bat lai de icon skill hien ra.
+                            iconImg.gameObject.SetActive(true);
+                        }
+                        else
+                        {
+                            // Khong co icon rieng thi an han, tranh ve ra o trang.
+                            iconImg.enabled = false;
+                            iconImg.gameObject.SetActive(false);
                         }
                         // Nếu mở khóa: sáng rõ (Color.white), nếu khóa: làm mờ/tối (lockedIconColor)
                         iconImg.color = skill.isUnlocked ? Color.white : lockedIconColor;
@@ -344,6 +353,14 @@ namespace EternalClash.UI
                 {
                     // Nếu nhánh có ít hơn số lượng slot
                     slotBtn.interactable = false;
+
+                    // An o icon de khong ve ra o trang.
+                    Image emptyIcon = FindSlotIconImage(slotBtn);
+                    if (emptyIcon != null)
+                    {
+                        emptyIcon.enabled = false;
+                        emptyIcon.gameObject.SetActive(false);
+                    }
                 }
             }
         }

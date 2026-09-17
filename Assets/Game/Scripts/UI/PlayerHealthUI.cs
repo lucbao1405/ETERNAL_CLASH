@@ -20,6 +20,12 @@ namespace EternalClash.UI
         private float fillTarget = 1f;
         private bool fillInitialized;
 
+        // Doan HP vua bi tru: ruot do tut ngay, lop vang o lai 0.5 giay roi moi rut theo.
+        private const float GhostHoldDuration = 0.5f;
+        private const float GhostDrainSpeed = 1.6f;
+        private Image ghostFill;
+        private float ghostHoldTimer;
+
         private void Awake()
         {
             if (hpSlider == null)
@@ -46,6 +52,7 @@ namespace EternalClash.UI
                 return;
 
             splitFill = fill;
+            ghostFill = HpBarSprites.ApplyDamageGhost(fill);
 
             if (hpSlider != null)
             {
@@ -96,6 +103,37 @@ namespace EternalClash.UI
             }
 
             AnimateSplitFill();
+            AnimateGhostFill();
+        }
+
+        /// <summary>
+        /// Lop vang: giu nguyen <see cref="GhostHoldDuration"/> giay sau khi trung don
+        /// de nguoi choi thay ro doan mau vua mat, sau do rut dan ve bang ruot do.
+        /// Khi hoi mau thi bam theo ruot do ngay, khong de lai vet vang.
+        /// </summary>
+        private void AnimateGhostFill()
+        {
+            if (ghostFill == null || splitFill == null || !fillInitialized)
+                return;
+
+            float red = splitFill.fillAmount;
+            float ghost = ghostFill.fillAmount;
+
+            if (ghost <= red)
+            {
+                if (!Mathf.Approximately(ghost, red))
+                    ghostFill.fillAmount = red;
+                ghostHoldTimer = 0f;
+                return;
+            }
+
+            if (ghostHoldTimer > 0f)
+            {
+                ghostHoldTimer -= Time.unscaledDeltaTime;
+                return;
+            }
+
+            ghostFill.fillAmount = Mathf.MoveTowards(ghost, red, GhostDrainSpeed * Time.unscaledDeltaTime);
         }
 
         private void AnimateSplitFill()
@@ -126,12 +164,23 @@ namespace EternalClash.UI
 
             if (splitFill != null)
             {
-                fillTarget = Mathf.Clamp01((float)current / Mathf.Max(max, 1));
+                float newTarget = Mathf.Clamp01((float)current / Mathf.Max(max, 1));
+                bool lostHp = fillInitialized && newTarget < fillTarget;
+                fillTarget = newTarget;
+
                 // Lan dau (vao tran): hien dung ngay, khong chay tu day xuong.
                 if (!fillInitialized)
                 {
                     fillInitialized = true;
-                    splitFill.fillAmount = fillTarget;
+                    splitFill.fillAmount = newTarget;
+                    if (ghostFill != null)
+                        ghostFill.fillAmount = newTarget;
+                }
+                else if (lostHp)
+                {
+                    // Ruot do tut ngay: doan vua mat lo ra mau vang, giu 0.5 giay roi rut.
+                    splitFill.fillAmount = newTarget;
+                    ghostHoldTimer = GhostHoldDuration;
                 }
             }
 
