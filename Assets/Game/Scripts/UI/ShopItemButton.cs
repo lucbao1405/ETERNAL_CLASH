@@ -21,7 +21,23 @@ namespace EternalClash.UI
         {
             button ??= GetComponent<Button>();
             EnsureIcon();
+
+            // Chua co item thi an o icon. Truoc day o icon vua tao (chua co anh) van
+            // hien nen ve ra mot o TRANG - thay ro o bang Skill trong Town, noi cac o
+            // cung gan script nay nhung khong bao gio duoc Bind() item.
+            HideIconIfEmpty();
+
             button.onClick.AddListener(SelectItem);
+        }
+
+        private void HideIconIfEmpty()
+        {
+            if (icon == null)
+                return;
+
+            bool hasSprite = itemData != null && icon.sprite != null;
+            icon.enabled = hasSprite;
+            icon.gameObject.SetActive(hasSprite);
         }
 
         private void OnDestroy()
