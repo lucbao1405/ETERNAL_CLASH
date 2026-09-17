@@ -1,0 +1,76 @@
+
+spine.png
+size: 6297,1747
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+binh mau
+  rotate: false
+  xy: 2888, 181
+  size: 286, 325
+  orig: 286, 325
+  offset: 0, 0
+  index: -1
+body
+  rotate: true
+  xy: 3919, 161
+  size: 1584, 1322
+  orig: 1584, 1322
+  offset: 0, 0
+  index: -1
+chan 1
+  rotate: false
+  xy: 1891, 13
+  size: 361, 493
+  orig: 361, 493
+  offset: 0, 0
+  index: -1
+chan 2
+  rotate: false
+  xy: 2254, 12
+  size: 360, 494
+  orig: 360, 494
+  offset: 0, 0
+  index: -1
+co tay 2
+  rotate: true
+  xy: 2943, 5
+  size: 174, 306
+  orig: 174, 306
+  offset: 0, 0
+  index: -1
+mat
+  rotate: false
+  xy: 2, 2
+  size: 1887, 1743
+  orig: 1887, 1743
+  offset: 0, 0
+  index: -1
+tay 1
+  rotate: true
+  xy: 2616, 44
+  size: 108, 325
+  orig: 108, 325
+  offset: 0, 0
+  index: -1
+tay 2
+  rotate: false
+  xy: 2616, 154
+  size: 270, 352
+  orig: 270, 352
+  offset: 0, 0
+  index: -1
+toc sau
+  rotate: false
+  xy: 5243, 410
+  size: 1052, 1335
+  orig: 1052, 1335
+  offset: 0, 0
+  index: -1
+vanh mu
+  rotate: false
+  xy: 1891, 508
+  size: 2026, 1237
+  orig: 2026, 1237
+  offset: 0, 0
+  index: -1

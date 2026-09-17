@@ -1,0 +1,105 @@
+using UnityEngine;
+
+using EternalClash.Core.Services;
+
+
+namespace EternalClash.Gameplay.Economy
+{
+
+    /// <summary>
+    /// Quản lý tiền trong game.
+    /// Truy cập thông qua IGoldService.
+    /// </summary>
+    public class GoldSystem :
+        MonoBehaviour,
+        IGoldService
+    {
+
+
+        [SerializeField]
+        private int currentGold;
+
+
+
+        public int CurrentGold =>
+            currentGold;
+
+
+
+        private void Awake()
+        {
+            RegisterService();
+        }
+
+
+
+        private void RegisterService()
+        {
+
+            if(ServiceRegistry.Has<IGoldService>())
+            {
+                Debug.LogWarning(
+                    "GoldService đã tồn tại."
+                );
+
+                return;
+            }
+
+
+            ServiceRegistry.Register<IGoldService>(
+                this
+            );
+        }
+
+
+
+        public void AddGold(int amount)
+        {
+
+            if(amount <= 0)
+                return;
+
+
+            currentGold += amount;
+
+
+            Debug.Log(
+                $"Gold +{amount}. Total: {currentGold}"
+            );
+        }
+
+
+
+        public bool SpendGold(int amount)
+        {
+
+            if(!HasEnoughGold(amount))
+                return false;
+
+
+            currentGold -= amount;
+
+
+            return true;
+        }
+
+
+
+        public bool HasEnoughGold(int amount)
+        {
+            return currentGold >= amount;
+        }
+
+
+
+        public void SetGold(int amount)
+        {
+            currentGold = Mathf.Max(
+                0,
+                amount
+            );
+        }
+
+    }
+
+}
