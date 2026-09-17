@@ -152,9 +152,42 @@ namespace EternalClash.UI
         {
             if (tooltipPanel == null)
             {
-                // 1) Uu tien con "StartToolTip" ngay tren o (tao bang menu Tools/UI) —
-                //    cho phep chinh kich thuoc rieng tung o trong Hierarchy.
+                // 1) Con "StartToolTip" ngay tren o (tao bang menu Tools/UI hoac tu tao luc
+                //    chay) — chinh kich thuoc rieng tung o trong Hierarchy.
                 Transform own = transform.Find("StartToolTip");
+                if (own == null)
+                {
+                    GameObject prefab = Resources.Load<GameObject>(PrefabPath);
+                    if (prefab != null)
+                    {
+                        GameObject go = Instantiate(prefab, transform);
+                        go.name = "StartToolTip";
+                        own = go.transform;
+
+                        if (own is RectTransform rt)
+                        {
+                            rt.anchorMin = new Vector2(0.5f, 1f);
+                            rt.anchorMax = new Vector2(0.5f, 1f);
+                            rt.pivot = new Vector2(0.5f, 0f);
+                            rt.anchoredPosition = new Vector2(0f, 8f);
+                            rt.localScale = Vector3.one;
+                            RectTransform slotRect = transform as RectTransform;
+                            float slotW = slotRect != null ? slotRect.rect.width : 100f;
+                            float slotH = slotRect != null ? slotRect.rect.height : 100f;
+                            rt.sizeDelta = new Vector2(
+                                Mathf.Clamp(slotW * 2.2f, 240f, 650f),
+                                Mathf.Clamp(slotH * 1.6f, 130f, 260f));
+                        }
+
+                        VerticalLayoutGroup layout = go.GetComponent<VerticalLayoutGroup>();
+                        if (layout != null)
+                            Destroy(layout);
+                        ContentSizeFitter fitter = go.GetComponent<ContentSizeFitter>();
+                        if (fitter != null)
+                            Destroy(fitter);
+                    }
+                }
+
                 if (own != null)
                 {
                     tooltipPanel = own.gameObject;
@@ -164,8 +197,8 @@ namespace EternalClash.UI
                 {
                     usesOwnTooltip = false;
 
-                    // 2) Bubble dung chung "ItemInfoBubble" trong scene Town (chinh size
-                    //    mot noi cho ca bag lan Trang_Bi); khong co thi instantiate prefab.
+                    // 2) Bubble dung chung "ItemInfoBubble" trong scene Town; khong co thi
+                    //    instantiate prefab (fallback cu).
                     if (rootCanvas == null)
                         rootCanvas = FindObjectOfType<Canvas>();
                     if (rootCanvas == null)
