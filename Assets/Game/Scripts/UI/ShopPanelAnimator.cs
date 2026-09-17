@@ -58,6 +58,7 @@ public sealed class ShopPanelAnimator : MonoBehaviour
             gameObject.SetActive(true);
 
         SetRaycastState(true);
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
         StartSlide(PanelState.Opening, openedY, PanelState.Opened, false);
     }
 
@@ -66,7 +67,7 @@ public sealed class ShopPanelAnimator : MonoBehaviour
         if (shopPanel == null || State == PanelState.Closed || State == PanelState.Closing)
             return;
 
-        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
         StartSlide(PanelState.Closing, closedY, PanelState.Closed, true);
     }
 

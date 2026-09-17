@@ -108,6 +108,7 @@ public class SmoothSlide : MonoBehaviour
             return;
 
         isOpen = !isOpen;
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
 
         if (slideCoroutine != null)
             StopCoroutine(slideCoroutine);

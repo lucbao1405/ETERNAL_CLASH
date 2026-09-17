@@ -123,6 +123,12 @@ MonoBehaviour:
     volume: 1
     pitchVariance: 0
     minInterval: 0.2
+  - id: 53
+    clips:
+    - {fileID: 8300000, guid: 17137fd17ca2d684abce6639c47723fe, type: 3}
+    volume: 0.7
+    pitchVariance: 0.03
+    minInterval: 0.2
   enemies:
   - enemyName: Slime
     attack:
