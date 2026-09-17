@@ -282,9 +282,9 @@ namespace EternalClash.UI
             if (anchorRect == null)
                 return;
 
-            // 1) Con "StartToolTip" rieng cua o (tao bang menu Tools/UI) — hien dung tai cho,
-            //    khong di chuyen, de nguoi dung chinh kich thuoc rieng tung o trong Hierarchy.
-            Transform own = anchorRect.Find("StartToolTip");
+            // 1) Con "StartToolTip" rieng cua o (tao bang menu Tools/UI hoac tu tao luc chay)
+            //    — hien dung tai cho, khong di chuyen, de nguoi dung chinh kich thuoc rieng tung o.
+            Transform own = GetOrCreateOwnTooltip(anchorRect);
             if (own != null)
             {
                 ShowOwnTooltip(own, title, titleColor, subtitle, stats, desc);
@@ -336,6 +336,50 @@ namespace EternalClash.UI
         }
 
         private Transform lastOwnTooltip;
+
+        // Tim con StartToolTip cua o; chua co thi TU TAO tu prefab (nam tren o, vua size o)
+        // de moi o deu co tooltip, bat ke nguoi dung da tao trong editor hay chua.
+        private Transform GetOrCreateOwnTooltip(RectTransform slot)
+        {
+            Transform own = slot.Find("StartToolTip");
+            if (own != null)
+                return own;
+
+            GameObject prefab = Resources.Load<GameObject>(StartToolTipPrefabPath);
+            if (prefab == null)
+                return null;
+
+            GameObject go = Instantiate(prefab, slot);
+            go.name = "StartToolTip";
+
+            if (go.transform is RectTransform rt)
+            {
+                rt.anchorMin = new Vector2(0.5f, 1f);
+                rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 0f);
+                rt.anchoredPosition = new Vector2(0f, 8f);
+                rt.localScale = Vector3.one;
+                rt.sizeDelta = new Vector2(
+                    Mathf.Clamp(slot.rect.width * 2.2f, 240f, 650f),
+                    Mathf.Clamp(slot.rect.height * 1.6f, 130f, 260f));
+            }
+
+            VerticalLayoutGroup layout = go.GetComponent<VerticalLayoutGroup>();
+            if (layout != null)
+                Destroy(layout);
+            ContentSizeFitter fitter = go.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
+                Destroy(fitter);
+
+            Canvas canvas = go.GetComponent<Canvas>();
+            if (canvas == null)
+                canvas = go.AddComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 500;
+
+            go.SetActive(false);
+            return go.transform;
+        }
 
         // Hien con StartToolTip cua chinh o dang giu (giong tooltip chi so): chi doi chu
         // va bat len, khong di chuyen vi vi tri/size do nguoi dung dat trong Hierarchy.
