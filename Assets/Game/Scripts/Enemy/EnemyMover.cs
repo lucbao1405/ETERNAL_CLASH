@@ -27,6 +27,7 @@ namespace EternalClash.Enemy
         private EnemyHealthSystem health;
         private Rigidbody2D rb;
         private Transform player;
+        private EternalClash.Player.PlayerChargeController chargeController;
         private bool isPaused;
         private float lockedY;
 
@@ -114,6 +115,13 @@ namespace EternalClash.Enemy
             }
 
             if (player == null)
+                return nextX;
+
+            // Trong lúc Player charge: khong xep hang, cho quai trôi vào tầm charge
+            // de chiêu day liên tuc xuyen qua ca bầy thay vì dừng ở con đầu tiên.
+            if (chargeController == null)
+                chargeController = player.GetComponent<EternalClash.Player.PlayerChargeController>();
+            if (chargeController != null && chargeController.IsCharging)
                 return nextX;
 
             float currentX = rb != null ? rb.position.x : transform.position.x;
