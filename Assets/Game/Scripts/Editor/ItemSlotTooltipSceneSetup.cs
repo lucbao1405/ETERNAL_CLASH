@@ -70,6 +70,43 @@ namespace EternalClash.EditorTools
             Debug.Log($"[SlotTooltip] Da tao {created} StartToolTip con. Mo rong tung o trong Hierarchy de chinh size/font rieng; de object o trang thai TAT (game tu bat khi bam/giu o).");
         }
 
+        // Bag khong con dung tooltip con tung o nua (dung chung 1 bubble) — menu nay don dep.
+        [MenuItem("Tools/UI/Remove StartToolTip Under Bag Slots")]
+        public static void RemoveBagTooltips()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.name != "Town")
+            {
+                Debug.LogWarning("[SlotTooltip] Mo scene Town truoc khi chay menu nay.");
+                return;
+            }
+
+            int removed = 0;
+            foreach (BagController bag in Object.FindObjectsOfType<BagController>(true))
+            {
+                Transform grid = bag.transform.Find("Item");
+                if (grid == null)
+                    continue;
+
+                foreach (Transform slot in grid)
+                {
+                    Transform tooltip = slot.Find(TooltipChildName);
+                    if (tooltip != null)
+                    {
+                        Object.DestroyImmediate(tooltip.gameObject);
+                        removed++;
+                    }
+                }
+            }
+
+            if (removed > 0)
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+            Debug.Log($"[SlotTooltip] Da xoa {removed} StartToolTip con trong Bag (bag dung chung 1 bubble).");
+        }
+
         private static int CreateForNamedSlots(Transform panel, string[] slotNames, GameObject prefab)
         {
             int count = 0;
