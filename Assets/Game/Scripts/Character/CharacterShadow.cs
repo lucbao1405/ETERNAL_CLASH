@@ -1,4 +1,5 @@
 using UnityEngine;
+using Spine.Unity;
 
 namespace EternalClash.Character
 {
@@ -13,10 +14,10 @@ namespace EternalClash.Character
         [SerializeField, Tooltip("Renderer lam moc do chan. De trong se tu chon renderer rong nhat trong children.")]
         private Renderer targetRenderer;
 
-        [SerializeField] private float widthScale = 0.85f;
-        [SerializeField, Range(0.05f, 1f)] private float heightScale = 0.25f;
+        [SerializeField] private float widthScale = 1.05f;
+        [SerializeField, Range(0.05f, 1f)] private float heightScale = 0.34f;
         [SerializeField] private float yOffset = 0.03f;
-        [SerializeField, Range(0f, 1f)] private float opacity = 0.4f;
+        [SerializeField, Range(0f, 1f)] private float opacity = 0.62f;
         [SerializeField, Tooltip("-1 = ve sau nhan vat. Neu nhan vat cung sorting layer voi duong dat thi dung 1.")]
         private int sortOrderOffset = -1;
 
@@ -101,14 +102,14 @@ namespace EternalClash.Character
             return chosen;
         }
 
-        private static Sprite GetSoftEllipseSprite()
+        internal static Sprite GetSoftEllipseSprite()
         {
             // Object Unity bi huy khi thoat Play mode nen truong static phai
             // kiem tra lai bang "== null" (fake null) thay vi reference thuan.
             if (softEllipse != null)
                 return softEllipse;
 
-            const int size = 128;
+            const int size = 256;
             Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
             texture.wrapMode = TextureWrapMode.Clamp;
 
@@ -122,9 +123,9 @@ namespace EternalClash.Character
                     float dx = (x - half) / half;
                     float dy = (y - half) / half;
                     float d = Mathf.Sqrt(dx * dx + dy * dy);
-                    // Mo dan tu tam ra ria: alpha = (1 - d)^1.5.
-                    float alpha = Mathf.Clamp01(1f - d);
-                    alpha *= Mathf.Sqrt(alpha);
+                    // Chuong soi mong: dac giua, mo dan lien mach den ria (do doc
+                    // bang 0 tai ria) -> khong con vien cung nhu falloff plateau.
+                    float alpha = Mathf.Pow(Mathf.SmoothStep(1f, 0f, d), 0.6f);
 
                     pixels[y * size + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha * 255f));
                 }
@@ -136,6 +137,73 @@ namespace EternalClash.Character
             // PPM = size de sprite dai dung 1 don vi the gioi, scale truc tiep theo width.
             softEllipse = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
             return softEllipse;
+        }
+    }
+
+    /// <summary>
+    /// Bong dem cho nhan vat UI (NPC la SkeletonGraphic trong canvas). SpriteRenderer
+    /// khong hoat dong trong UI canvas nen bong la mot Image ANH EM dat TRUOC
+    /// SkeletonGraphic trong cung Page (UI con ve sau cha, nen phai dung sibling),
+    /// kich thuoc va vi tri lay tu mesh that cua skeleton moi frame.
+    /// </summary>
+    [DisallowMultipleComponent]
+    public class CharacterShadowUi : MonoBehaviour
+    {
+        [SerializeField] private float widthScale = 1.15f;
+        [SerializeField, Range(0.05f, 1f)] private float heightScale = 0.3f;
+        [SerializeField, Range(0f, 1f)] private float opacity = 0.62f;
+
+        private RectTransform targetRect;
+        private RectTransform shadowRect;
+        private SkeletonGraphic skeleton;
+
+        private void Awake()
+        {
+            targetRect = transform as RectTransform;
+            skeleton = GetComponent<SkeletonGraphic>();
+
+            shadowRect = new GameObject("Shadow", typeof(UnityEngine.UI.Image)).GetComponent<RectTransform>();
+            shadowRect.SetParent(transform.parent, false);
+            // Dung truoc chinh NPC trong thu tu sibling -> ve ra sau NPC nhung
+            // van tren nen duong (house/ground la sibling truoc do).
+            shadowRect.SetSiblingIndex(transform.GetSiblingIndex());
+
+            var image = shadowRect.GetComponent<UnityEngine.UI.Image>();
+            image.sprite = CharacterShadow.GetSoftEllipseSprite();
+            image.color = new Color(0f, 0f, 0f, opacity);
+            image.raycastTarget = false;
+        }
+
+        private void LateUpdate()
+        {
+            Bounds bounds = CalculateVisualBounds();
+            if (bounds.size.y <= 0.0001f)
+                return;
+
+            // Chan nhan vat = goc local skeleton (0,0), nen tam bong neo vung
+            // do thay vi tam bbox (bbox lech vi kiem/khien che phia truoc) va
+            // khong theo min.y dao dong khi idle animation - bong phai luon
+            // nam yen tren mat dat. Toan bo tinh trong khong gian cha chung
+            // (Content) -> khong phu thuoc lossyScale/canvas.
+            shadowRect.localPosition = targetRect.localPosition;
+
+            // Be rong theo chieu cao nhan vat (bbox ngang bi phinh boi vu khi);
+            // nha cua lon rong thi lay theo bbox ngang.
+            float width = Mathf.Max(bounds.size.y * 0.6f, bounds.size.x * 0.55f) * widthScale;
+            shadowRect.sizeDelta = new Vector2(width * targetRect.localScale.x, width * heightScale * targetRect.localScale.y);
+        }
+
+        private Bounds CalculateVisualBounds()
+        {
+            // Skeleton thuc su ve la mesh vua render (chiem ca khung act dong);
+            // fallback ve rect cua NPC khi mesh chua duoc tao.
+            if (skeleton != null && skeleton.IsValid && skeleton.isActiveAndEnabled)
+            {
+                Mesh mesh = skeleton.GetLastMesh();
+                if (mesh != null && mesh.vertexCount > 0)
+                    return mesh.bounds;
+            }
+            return new Bounds(targetRect.rect.center, targetRect.rect.size);
         }
     }
 
@@ -177,12 +245,14 @@ namespace EternalClash.Character
                 foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
                     Ensure(go.transform.root.gameObject, -1);
 
-                foreach (NPCShopDialogueController npc in
-                    FindObjectsByType<NPCShopDialogueController>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                // Nhan vat UI con lai (Nhan_Vat_Chinh o Town...): moi
+                // SkeletonGraphic deu la nhan vat can bong. NPC da duoc them o
+                // tren nen check GetComponent cho idempotent.
+                foreach (SkeletonGraphic skeleton in
+                    FindObjectsByType<SkeletonGraphic>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    // NPC nam chung sorting layer Default voi canvas duong dat nen
-                    // de bong ve sau se bi duong dat phu mat, dung thu tu +1.
-                    Ensure(npc.transform.root.gameObject, 1);
+                    if (skeleton.GetComponent<CharacterShadowUi>() == null)
+                        skeleton.gameObject.AddComponent<CharacterShadowUi>();
                 }
             }
 
