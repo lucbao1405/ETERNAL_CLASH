@@ -27,6 +27,6 @@ MonoBehaviour:
   level: 1
   upgradeLevel: 0
   description: 
-  icon: {fileID: 21300000, guid: 2e5bd46dcf354414486f25316d9d5fd9, type: 3}
+  icon: {fileID: 21300000, guid: 1578642045ac14447a0752f29d245bee, type: 3}
   quantity: 0
   iconSpriteName: 

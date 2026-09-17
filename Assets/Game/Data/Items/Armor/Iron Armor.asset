@@ -27,6 +27,6 @@ MonoBehaviour:
   level: 1
   upgradeLevel: 0
   description: Basic iron armor protection
-  icon: {fileID: 21300000, guid: 9fd897177e94be84cb4c330bb9657f6e, type: 3}
+  icon: {fileID: 21300000, guid: 84720e378c53be44d841bae463265286, type: 3}
   quantity: 0
   iconSpriteName: 
