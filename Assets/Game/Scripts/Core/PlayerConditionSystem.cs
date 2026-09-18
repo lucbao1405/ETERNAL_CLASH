@@ -206,6 +206,35 @@ namespace EternalClash.Core
             Debug.Log("[CONDITION] Player recovered from Injured.");
         }
 
+        /// <summary>
+        /// Hoi day 100% HP ngay lap tuc va het trang thai bi thuong
+        /// (vd bi mat: tap vao coc o Town). Tra ve false neu mau da day san.
+        /// </summary>
+        public bool RestoreFullHp()
+        {
+            var data = SaveManager.Instance?.Data;
+            if (maxHp <= 0 && data != null)
+                maxHp = Mathf.Max(0, data.maxHp);
+
+            bool wasFull = Condition == PlayerCondition.Normal && (maxHp <= 0 || currentHp >= maxHp);
+            if (wasFull)
+                return false;
+
+            currentHp = maxHp;
+            recoveryAccumulator = 0f;
+            if (data != null)
+                data.recoveryStartUnixTime = 0;
+
+            SetCondition(PlayerCondition.Normal);
+            SyncToSave();
+            SaveCoordinator.RequestSave();
+            OnRecoveredHpChanged?.Invoke(currentHp, maxHp);
+            OnRecoveryCompleted?.Invoke();
+
+            Debug.Log($"[CONDITION] Hoi day HP: {currentHp}/{maxHp}.");
+            return true;
+        }
+
         /// <summary>So mau toi thieu de vao tran (MIN_BATTLE_HP_PERCENT% Max HP).</summary>
         public int MinBattleHp => Mathf.CeilToInt(Mathf.Max(1, maxHp) * MIN_BATTLE_HP_PERCENT / 100f);
 

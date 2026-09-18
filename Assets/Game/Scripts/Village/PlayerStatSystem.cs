@@ -160,7 +160,16 @@ namespace EternalClash.Village
         public void ResetSessionCounters()
         {
             SessionExpEarned = 0;
+            SessionStartLevel = Level;
+            SessionStartExp = CurrentExp;
         }
+
+        /// <summary>Cap va EXP luc bat dau tran - thanh EXP o popup ket qua chay tu day len.</summary>
+        public int SessionStartLevel { get; private set; }
+        public int SessionStartExp { get; private set; }
+
+        /// <summary>EXP can de di tu cap <paramref name="level"/> len cap ke tiep.</summary>
+        public static int RequiredExpForLevel(int level) => CalculateRequiredExp(level);
 
         public void AddExp(int amount)
         {
