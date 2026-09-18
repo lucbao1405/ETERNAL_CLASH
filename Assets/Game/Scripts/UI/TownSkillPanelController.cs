@@ -314,8 +314,8 @@ namespace EternalClash.UI
 
                     SubSkillData skill = branch.subSkills[i];
 
-                    // Cập nhật icon nếu có Image con
-                    Image iconImg = FindSlotIconImage(slotBtn);
+                    // Cập nhật icon (chưa có Image con thì tự tạo)
+                    Image iconImg = EnsureSlotIconImage(slotBtn);
                     if (iconImg != null)
                     {
                         if (skill.icon != null)
@@ -565,6 +565,32 @@ namespace EternalClash.UI
                 if (img != null)
                     img.color = isShieldActive ? activeBranchButtonColor : inactiveBranchButtonColor;
             }
+        }
+
+        /// <summary>
+        /// Tim o icon cua slot; chua co thi tao "ItemIcon" ngay. Panel gan icon trong
+        /// OnEnable, co the chay truoc khi script khac kip tao o icon - khong tu tao
+        /// thi slot do bi bo trong (loi o Skill_2 khong hien icon).
+        /// </summary>
+        private Image EnsureSlotIconImage(Button slotBtn)
+        {
+            Image existing = FindSlotIconImage(slotBtn);
+            if (existing != null)
+                return existing;
+
+            var iconObject = new GameObject("ItemIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.layer = slotBtn.gameObject.layer;
+            var rect = (RectTransform)iconObject.transform;
+            rect.SetParent(slotBtn.transform, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(12f, 12f);
+            rect.offsetMax = new Vector2(-12f, -12f);
+
+            Image icon = iconObject.GetComponent<Image>();
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            return icon;
         }
 
         private Image FindSlotIconImage(Button slotBtn)
