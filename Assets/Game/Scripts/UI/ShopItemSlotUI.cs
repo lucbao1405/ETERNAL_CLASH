@@ -26,5 +26,20 @@ namespace EternalClash.UI
             if (priceText != null) priceText.text = price.ToString("#,##0").Replace(',', '.');
             if (itemIcon != null) itemIcon.sprite = icon;
         }
+
+        /// <summary>
+        /// Dong bo card khi ban bang IAP (tien that): chi doi ten, so luong va
+        /// gia USD - khong dong icon de giu nguyen anh card da dat trong scene.
+        /// </summary>
+        public void SetIapOffer(string displayName, int amount, string priceLabel)
+        {
+            itemName ??= transform.Find("ItemName")?.GetComponent<TMP_Text>();
+            quantity ??= transform.Find("QuantityPill/Quantity")?.GetComponent<TMP_Text>();
+            quantity ??= transform.Find("Quantity")?.GetComponent<TMP_Text>();
+            priceText ??= transform.Find("BuyButton/PriceText")?.GetComponent<TMP_Text>();
+            if (itemName != null) itemName.text = displayName;
+            if (quantity != null) quantity.text = amount.ToString("N0");
+            if (priceText != null) priceText.text = priceLabel;
+        }
     }
 }

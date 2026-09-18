@@ -209,9 +209,9 @@ namespace EternalClash.Village
         [ContextMenu("Self Check")]
         public void SelfCheck()
         {
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Healing)) == "blue_flower", "healing brews blue flower");
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Cooldown)) == "blue_flower", "cooldown brews blue flower");
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Defense)) == "blue_flower", "defense brews blue flower");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Healing)) == "leaf_green", "healing brews green leaf");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Cooldown)) == "leaf_red", "cooldown brews red leaf");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Defense)) == "leaf_yellow", "defense brews yellow leaf");
             Debug.Assert(GetExpToNextLevel(WitchAbility.Defense, 0) == BaseAbilityExp &&
                 GetExpToNextLevel(WitchAbility.Healing, 0) == BaseHealingExp, "base exp");
             Debug.Assert(GetExpToNextLevel(WitchAbility.Healing, 4) > GetExpToNextLevel(WitchAbility.Healing, 0),
@@ -261,8 +261,9 @@ namespace EternalClash.Village
 
         public static string GetMaterialItemId(MaterialType materialType)
         {
-            return materialType == MaterialType.Ore || materialType == MaterialType.Leather ||
-                materialType == MaterialType.Wood ? "blue_flower"
+            return materialType == MaterialType.Wood ? "leaf_green"
+                : materialType == MaterialType.Ore ? "leaf_red"
+                : materialType == MaterialType.Leather ? "leaf_yellow"
                 : string.Empty;
         }
 

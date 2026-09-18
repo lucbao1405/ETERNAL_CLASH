@@ -1,5 +1,7 @@
 using UnityEngine;
 using Spine.Unity;
+using EternalClash.Item;
+using EternalClash.Loot;
 
 namespace EternalClash.Character
 {
@@ -224,6 +226,91 @@ namespace EternalClash.Character
     }
 
     /// <summary>
+    /// Bong dem cho vat pham roi (ItemPickup) kieu PostKnight: bong nam yen tren
+    /// mat dat (lay tu LootDropMotion), teo lai va mo dan khi vat pham nhay len
+    /// khoi dat hoac bay ve phia Player; item bay cang cao bong cang nho.
+    /// </summary>
+    [DisallowMultipleComponent]
+    public class LootShadow : MonoBehaviour
+    {
+        [SerializeField] private float widthScale = 0.9f;
+        [SerializeField, Range(0.05f, 1f)] private float heightScale = 0.3f;
+        [SerializeField] private float yOffset = 0.02f;
+        [SerializeField, Range(0f, 1f)] private float opacity = 0.5f;
+        [SerializeField, Tooltip("Bong teo nhanh the nao theo do cao (1 don vi = 1 lan nho di ...).")]
+        private float shrinkPerUnit = 2f;
+
+        private SpriteRenderer itemRenderer;
+        private Transform shadowTransform;
+        private SpriteRenderer shadowRenderer;
+        private LootDropMotion motion;
+
+        private void Awake()
+        {
+            motion = GetComponent<LootDropMotion>();
+            shadowTransform = new GameObject("Shadow").transform;
+            shadowTransform.SetParent(transform, false);
+            shadowRenderer = shadowTransform.gameObject.AddComponent<SpriteRenderer>();
+            shadowRenderer.sprite = CharacterShadow.GetSoftEllipseSprite();
+            shadowRenderer.color = new Color(0f, 0f, 0f, opacity);
+        }
+
+        private void LateUpdate()
+        {
+            if (itemRenderer == null)
+                itemRenderer = FindItemRenderer();
+            if (itemRenderer == null)
+                return;
+
+            // Mat dat: LootDropMotion biet chinh xac (groundY = TAM item khi
+            // dung, tru nua chieu cao ra mat dat that). Item khong co motion
+            // thi dung chan cua chinh no lam moc.
+            float halfHeight = itemRenderer.bounds.extents.y;
+            float groundLine = itemRenderer.bounds.min.y;
+            if (motion != null && motion.TryGetGroundY(out float motionGroundY))
+                groundLine = motionGroundY - halfHeight;
+
+            // Do cao cua DAY vat pham tren mat dat: dung de teo bong.
+            float height = Mathf.Max(0f, transform.position.y - halfHeight - groundLine);
+            // 1 khi nam tren dat, nho dan theo do cao: bong cung vi tri dung,
+            // dung luong voi do cao de khong phai biet do rong vat pham.
+            float shrink = 1f / (1f + height * shrinkPerUnit);
+
+            float width = itemRenderer.bounds.size.x * widthScale * shrink;
+            if (width <= 0.0001f)
+                return;
+
+            Vector3 parentScale = transform.lossyScale;
+            shadowTransform.position = new Vector3(
+                transform.position.x,
+                groundLine + yOffset,
+                transform.position.z);
+            shadowTransform.localScale = new Vector3(
+                width / Mathf.Abs(parentScale.x),
+                width * heightScale / Mathf.Abs(parentScale.y),
+                1f);
+
+            var color = shadowRenderer.color;
+            color.a = opacity * Mathf.Clamp01(shrink * 2f);
+            shadowRenderer.color = color;
+
+            shadowRenderer.sortingLayerID = itemRenderer.sortingLayerID;
+            shadowRenderer.sortingOrder = itemRenderer.sortingOrder - 1;
+        }
+
+        private SpriteRenderer FindItemRenderer()
+        {
+            foreach (SpriteRenderer renderer in GetComponentsInChildren<SpriteRenderer>())
+            {
+                if (renderer != shadowRenderer && renderer.sprite != null)
+                    return renderer;
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Tu them bong cho nhan vat: object mang tag Player/Enemy (bat ke o root hay
     /// con, tinh ve root) va NPC co NPCShopDialogueController. Quet dinh ky de bat
     /// ca doi tuong spawn trong luc choi ma khong phai sua tung noi spawn.
@@ -275,6 +362,15 @@ namespace EternalClash.Character
 
                     if (skeleton.GetComponent<CharacterShadowUi>() == null)
                         skeleton.gameObject.AddComponent<CharacterShadowUi>();
+                }
+
+                // Vat pham roi: moi ItemPickup deu co bong, item moi spawn giua
+                // tran cung duoc bat vi scan chay lien tuc.
+                foreach (ItemPickup item in
+                    FindObjectsByType<ItemPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (item.GetComponent<LootShadow>() == null)
+                        item.gameObject.AddComponent<LootShadow>();
                 }
             }
 

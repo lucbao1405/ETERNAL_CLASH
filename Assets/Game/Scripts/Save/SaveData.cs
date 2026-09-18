@@ -62,6 +62,7 @@ public class SaveData
     // Monetization
     public bool hasRemovedAds = false;
     public bool isVipActive = false;
+    public bool starterPackPurchased = false;
 
     // Player Condition (Injured recovery system)
     public int playerCondition = 0; // 0 = Normal, 1 = Injured
