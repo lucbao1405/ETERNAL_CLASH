@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -31,6 +32,15 @@ namespace EternalClash.UI
         [SerializeField] private TextMeshProUGUI timeText;
         [SerializeField] private Slider expBar;
 
+        [Header("EXP Bar Animation")]
+        [Tooltip("So giay de thanh EXP chay tu rong toi day.")]
+        [SerializeField, Min(0.1f)] private float expFullBarDuration = 5f;
+        [Tooltip("So giay nhan vat dien animation thang khi thanh EXP day (len cap).")]
+        [SerializeField, Min(0f)] private float levelUpAnimDuration = 2f;
+        [SerializeField] private string levelUpAnimation = "victory";
+        [Tooltip("Nhan vat Spine trong popup. De trong thi tim con ten Nhan_Vat_Chinh, khong co thi dung Player ngoai tran.")]
+        [SerializeField] private Spine.Unity.SkeletonGraphic popupCharacter;
+
         [Header("Items")]
         [SerializeField] private RectTransform itemGrid;
         [SerializeField] private GameObject itemSlotPrefab;
@@ -54,6 +64,9 @@ namespace EternalClash.UI
         private bool buttonBound;
         private bool visualsResolved;
         private readonly List<RewardItemSlot> slotPool = new List<RewardItemSlot>();
+        private Coroutine expRoutine;
+        private Coroutine levelUpRoutine;
+        private Action restoreCharacterAnim;
 
         private void Awake()
         {
@@ -133,6 +146,7 @@ namespace EternalClash.UI
 
         public void Close()
         {
+            StopExpAnimation();
             if (gameObject != null)
                 gameObject.SetActive(false);
         }
@@ -153,7 +167,8 @@ namespace EternalClash.UI
             if (expText != null)
             {
                 expText.text = $"+{exp}";
-                expText.gameObject.SetActive(victory || exp > 0);
+                // Thua cung hien (ke ca +0) de Lose popup giong Win popup.
+                expText.gameObject.SetActive(true);
             }
 
             // Gold (chỉ hiện khi thắng)
@@ -171,18 +186,12 @@ namespace EternalClash.UI
                 timeText.gameObject.SetActive(true);
             }
 
-            // XP bar progress (chỉ khi thắng)
+            // XP bar: chay dan tu muc dau tran len muc hien tai (ca Win lan Lose)
             if (expBar != null)
             {
-                expBar.gameObject.SetActive(victory);
-                if (victory)
-                {
-                    PlayerStatSystem stats = PlayerStatSystem.Instance;
-                    float ratio = stats != null && stats.RequiredExp > 0
-                        ? (float)stats.CurrentExp / stats.RequiredExp
-                        : 0f;
-                    expBar.value = Mathf.Clamp01(ratio);
-                }
+                expBar.gameObject.SetActive(true);
+                StopExpAnimation();
+                expRoutine = StartCoroutine(AnimateExpBar());
             }
 
             PopulateItems(items);
@@ -335,6 +344,166 @@ namespace EternalClash.UI
             if (string.IsNullOrEmpty(reward.item.iconSpriteName))
                 return null;
             return Resources.Load<Sprite>(reward.item.iconSpriteName);
+        }
+
+        // ------------------------------------------------------------------
+        // EXP bar animation
+        // ------------------------------------------------------------------
+
+        private void OnDisable()
+        {
+            StopExpAnimation();
+        }
+
+        private void StopExpAnimation()
+        {
+            if (expRoutine != null)
+            {
+                StopCoroutine(expRoutine);
+                expRoutine = null;
+            }
+
+            if (levelUpRoutine != null)
+            {
+                StopCoroutine(levelUpRoutine);
+                levelUpRoutine = null;
+            }
+
+            // Dang dien animation len cap thi tra nhan vat ve animation cu.
+            restoreCharacterAnim?.Invoke();
+            restoreCharacterAnim = null;
+        }
+
+        /// <summary>
+        /// Thanh EXP chay tu muc dau tran len muc hien tai voi toc do khong doi
+        /// (rong -> day mat <see cref="expFullBarDuration"/> giay). Moi lan day
+        /// (len cap): thanh ve 0 ngay va chay tiep phan EXP con lai, dong thoi
+        /// nhan vat dien animation thang trong <see cref="levelUpAnimDuration"/> giay.
+        /// </summary>
+        private IEnumerator AnimateExpBar()
+        {
+            PlayerStatSystem stats = PlayerStatSystem.Instance;
+            if (stats == null)
+            {
+                expBar.value = 0f;
+                expRoutine = null;
+                yield break;
+            }
+
+            int endLevel = stats.Level;
+            float endRatio = stats.RequiredExp > 0 ? Mathf.Clamp01((float)stats.CurrentExp / stats.RequiredExp) : 0f;
+
+            int level = stats.SessionStartLevel;
+            // Khong co moc dau tran hop le (vd vao thang scene Battle khi test) thi
+            // chi chay tu 0 toi muc hien tai.
+            if (level < 1 || level > endLevel)
+            {
+                level = endLevel;
+                expBar.value = 0f;
+            }
+            else
+            {
+                int required = PlayerStatSystem.RequiredExpForLevel(level);
+                expBar.value = required > 0 ? Mathf.Clamp01((float)stats.SessionStartExp / required) : 0f;
+            }
+
+            while (level < endLevel)
+            {
+                yield return FillExpBarTo(1f);
+                // Reset thanh ngay; animation thang chay song song, khong cho.
+                StartLevelUpAnimation();
+                level++;
+                expBar.value = 0f;
+            }
+
+            yield return FillExpBarTo(endRatio);
+            expRoutine = null;
+        }
+
+        private IEnumerator FillExpBarTo(float target)
+        {
+            float speed = 1f / Mathf.Max(0.1f, expFullBarDuration);
+            while (expBar.value < target)
+            {
+                // Thoi gian thuc: van chay neu game dang tam dung.
+                expBar.value = Mathf.MoveTowards(expBar.value, target, speed * Time.unscaledDeltaTime);
+                yield return null;
+            }
+        }
+
+        private void StartLevelUpAnimation()
+        {
+            if (levelUpRoutine != null)
+                StopCoroutine(levelUpRoutine);
+            levelUpRoutine = StartCoroutine(PlayLevelUpAnimation());
+        }
+
+        private IEnumerator PlayLevelUpAnimation()
+        {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PlayerLevelUp);
+
+            Spine.AnimationState state = ResolveCharacterAnimationState(out Spine.Skeleton skeleton);
+            // Dang dien do (len cap lien tiep) thi giu nguyen cach tra ve animation goc,
+            // chi phat lai tu dau va tinh lai 2 giay.
+            if (restoreCharacterAnim != null && state != null)
+            {
+                state.SetAnimation(0, levelUpAnimation, true);
+            }
+            else if (state != null && skeleton != null && skeleton.Data.FindAnimation(levelUpAnimation) != null)
+            {
+                Spine.TrackEntry current = state.GetCurrent(0);
+                string previous = current != null && current.Animation != null ? current.Animation.Name : null;
+                bool previousLoop = current == null || current.Loop;
+
+                state.SetAnimation(0, levelUpAnimation, true);
+                restoreCharacterAnim = () =>
+                {
+                    if (!string.IsNullOrEmpty(previous) && previous != levelUpAnimation)
+                        state.SetAnimation(0, previous, previousLoop);
+                };
+            }
+
+            yield return new WaitForSecondsRealtime(levelUpAnimDuration);
+
+            restoreCharacterAnim?.Invoke();
+            restoreCharacterAnim = null;
+            levelUpRoutine = null;
+        }
+
+        /// <summary>Nhan vat trong popup (Nhan_Vat_Chinh); khong co thi dung Player ngoai tran.</summary>
+        private Spine.AnimationState ResolveCharacterAnimationState(out Spine.Skeleton skeleton)
+        {
+            skeleton = null;
+
+            if (popupCharacter == null)
+            {
+                foreach (Spine.Unity.SkeletonGraphic graphic in GetComponentsInChildren<Spine.Unity.SkeletonGraphic>(true))
+                {
+                    if (graphic != null && graphic.name == "Nhan_Vat_Chinh")
+                    {
+                        popupCharacter = graphic;
+                        break;
+                    }
+                }
+            }
+
+            if (popupCharacter != null && popupCharacter.isActiveAndEnabled)
+            {
+                if (!popupCharacter.IsValid)
+                    popupCharacter.Initialize(false);
+                skeleton = popupCharacter.Skeleton;
+                return popupCharacter.AnimationState;
+            }
+
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            Spine.Unity.SkeletonAnimation world = player != null
+                ? player.GetComponentInChildren<Spine.Unity.SkeletonAnimation>()
+                : null;
+            if (world == null || !world.valid)
+                return null;
+
+            skeleton = world.Skeleton;
+            return world.AnimationState;
         }
 
         // ------------------------------------------------------------------
