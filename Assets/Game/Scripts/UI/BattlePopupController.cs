@@ -464,6 +464,8 @@ namespace EternalClash.UI
                     return reward.amount > 0 ? $"+{reward.amount} Materials" : null;
                 case RewardType.Gem:
                     return reward.amount > 0 ? $"+{reward.amount} Gems" : null;
+                case RewardType.Gift:
+                    return reward.item != null ? reward.item.itemName : null;
                 default:
                     return null;
             }

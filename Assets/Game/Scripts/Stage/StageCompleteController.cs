@@ -299,10 +299,37 @@ namespace EternalClash.Stage
                         goldSys?.AddMaterials(currentReward.amount, 0);
                         break;
 
+                    case RewardType.Gift:
+                        AddGiftReward(currentReward.item, currentReward.amount);
+                        break;
+
                     // Equipment duoc trao rieng qua EquipmentSystem.EquipItem()
                     // trong OnEquipAccepted(), khong xu ly o day.
                 }
             }
+        }
+
+        private static void AddGiftReward(ItemData item, int amount)
+        {
+            if (item == null || amount <= 0)
+                return;
+
+            SaveData data = SaveManager.Instance?.Data;
+            if (data == null)
+                return;
+
+            data.inventory ??= new InventorySaveData();
+            data.inventory.items ??= new System.Collections.Generic.List<ItemStackSaveData>();
+            ItemStackSaveData stack = data.inventory.items.Find(value =>
+                value != null && string.Equals(value.itemId, item.itemId, System.StringComparison.OrdinalIgnoreCase));
+            if (stack == null)
+            {
+                stack = new ItemStackSaveData { itemId = item.itemId };
+                data.inventory.items.Add(stack);
+            }
+
+            stack.amount += amount;
+            SaveCoordinator.RequestSave();
         }
 
         private Sprite ResolveRewardSprite(RewardData reward)

@@ -416,6 +416,7 @@ namespace EternalClash.Core
                 case ItemType.Ore:
                 case ItemType.Leather:
                 case ItemType.Wood:
+                case ItemType.Flower:
                     Play(SoundId.PickupMaterial);
                     break;
                 case ItemType.Potion:

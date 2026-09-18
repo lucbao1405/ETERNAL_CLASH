@@ -17,6 +17,7 @@ namespace EternalClash.Data
         Gold,
         Gem,
         Equipment,
-        Material
+        Material,
+        Gift
     }
 }

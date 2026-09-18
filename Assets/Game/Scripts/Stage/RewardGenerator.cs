@@ -3,7 +3,7 @@ using EternalClash.Data;
 
 namespace EternalClash.Stage
 {
-    // Phan thuong chi rot ra tu 5 vat pham hien co: Gold, Gem, Ore, Leather, Wood.
+    // Phan thuong ruong gom Gold, Gem, vat lieu va hoa cuc vang.
     // Khong sinh trang bi (giap/kiem) lam phan thuong nhat duoc.
     public static class RewardGenerator
     {
@@ -12,7 +12,13 @@ namespace EternalClash.Stage
             float roll = Random.value;
             RewardData reward = new RewardData();
 
-            if (roll < 0.35f)
+            if (roll < 0.15f)
+            {
+                reward.type = RewardType.Gift;
+                reward.item = ItemCatalog.Find("yellow_wildflower");
+                reward.amount = 1;
+            }
+            else if (roll < 0.45f)
             {
                 reward.type = RewardType.Gold;
                 reward.amount = Random.Range(20, 60) + stageLevel * 10;

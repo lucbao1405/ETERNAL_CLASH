@@ -265,6 +265,10 @@ namespace EternalClash.BattleResult
                     if (pendingChestReward.item != null)
                         entry = new ItemReward(pendingChestReward.item, Mathf.Max(1, pendingChestReward.amount));
                     break;
+                case RewardType.Gift:
+                    if (pendingChestReward.item != null)
+                        entry = new ItemReward(pendingChestReward.item, Mathf.Max(1, pendingChestReward.amount));
+                    break;
             }
 
             if (entry != null)
@@ -293,6 +297,9 @@ namespace EternalClash.BattleResult
                     break;
                 case RewardType.Equipment:
                     EquipIfUpgrade(pendingChestReward.item);
+                    break;
+                case RewardType.Gift:
+                    AddNormalItemReward(pendingChestReward.item, pendingChestReward.amount);
                     break;
             }
 
@@ -333,6 +340,9 @@ namespace EternalClash.BattleResult
                     break;
                 case ItemType.Gem:
                     entry = BattleRewardData.CreateEntry("Gem", "Gem", amount);
+                    break;
+                case ItemType.Flower:
+                    entry = new ItemReward(ItemCatalog.Find("blue_flower"), amount);
                     break;
             }
 
