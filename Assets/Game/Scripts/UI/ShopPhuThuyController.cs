@@ -17,7 +17,8 @@ namespace EternalClash.UI
     /// bật. Nếu scene thiếu layout (mới tạo scene khác), controller tự dựng bằng
     /// code như bản cũ; menu "Bake Panel Into Scene" dựng lại layout vào scene.
     /// Nguyên liệu dùng đúng vật phẩm có sẵn trong ItemCatalog:
-    /// blue_flower -> all witch abilities.
+    /// leaf_green -> Heal, leaf_red -> Cooldown, leaf_yellow -> Shield.
+    /// blue_flower là vật phẩm bond (tặng quà), không dùng nấu thuốc.
     /// </summary>
     public sealed class ShopPhuThuyController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
@@ -40,14 +41,14 @@ namespace EternalClash.UI
 
         private static readonly BrewMaterial[] Materials =
         {
-            new BrewMaterial("blue_flower", "Blue Flower",
-                "A magical flower used to strengthen the potion's healing power.",
+            new BrewMaterial("leaf_green", "Green Leaf",
+                "A vibrant green leaf. Brewed into the potion to strengthen its healing power.",
                 WitchAbility.Healing),
-            new BrewMaterial("blue_flower", "Blue Flower",
-                "A magical flower that lets the brew recharge faster.",
+            new BrewMaterial("leaf_red", "Red Leaf",
+                "A fiery red leaf that lets the brew recharge faster.",
                 WitchAbility.Cooldown),
-            new BrewMaterial("blue_flower", "Blue Flower",
-                "A magical flower that hardens the knight's guard when brewed into the potion.",
+            new BrewMaterial("leaf_yellow", "Yellow Leaf",
+                "A golden leaf that hardens the knight's guard when brewed into the potion.",
                 WitchAbility.Defense)
         };
 

@@ -31,6 +31,14 @@ namespace EternalClash.Item
         public static event System.Action<ItemPickup, int> OnItemCollected;
 
         public ItemType itemType;
+
+        /// <summary>
+        /// Voi drop loai Flower: neu prefab tu khai bao itemId (leaf_green,
+        /// leaf_red...) thi nhat ve se cong dung itemId do thay vi hoa mac dinh.
+        /// Bo trong voi drop hoa xanh thuong.
+        /// </summary>
+        public string itemIdOverride;
+
         public int amount = 10;
         public float magnetRange = 2f;
         public float moveSpeed = 8f;
@@ -145,7 +153,7 @@ namespace EternalClash.Item
                     break;
 
                 case ItemType.Flower:
-                    AddNormalItem("blue_flower", amount);
+                    AddNormalItem(string.IsNullOrEmpty(itemIdOverride) ? "blue_flower" : itemIdOverride, amount);
                     break;
             }
 

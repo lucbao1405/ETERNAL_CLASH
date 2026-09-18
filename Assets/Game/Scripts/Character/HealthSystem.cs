@@ -16,7 +16,11 @@ namespace EternalClash.Character
 
         public int CurrentHealth => currentHealth;
         public int MaxHealth => maxHealth;
-        public bool IsDead => currentHealth <= 0;
+
+        // RevivePending dang mo offer hoi sinh: chua coi la chet de PlayerDeathHandler
+        // (event + Update poll) chua kip chay flow thua trong luc offer hien.
+        public bool RevivePending { get; private set; }
+        public bool IsDead => currentHealth <= 0 && !RevivePending;
 
         public static bool PlayerDead { get; private set; }
 
@@ -31,6 +35,9 @@ namespace EternalClash.Character
             if (CompareTag("Player"))
             {
                 PlayerDead = false;
+
+                // Tran moi -> cho phep offer hoi sinh quay lai.
+                EternalClash.Monetization.ReviveOffer.ResetForBattle();
 
                 // Cong Max HP tu diem VIT da luu. Phai lam o day thay vi de
                 // PlayerStatSystem day vao: Player duoc spawn lai moi tran nen
@@ -125,6 +132,39 @@ namespace EternalClash.Character
                 OnDeath?.Invoke();
                 return;
             }
+
+            // Offer hoi sinh (monetization): chan lai truoc khi danh dau chet.
+            // Trong luc offer mo, TakeDamage -> Die() goi lai thi RevivePending
+            // chan de khong mo offer lan thu hai.
+            if (RevivePending)
+                return;
+
+            if (EternalClash.Monetization.ReviveOffer.TryOffer(this))
+                return;
+
+            ConfirmDeath();
+        }
+
+        internal void MarkRevivePending()
+        {
+            RevivePending = true;
+        }
+
+        /// <summary>Hoi sinh voi 50% HP - goi khi nguoi choi xem xong quang cao.</summary>
+        public void ReviveAtHalfHealth()
+        {
+            RevivePending = false;
+            currentHealth = Mathf.Max(1, maxHealth / 2);
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        }
+
+        /// <summary>
+        /// Chot cai chet nhu ban cu (dung boi flow thua). Goi khi offer hoi sinh
+        /// bi tu choi hoac quang cao that bai.
+        /// </summary>
+        public void ConfirmDeath()
+        {
+            RevivePending = false;
 
             // The defeat result flow uses unscaled time. Disable combat through its
             // controller instead of freezing the process before LosePopup can appear.

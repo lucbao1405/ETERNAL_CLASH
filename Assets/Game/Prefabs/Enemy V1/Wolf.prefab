@@ -524,10 +524,24 @@ MonoBehaviour:
     minAmount: 1
     maxAmount: 1
     itemType: 4
-  - itemId: BlueFlower
+  - itemId: GreenLeaf
     itemSprite: {fileID: 0}
-    prefab: {fileID: 5309306437869403614, guid: 26f424eb6be9f0f41a16dbb4c004da3c, type: 3}
-    dropRate: 0.1
+    prefab: {fileID: 5309306437869403614, guid: 7c2e5f6a819203b4c5d6e7f8a9b0c1d2, type: 3}
+    dropRate: 0.05
+    minAmount: 1
+    maxAmount: 1
+    itemType: 7
+  - itemId: RedLeaf
+    itemSprite: {fileID: 0}
+    prefab: {fileID: 5309306437869403614, guid: 8d3f6a7b920314c5d6e7f8a9b0c1d2e3, type: 3}
+    dropRate: 0.05
+    minAmount: 1
+    maxAmount: 1
+    itemType: 7
+  - itemId: YellowLeaf
+    itemSprite: {fileID: 0}
+    prefab: {fileID: 5309306437869403614, guid: 9e4a7b8c031425d6e7f8a9b0c1d2e3f4, type: 3}
+    dropRate: 0.05
     minAmount: 1
     maxAmount: 1
     itemType: 7
