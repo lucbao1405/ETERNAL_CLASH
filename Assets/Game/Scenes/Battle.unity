@@ -2229,7 +2229,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -6.3499756, y: 485}
+  m_AnchoredPosition: {x: -6.3499756, y: 442}
   m_SizeDelta: {x: -112.7, y: -1594.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &260425753
@@ -2286,6 +2286,10 @@ MonoBehaviour:
   goldText: {fileID: 1539986432}
   timeText: {fileID: 412945785}
   expBar: {fileID: 92187691}
+  expFullBarDuration: 5
+  levelUpAnimDuration: 2
+  levelUpAnimation: victory
+  popupCharacter: {fileID: 0}
   itemGrid: {fileID: 936275510}
   itemSlotPrefab: {fileID: 790758034}
   itemListText: {fileID: 0}
@@ -9355,6 +9359,10 @@ MonoBehaviour:
   goldText: {fileID: 0}
   timeText: {fileID: 686621668}
   expBar: {fileID: 1947045463}
+  expFullBarDuration: 5
+  levelUpAnimDuration: 2
+  levelUpAnimation: victory
+  popupCharacter: {fileID: 0}
   itemGrid: {fileID: 280342039}
   itemSlotPrefab: {fileID: 1990588332}
   itemListText: {fileID: 0}
@@ -14937,7 +14945,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 18, y: 175}
+  m_AnchoredPosition: {x: 18, y: 198}
   m_SizeDelta: {x: 3184, y: 1644}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1973811632
