@@ -17,7 +17,8 @@ namespace EternalClash.Item
         Ore,
         Leather,
         Wood,
-        Gem
+        Gem,
+        Flower
     }
 
     public class ItemPickup : MonoBehaviour
@@ -141,6 +142,10 @@ namespace EternalClash.Item
 
                 case ItemType.Gem:
                     EternalClash.Village.GoldSystem.Instance?.AddGem(amount);
+                    break;
+
+                case ItemType.Flower:
+                    AddNormalItem("blue_flower", amount);
                     break;
             }
 

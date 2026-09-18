@@ -209,9 +209,9 @@ namespace EternalClash.Village
         [ContextMenu("Self Check")]
         public void SelfCheck()
         {
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Healing)) == "wood_small", "healing brews wood");
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Cooldown)) == "copper_ore", "cooldown brews ore");
-            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Defense)) == "wolf_hide", "defense brews hide");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Healing)) == "blue_flower", "healing brews blue flower");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Cooldown)) == "blue_flower", "cooldown brews blue flower");
+            Debug.Assert(GetMaterialItemId(GetRequiredMaterial(WitchAbility.Defense)) == "blue_flower", "defense brews blue flower");
             Debug.Assert(GetExpToNextLevel(WitchAbility.Defense, 0) == BaseAbilityExp &&
                 GetExpToNextLevel(WitchAbility.Healing, 0) == BaseHealingExp, "base exp");
             Debug.Assert(GetExpToNextLevel(WitchAbility.Healing, 4) > GetExpToNextLevel(WitchAbility.Healing, 0),
@@ -261,10 +261,8 @@ namespace EternalClash.Village
 
         public static string GetMaterialItemId(MaterialType materialType)
         {
-            return materialType == MaterialType.Ore ? "copper_ore"
-                : materialType == MaterialType.Leather ? "wolf_hide"
-                : materialType == MaterialType.Wood ? "wood_small"
-                : materialType == MaterialType.Steel ? "steel_ore"
+            return materialType == MaterialType.Ore || materialType == MaterialType.Leather ||
+                materialType == MaterialType.Wood ? "blue_flower"
                 : string.Empty;
         }
 

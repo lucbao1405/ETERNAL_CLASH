@@ -17,7 +17,7 @@ namespace EternalClash.UI
     /// bật. Nếu scene thiếu layout (mới tạo scene khác), controller tự dựng bằng
     /// code như bản cũ; menu "Bake Panel Into Scene" dựng lại layout vào scene.
     /// Nguyên liệu dùng đúng vật phẩm có sẵn trong ItemCatalog:
-    /// wood_small -> Heal, copper_ore -> Cooldown, wolf_hide -> Shield.
+    /// blue_flower -> all witch abilities.
     /// </summary>
     public sealed class ShopPhuThuyController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
@@ -40,14 +40,14 @@ namespace EternalClash.UI
 
         private static readonly BrewMaterial[] Materials =
         {
-            new BrewMaterial("wood_small", "Small Wood",
-                "Branches collected around the village. Strengthens the potion's healing power.",
+            new BrewMaterial("blue_flower", "Blue Flower",
+                "A magical flower used to strengthen the potion's healing power.",
                 WitchAbility.Healing),
-            new BrewMaterial("copper_ore", "Copper Ore",
-                "Conductive ore that lets the brew recharge faster.",
+            new BrewMaterial("blue_flower", "Blue Flower",
+                "A magical flower that lets the brew recharge faster.",
                 WitchAbility.Cooldown),
-            new BrewMaterial("wolf_hide", "Wolf Hide",
-                "Tough hide that hardens the knight's guard when brewed into the potion.",
+            new BrewMaterial("blue_flower", "Blue Flower",
+                "A magical flower that hardens the knight's guard when brewed into the potion.",
                 WitchAbility.Defense)
         };
 

@@ -440,6 +440,13 @@ MonoBehaviour:
     minAmount: 1
     maxAmount: 1
     itemType: 5
+  - itemId: BlueFlower
+    itemSprite: {fileID: 0}
+    prefab: {fileID: 5309306437869403614, guid: 26f424eb6be9f0f41a16dbb4c004da3c, type: 3}
+    dropRate: 0.1
+    minAmount: 1
+    maxAmount: 1
+    itemType: 7
   expReward: 15
   burstHeight: 1.2
   hopMinDistance: 0.8
