@@ -6,9 +6,9 @@ using EternalClash.Core;
 namespace EternalClash.EditorTools
 {
     /// <summary>
-    /// Self-check cho co "Injured do THUA tran" (dieu khien luong hoi mau bang
-    /// kim cuong chi hien khi thua). Chay bang menu Tools/Player Condition/Self Check.
-    /// Khong dung test framework, khong bien dich vao build.
+    /// Self-check cho nguong offer hoi mau bang kim cuong (duoi 60% Max HP, dung
+    /// chung voi nguong chan vao tran). Chay bang menu Tools/Player Condition/Self
+    /// Check. Khong dung test framework, khong bien dich vao build.
     /// </summary>
     internal static class PlayerConditionSelfCheck
     {
@@ -26,48 +26,34 @@ namespace EternalClash.EditorTools
                 host = new GameObject("PlayerConditionSelfCheckHost");
                 PlayerConditionSystem cond = host.AddComponent<PlayerConditionSystem>();
 
-                // Thua: MarkInjured -> Injured + co thua bat.
+                // Thua: ve lang 10% Max HP -> duoi 60% -> duoc offer kim cuong.
                 cond.MarkInjured(100);
-                Check(cond.IsInjured, "MarkInjured phai dat trang thai Injured");
-                Check(cond.InjuredByDefeat, "MarkInjured (thua) phai bat co InjuredByDefeat");
+                Check(cond.CanOfferGemHeal, "HP 10% (thua) phai duoc offer kim cuong");
 
-                // Thang: con thieu mau -> van Injured nhung co thua PHAI tat
-                // (khong hien luong hoi bang kim cuong).
+                // Thang: ve lang 70% -> tren nguong -> khong offer.
+                cond.SetHpAfterBattle(70, 100);
+                Check(!cond.CanOfferGemHeal, "HP 70% (thang) khong duoc offer kim cuong");
+
+                // Thang: ve lang 50% -> duoi nguong -> duoc offer.
                 cond.SetHpAfterBattle(50, 100);
-                Check(cond.IsInjured, "Thang ma con thieu mau thi van dang hoi (Injured)");
-                Check(!cond.InjuredByDefeat, "SetHpAfterBattle (thang) phai tat co InjuredByDefeat");
+                Check(cond.CanOfferGemHeal, "HP 50% (thang) phai duoc offer kim cuong");
 
-                // Thang: day mau -> binh thuong.
-                cond.MarkInjured(100);
-                cond.SetHpAfterBattle(100, 100);
-                Check(!cond.IsInjured && !cond.InjuredByDefeat, "Thang day mau phai ve Normal va tat co");
+                // Du 100% -> khong offer.
+                cond.RestoreFullHp();
+                Check(!cond.CanOfferGemHeal, "HP day khong duoc offer kim cuong");
 
-                // Save roundtrip: thua roi thoat app -> LoadFromSave giu nguyen co.
-                var saveDefeat = new SaveData
+                // Save roundtrip: thua roi thoat app, mo lai van con duoi nguong.
+                var save = new SaveData
                 {
                     playerCondition = (int)PlayerCondition.Injured,
                     currentHp = 10,
                     maxHp = 100,
                     recoveryRatePerSecond = 5f,
-                    recoveryTargetPercent = 80,
-                    injuredByDefeat = true
+                    recoveryTargetPercent = 80
                 };
-                cond.LoadFromSave(saveDefeat);
-                Check(cond.IsInjured && cond.InjuredByDefeat,
-                    "LoadFromSave giu nguyen co thua khi van Injured");
-
-                var saveWin = new SaveData
-                {
-                    playerCondition = (int)PlayerCondition.Injured,
-                    currentHp = 50,
-                    maxHp = 100,
-                    recoveryRatePerSecond = 5f,
-                    recoveryTargetPercent = 80,
-                    injuredByDefeat = false
-                };
-                cond.LoadFromSave(saveWin);
-                Check(cond.IsInjured && !cond.InjuredByDefeat,
-                    "LoadFromSave khong bat co khi injured do thang");
+                cond.LoadFromSave(save);
+                Check(cond.IsInjured && cond.CanOfferGemHeal,
+                    "LoadFromSave giu nguyen luong offer (HP 10% sau thua)");
             }
             catch (System.Exception exception)
             {

@@ -71,9 +71,6 @@ public class SaveData
     public long recoveryStartUnixTime = 0;
     public float recoveryRatePerSecond = 5f;
     public int recoveryTargetPercent = 80;
-    // Injured do THUA tran (hien luong hoi mau bang kim cuong) hay do thang ma
-    // con thieu mau (khong hien luong).
-    public bool injuredByDefeat = false;
 
     // Dang o giua tran. Bat khi vao Battle, tat khi thang / thua. Mo game ma co con
     // bat nghia la app bi tat ngang tran -> tinh la thua (tranh thoat app de ne thua).

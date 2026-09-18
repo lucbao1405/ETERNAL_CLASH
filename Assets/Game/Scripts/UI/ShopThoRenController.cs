@@ -27,7 +27,6 @@ namespace EternalClash.UI
         [Header("Item Details")]
         [SerializeField] private Transform thongTinVatPham;
         [SerializeField] private TMP_Text itemDetailsText;
-        [SerializeField] private Image itemDetailsIcon;
 
         [Header("Upgrade")]
         [SerializeField] private Button upgradeButton;
@@ -163,7 +162,6 @@ namespace EternalClash.UI
             if (itemData == null)
                 return;
 
-            EnsureItemDetailsIcon();
             selectedItem = itemData;
             Debug.Log("Selected upgrade item: " + itemData.itemName);
             RefreshItemDetail();
@@ -318,65 +316,17 @@ namespace EternalClash.UI
 
         private void UpdateItemDetails(ItemData itemData)
         {
-            EnsureItemDetailsIcon();
             if (itemData == null)
             {
                 if (itemDetailsText != null)
                     itemDetailsText.text = string.Empty;
-                if (itemDetailsIcon != null)
-                {
-                    itemDetailsIcon.sprite = null;
-                    itemDetailsIcon.enabled = false;
-                    itemDetailsIcon.gameObject.SetActive(false);
-                }
                 if (upgradeButton != null)
                     upgradeButton.interactable = false;
                 return;
             }
 
-            if (itemDetailsIcon != null)
-            {
-                Sprite sprite = itemData.icon;
-                if (sprite == null)
-                    sprite = ItemCatalog.Find(itemData.itemId)?.icon;
-                if (sprite == null)
-                    Debug.LogWarning("[ShopThoRen] No icon for equipped item: " + itemData.itemId);
-                itemDetailsIcon.sprite = sprite;
-                itemDetailsIcon.preserveAspect = true;
-                itemDetailsIcon.enabled = sprite != null;
-                itemDetailsIcon.gameObject.SetActive(sprite != null);
-            }
-
             if (itemDetailsText != null)
                 itemDetailsText.text = FormatItemDetails(itemData, FindRecipe(itemData.itemId));
-        }
-
-        private void EnsureItemDetailsIcon()
-        {
-            if (itemDetailsIcon != null || thongTinVatPham == null)
-                return;
-
-            Transform existing = thongTinVatPham.Find("EquipmentIcon");
-            if (existing == null)
-                existing = thongTinVatPham.Find("ItemIcon");
-            if (existing != null)
-            {
-                itemDetailsIcon = existing.GetComponent<Image>();
-                if (itemDetailsIcon != null)
-                    return;
-            }
-
-            GameObject iconObject = new GameObject("EquipmentIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            iconObject.transform.SetParent(thongTinVatPham, false);
-            RectTransform rect = iconObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 1f);
-            rect.anchorMax = new Vector2(0.5f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -35f);
-            rect.sizeDelta = new Vector2(150f, 150f);
-            itemDetailsIcon = iconObject.GetComponent<Image>();
-            itemDetailsIcon.preserveAspect = true;
-            itemDetailsIcon.raycastTarget = false;
         }
 
         private void AutoWireDetails()
@@ -385,21 +335,14 @@ namespace EternalClash.UI
             {
                 itemDetailsText ??= thongTinVatPham.Find("ContentArea/Content/TTVP_Text")?.GetComponent<TMP_Text>();
                 itemDetailsText ??= thongTinVatPham.GetComponentInChildren<TMP_Text>(true);
-                itemDetailsIcon ??= thongTinVatPham.Find("ItemIcon")?.GetComponent<Image>();
-                itemDetailsIcon ??= thongTinVatPham.Find("Image/ItemIcon")?.GetComponent<Image>();
-                if (itemDetailsIcon == null)
-                {
-                    GameObject iconObject = new GameObject("ItemIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-                    iconObject.transform.SetParent(thongTinVatPham, false);
-                    RectTransform rect = iconObject.GetComponent<RectTransform>();
-                    rect.anchorMin = new Vector2(0.5f, 1f);
-                    rect.anchorMax = new Vector2(0.5f, 1f);
-                    rect.anchoredPosition = new Vector2(0f, -70f);
-                    rect.sizeDelta = new Vector2(180f, 180f);
-                    itemDetailsIcon = iconObject.GetComponent<Image>();
-                    itemDetailsIcon.preserveAspect = true;
-                    itemDetailsIcon.raycastTarget = false;
-                }
+                // The slot already shows the item icon, so the details panel
+                // must not duplicate it. Hide any icon left in the scene or
+                // created by older builds.
+                Transform staleIcon = thongTinVatPham.Find("ItemIcon");
+                staleIcon = staleIcon != null ? staleIcon : thongTinVatPham.Find("EquipmentIcon");
+                staleIcon = staleIcon != null ? staleIcon : thongTinVatPham.Find("Image/ItemIcon");
+                if (staleIcon != null)
+                    staleIcon.gameObject.SetActive(false);
             }
             upgradeButton ??= transform.Find("UPGRADE")?.GetComponent<Button>();
             upgradeResultPopup ??= GetComponent<UpgradeResultPopup>();

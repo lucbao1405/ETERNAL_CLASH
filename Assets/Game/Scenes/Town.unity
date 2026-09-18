@@ -485,6 +485,7 @@ MonoBehaviour:
   - {fileID: 1223688120}
   thongTinVatPham: {fileID: 1558483720}
   itemDetailsText: {fileID: 2061583408}
+  itemDetailsIcon: {fileID: 0}
   upgradeButton: {fileID: 2129554384}
   upgradeResultPopup: {fileID: 12087382}
   upgradeSuccessPanel: {fileID: 428373314}
@@ -1853,7 +1854,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &53555093
 RectTransform:
   m_ObjectHideFlags: 0
@@ -53364,7 +53365,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2129085759
 RectTransform:
   m_ObjectHideFlags: 0

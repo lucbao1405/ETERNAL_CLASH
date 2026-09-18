@@ -224,10 +224,10 @@ namespace EternalClash.UI
     }
 
     /// <summary>
-    /// Chay tren Canvas (luon active): hien nut mo khi player bi thuong DO THUA
-    /// tran, tu dong mo popup 1 lan khi thua roi ve lang. Thang nhung con thieu
-    /// mau thi khong hien luong nay. Duoc gan tu dong khi load scene Town
-    /// (xem <see cref="RestRecoverPopup.AttachTo"/>).
+    /// Chay tren Canvas (luon active): hien nut mo khi HP duoi 60% Max HP
+    /// (xem <see cref="PlayerConditionSystem.CanOfferGemHeal"/>), tu dong mo
+    /// popup 1 lan khi vao Town ma van duoi nguong. Duoc gan tu dong khi load
+    /// scene Town (xem <see cref="RestRecoverPopup.AttachTo"/>).
     /// </summary>
     public sealed class RestRecoverDriver : MonoBehaviour
     {
@@ -273,9 +273,8 @@ namespace EternalClash.UI
 
             PlayerConditionSystem cond = PlayerConditionSystem.Instance;
 
-            // Luong hoi mau bang kim cuong chi hien khi bi thuong do THUA tran;
-            // thang nhung con thieu mau thi khong hien.
-            bool showBubble = cond != null && cond.IsInjured && cond.InjuredByDefeat && !popup.IsOpen;
+            // Duoi 60% Max HP thi moi hien nut mo luong hoi bang kim cuong.
+            bool showBubble = cond != null && cond.CanOfferGemHeal && !popup.IsOpen;
             if (openBubble.gameObject.activeSelf != showBubble)
                 openBubble.gameObject.SetActive(showBubble);
         }
@@ -292,9 +291,9 @@ namespace EternalClash.UI
             autoShowRoutine = null;
             PlayerConditionSystem cond = PlayerConditionSystem.Instance;
 
-            // Chi tu mo popup khi ve lang do THUA tran. Thang ve lang con thieu
-            // mau thi hoi tu nhien theo thoi gian, khong bam kim cuong vao nguoi choi.
-            if (cond != null && cond.IsInjured && cond.InjuredByDefeat && !popup.IsOpen)
+            // Duoi 60% Max HP khi vao Town thi tu mo popup 1 lan (thua luon dung,
+            // thang ma ve lang guc duoi nguong cung duoc offer).
+            if (cond != null && cond.CanOfferGemHeal && !popup.IsOpen)
                 popup.Show();
         }
     }
