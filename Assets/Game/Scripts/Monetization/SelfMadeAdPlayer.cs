@@ -61,6 +61,8 @@ namespace EternalClash.Monetization
 
             private Action<bool> onResult;
             private bool completed;
+            private bool prevAudioPause;
+            private float prevTimeScale = 1f;
 
             public void Play(string placement, Action<bool> result)
             {
@@ -70,6 +72,14 @@ namespace EternalClash.Monetization
                 onResult = result;
                 completed = false;
                 skipUnlocked = false;
+
+                // Dung toan bo game trong luc phat ad: dong bang time va tam ngu
+                // moi am thanh cua game. Tieng ad khong bi anh huong vi VideoPlayer
+                // phat bang Direct (scene) hoac duoc bat ignoreListenerPause.
+                prevAudioPause = AudioListener.pause;
+                prevTimeScale = Time.timeScale;
+                AudioListener.pause = true;
+                Time.timeScale = 0f;
 
                 panel = FindScenePanel();
                 panelIsRuntimeBuilt = panel == null;
@@ -94,8 +104,7 @@ namespace EternalClash.Monetization
                 }
 
                 // Khong co video: nut X = tu choi (flow van tu dong xong sau dem nguoc).
-                if (panel.CloseButton != null)
-                    panel.CloseButton.onClick.AddListener(CloseWithoutReward);
+                // CloseWithoutReward da duoc gan o dau Play() nen khong gan lai lan nua.
 
                 Sprite[] stills = Resources.LoadAll<Sprite>(AdResourcesFolder);
                 if (stills != null && stills.Length > 0)
@@ -267,6 +276,11 @@ namespace EternalClash.Monetization
                 {
                     videoPlayer = gameObject.AddComponent<VideoPlayer>();
                     videoPlayer.clip = clip;
+                    // Phat dung khi game bi dong bang (timeScale = 0) va giu tieng ad
+                    // khong bi cat boi AudioListener.pause da bat o tren (Direct bo qua
+                    // AudioListener, giong VideoPlayer dat san trong scene).
+                    videoPlayer.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
+                    videoPlayer.audioOutputMode = VideoAudioOutputMode.Direct;
                 }
 
                 videoPlayer.playOnAwake = false;
@@ -289,6 +303,11 @@ namespace EternalClash.Monetization
                 if (panel.CloseButton != null)
                 {
                     panel.CloseButton.interactable = false;
+                    // Play() da gan CloseWithoutReward truoc SkipWithReward; neu de
+                    // ca hai thi bam X (skip) se bi listener tu choi chay truoc va
+                    // nuot ket qua - bo listener tu choi di, X khi skip mo luon
+                    // duoc huong theo luat "skip = nhan thuong".
+                    panel.CloseButton.onClick.RemoveListener(CloseWithoutReward);
                     panel.CloseButton.onClick.AddListener(SkipWithReward);
                     float clipSeconds = clip.frameRate > 0 ? (float)(clip.frameCount / clip.frameRate) : 0f;
                     float skipAfter = Mathf.Min(MinWatchSecondsForSkip, clipSeconds);
@@ -401,6 +420,10 @@ namespace EternalClash.Monetization
                 if (completed)
                     return;
                 completed = true;
+
+                // Tra lai trang thai game nhu truoc khi mo ad.
+                AudioListener.pause = prevAudioPause;
+                Time.timeScale = prevTimeScale;
 
                 if (countdownRoutine != null)
                 {

@@ -59,6 +59,13 @@ namespace EternalClash.Core
         public int RecoveryTargetPercent => recoveryTargetPercent;
         public bool IsInjured => Condition == PlayerCondition.Injured;
 
+        /// <summary>
+        /// Trang thai bi thuong hien tai co do THUA tran khong. Chi dung de quyet
+        /// dinh co hien luong hoi mau bang kim cuong khi ve lang hay khong:
+        /// thua -> hien; thang nhung con thieu mau -> khong hien.
+        /// </summary>
+        public bool InjuredByDefeat { get; private set; }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -127,6 +134,7 @@ namespace EternalClash.Core
             recoveryRatePerSecond = DEFAULT_RECOVERY_RATE;
             recoveryTargetPercent = DEFAULT_RECOVERY_TARGET_PERCENT;
             recoveryAccumulator = 0f;
+            InjuredByDefeat = true;
 
             SetCondition(PlayerCondition.Injured);
 
@@ -149,7 +157,10 @@ namespace EternalClash.Core
             if (data == null) return;
 
             if ((PlayerCondition)data.playerCondition != PlayerCondition.Injured)
+            {
+                InjuredByDefeat = false;
                 return;
+            }
 
             maxHp = Mathf.Max(1, data.maxHp);
             currentHp = Mathf.Clamp(data.currentHp, 0, maxHp);
@@ -163,6 +174,7 @@ namespace EternalClash.Core
             }
 
             SetCondition(PlayerCondition.Injured);
+            InjuredByDefeat = data.injuredByDefeat;
             ApplyElapsedOfflineRecovery(data);
         }
 
@@ -272,6 +284,8 @@ namespace EternalClash.Core
         /// </summary>
         public void SetHpAfterBattle(int hp, int playerMaxHp)
         {
+            // Tran THANG: du con thieu mau thi khong hien luong hoi bang kim cuong.
+            InjuredByDefeat = false;
             maxHp = Mathf.Max(1, playerMaxHp);
             currentHp = Mathf.Clamp(hp, 1, maxHp);
             recoveryRatePerSecond = DEFAULT_RECOVERY_RATE;
@@ -321,15 +335,18 @@ namespace EternalClash.Core
                 {
                     data.playerCondition = (int)PlayerCondition.Normal;
                     SetCondition(PlayerCondition.Normal);
+                    InjuredByDefeat = false;
                 }
                 else
                 {
                     SetCondition(PlayerCondition.Injured);
+                    InjuredByDefeat = data.injuredByDefeat;
                 }
             }
             else
             {
                 SetCondition(PlayerCondition.Normal);
+                InjuredByDefeat = false;
             }
         }
 
@@ -363,6 +380,7 @@ namespace EternalClash.Core
             if (data == null) return;
 
             data.playerCondition = (int)Condition;
+            data.injuredByDefeat = InjuredByDefeat;
             data.currentHp = currentHp;
             data.maxHp = maxHp;
             data.recoveryRatePerSecond = recoveryRatePerSecond;
