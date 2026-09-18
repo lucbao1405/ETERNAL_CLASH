@@ -12,6 +12,8 @@ namespace EternalClash.UI
 {
     public sealed class ShopThoRenController : MonoBehaviour
     {
+        public static event Action<ItemData> OnUpgradeSuccess;
+
         [Header("Item Slots")]
         public ShopItemSlot[] weaponSlots;
         public ShopItemSlot[] shieldSlots;
@@ -87,8 +89,6 @@ namespace EternalClash.UI
 
         private void OnEnable()
         {
-            Debug.Log("[ShopThoRen] OnEnable called");
-            AutoWireDetails();
             SubscribeToSaveChanges();
             EnsureCraftingSystem();
             AutoWireLegacySlots();
@@ -105,11 +105,21 @@ namespace EternalClash.UI
             RefreshSlots(listKiem);
             RefreshSlots(listKhien);
             RefreshSlots(listSetAoGiap);
-            // Do not auto-select an item while opening the panel. The user
-            // must select the equipment slot before Upgrade is enabled.
-            // The panel is only opened explicitly via ShopPanelAnimator.Open;
-            // enabling it must never auto-open it.
+            if (selectedItem == null)
+            {
+                ItemData equippedWeapon = ResolveBaseItem(ItemSlot.Weapon);
+                if (equippedWeapon != null)
+                    SelectItem(equippedWeapon);
+            }
             UpdateUpgradeButtonState();
+            EnsurePanelInteractable();
+        }
+
+        private void EnsurePanelInteractable()
+        {
+            ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
+            if (animator != null && animator.State == ShopPanelAnimator.PanelState.Closed)
+                animator.Open();
         }
 
         private void OnDisable()
@@ -152,28 +162,12 @@ namespace EternalClash.UI
             if (itemData == null)
                 return;
 
-            // Slot buttons can hold stale instances (e.g. a copy captured before
-            // the last upgrade). Always select the live equipped instance when
-            // the clicked item matches it, so the displayed level is current.
-            ItemSlot slot = ToItemSlot(itemData.equipmentSlot);
-            ItemData live = EquipmentSystem.Instance?.GetEquippedItem(slot);
-            if (live != null && live.equipmentSlot == itemData.equipmentSlot &&
-                string.Equals(live.itemId, itemData.itemId, StringComparison.OrdinalIgnoreCase))
-                itemData = live;
-
             selectedItem = itemData;
             Debug.Log("Selected upgrade item: " + itemData.itemName);
             RefreshItemDetail();
             RefreshRequirementSlots(itemData);
             thongTinVatPham?.gameObject.SetActive(true);
             UpdateUpgradeButton();
-            if (upgradeButton != null)
-            {
-                bool canUpgrade = CanUpgradeSelected();
-                upgradeButton.interactable = canUpgrade;
-                upgradeButton.colors = canUpgrade ? activeButtonColors : disabledButtonColors;
-                Debug.Log("[SelectItem] upgradeButton.interactable set to: " + canUpgrade);
-            }
         }
 
         public void UpgradeSelected()
@@ -187,8 +181,6 @@ namespace EternalClash.UI
 
             ItemSlot slot = ToItemSlot(selectedItem.equipmentSlot);
             ItemData equipped = EquipmentSystem.Instance?.GetEquippedItem(slot);
-            if (equipped == null || equipped.equipmentSlot != selectedItem.equipmentSlot)
-                equipped = selectedItem;
             BlacksmithCraftingSystem smith = EnsureCraftingSystem();
             if (smith == null)
             {
@@ -238,10 +230,11 @@ namespace EternalClash.UI
             if (success)
             {
                 SaveCoordinator.RequestSave();
+                ShowUpgradeSuccessPopup(equipped, previousUpgradeLevel, previousStat, slot, recipe);
                 selectedItem = EquipmentSystem.Instance?.GetEquippedItem(slot) ?? selectedItem;
-                ShowUpgradeSuccessPopup(selectedItem, previousUpgradeLevel, previousStat, slot, recipe);
                 RefreshRequirementSlots(selectedItem);
                 RefreshItemDetail();
+                FireUpgradeSuccess(selectedItem);
                 ActivateUpgradeSuccessPanel();
                 UpdateUpgradeButton();
             }
@@ -300,45 +293,22 @@ namespace EternalClash.UI
         private bool CanUpgradeSelected()
         {
             if (selectedItem == null)
-            {
-                Debug.LogWarning("[CanUpgradeSelected] selectedItem is NULL");
                 return false;
-            }
 
             BlacksmithCraftingSystem smith = EnsureCraftingSystem();
             if (smith == null)
-            {
-                Debug.LogWarning("[CanUpgradeSelected] smith is NULL");
                 return false;
-            }
 
             ItemSlot slot = ToItemSlot(selectedItem.equipmentSlot);
-            Debug.Log("[CanUpgradeSelected] slot=" + slot + " selectedItem.itemId=" + selectedItem.itemId);
-
             ItemData equipped = EquipmentSystem.Instance?.GetEquippedItem(slot);
-            Debug.Log("[CanUpgradeSelected] equipped from EquipmentSystem: " + (equipped != null ? equipped.itemId + " icon=" + (equipped.icon != null ? equipped.icon.name : "NULL") : "NULL"));
-
-            if (equipped == null || equipped.equipmentSlot != selectedItem.equipmentSlot)
-            {
-                Debug.Log("[CanUpgradeSelected] falling back to selectedItem");
-                equipped = selectedItem;
-            }
-
-            string lookupId = equipped.itemId;
-            Debug.Log("[CanUpgradeSelected] lookupId=" + lookupId + " normalized=" + NormalizeItemId(lookupId));
-
-            UpgradeRecipeData recipe = FindRecipe(lookupId);
-            if (recipe == null)
-            {
-                Debug.LogWarning("[CanUpgradeSelected] recipe is NULL for itemId=" + lookupId + " - Normalized=" + NormalizeItemId(lookupId));
-                Debug.Log("[CanUpgradeSelected] Checking available recipes...");
-                foreach (UpgradeRecipeData r in Resources.LoadAll<UpgradeRecipeData>("UpgradeRecipes"))
-                    if (r != null)
-                        Debug.Log("  Available: " + r.itemId + " -> Normalized: " + NormalizeItemId(r.itemId));
+            if (equipped == null)
                 return false;
-            }
 
-            int upgradeLevel = GetSavedUpgradeLevel(lookupId, equipped);
+            UpgradeRecipeData recipe = FindRecipe(equipped.itemId);
+            if (recipe == null)
+                return false;
+
+            int upgradeLevel = GetSavedUpgradeLevel(equipped.itemId, equipped);
             bool canUpgrade = smith.CanUpgradeWithRecipe(recipe, upgradeLevel);
             Debug.Log("[CanUpgradeSelected] " + equipped.itemName + " level " + upgradeLevel + ": " + canUpgrade);
             return canUpgrade;
@@ -361,36 +331,29 @@ namespace EternalClash.UI
 
         private void AutoWireDetails()
         {
-            // A reference dragged from another panel (e.g. Shop_Phu_Thuy's UPGRADE
-            // button) silently steals the click; only accept a button inside this panel.
-            if (upgradeButton != null && !upgradeButton.transform.IsChildOf(transform))
-                upgradeButton = null;
             if (thongTinVatPham != null)
             {
                 itemDetailsText ??= thongTinVatPham.Find("ContentArea/Content/TTVP_Text")?.GetComponent<TMP_Text>();
                 itemDetailsText ??= thongTinVatPham.GetComponentInChildren<TMP_Text>(true);
+                // The slot already shows the item icon, so the details panel
+                // must not duplicate it. Hide any icon left in the scene or
+                // created by older builds.
+                Transform staleIcon = thongTinVatPham.Find("ItemIcon");
+                staleIcon = staleIcon != null ? staleIcon : thongTinVatPham.Find("EquipmentIcon");
+                staleIcon = staleIcon != null ? staleIcon : thongTinVatPham.Find("Image/ItemIcon");
+                if (staleIcon != null)
+                    staleIcon.gameObject.SetActive(false);
             }
             upgradeButton ??= transform.Find("UPGRADE")?.GetComponent<Button>();
-            upgradeButton ??= FindChildComponent<Button>(transform, "UPGRADE");
             upgradeResultPopup ??= GetComponent<UpgradeResultPopup>();
-            upgradeResultPopup ??= GetComponentInChildren<UpgradeResultPopup>(true);
             upgradeSuccessPanel ??= transform.Find("UpGradeSuccess")?.gameObject;
-            upgradeSuccessPanel ??= FindChildRecursive(transform, "UpGradeSuccess")?.gameObject;
 
             if (upgradeButton != null)
             {
                 upgradeButton.onClick.RemoveListener(UpgradeSelected);
                 upgradeButton.onClick.AddListener(UpgradeSelected);
-                Debug.Log("[ShopThoRen] UPGRADE button bound: " + upgradeButton.name);
+                upgradeButton.interactable = false;
             }
-            else
-                Debug.LogWarning("[ShopThoRen] Could not find UPGRADE button in panel hierarchy.");
-        }
-
-        private static T FindChildComponent<T>(Transform root, string childName) where T : Component
-        {
-            Transform child = FindChildRecursive(root, childName);
-            return child != null ? child.GetComponent<T>() : null;
         }
 
         private void AutoWireLegacySlots()
@@ -416,6 +379,37 @@ namespace EternalClash.UI
             slots[0].SetItemData(equipped);
             for (int index = 1; index < slots.Length; index++)
                 slots[index].SetItemData(null);
+        }
+
+        private static ItemData ResolveBaseItem(ItemSlot slot)
+        {
+            // Empty save slots intentionally return null; the UI must stay empty.
+            return EquipmentSystem.Instance?.GetEquippedItem(slot);
+        }
+
+        private static ItemData CreateTierVariant(ItemData source, int tier)
+        {
+            if (source == null)
+                return null;
+
+            ItemData variant = ScriptableObject.CreateInstance<ItemData>();
+            variant.itemId = NormalizeItemId(source.itemId) + "_t" + tier;
+            variant.itemName = source.itemName + " - Bậc " + tier;
+            variant.itemType = source.itemType;
+            variant.equipmentSlot = source.equipmentSlot;
+            variant.rarity = source.rarity;
+            variant.stars = Mathf.Clamp(source.stars + tier - 1, 1, 5);
+            variant.weaponTier = source.equipmentSlot == EquipmentSlot.Weapon ? tier : 0;
+            variant.armorTier = source.equipmentSlot == EquipmentSlot.Armor ? tier : 0;
+            variant.strBonus = source.strBonus + (source.strBonus > 0 ? tier - 1 : 0);
+            variant.vitBonus = source.vitBonus + (source.vitBonus > 0 ? tier - 1 : 0);
+            variant.intBonus = source.intBonus + (source.intBonus > 0 ? tier - 1 : 0);
+            variant.luckBonus = source.luckBonus + (source.luckBonus > 0 ? tier - 1 : 0);
+            variant.level = tier;
+            variant.upgradeLevel = 0;
+            variant.description = source.description;
+            variant.icon = source.icon;
+            return variant;
         }
 
         private void AutoWireRequirementSlots()
@@ -546,7 +540,7 @@ namespace EternalClash.UI
                 ? requirementSlotsRoot : requirementPanel?.Find("Hienthivp");
             requirementSlotsRoot = requirementSlotsRoot != null
                 ? requirementSlotsRoot
-                : FindChildRecursive(transform, "Hientv");
+                : FindChildRecursive(transform, "Hienthivp");
             requirementSlotsRoot = requirementSlotsRoot != null
                 ? requirementSlotsRoot
                 : FindChildRecursive(transform, "Hienthivp");
@@ -708,6 +702,19 @@ namespace EternalClash.UI
             if (result.Length > 0)
                 result.AppendLine();
             result.Append(label).Append(" +").Append(amount);
+        }
+
+        private static void FireUpgradeSuccess(ItemData item)
+        {
+            try
+            {
+                Debug.Log("Upgrade Success: " + item.itemName);
+                OnUpgradeSuccess?.Invoke(item);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
 
         private void ActivateUpgradeSuccessPanel()

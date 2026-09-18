@@ -247,6 +247,13 @@ namespace EternalClash.Core
             return currentHp >= MinBattleHp;
         }
 
+        /// <summary>
+        /// Duoi nguong 60% Max HP (MIN_BATTLE_HP_PERCENT, cung la nguong chan vao
+        /// tran): dung luong offer hoi mau bang kim cuong o Town, bat ke thua hay
+        /// thang tran. Xem RestRecoverDriver.
+        /// </summary>
+        public bool CanOfferGemHeal => MaxHp > 0 && CurrentHp < MinBattleHp;
+
         public string GetInjuredBlockReason()
         {
             return $"Not enough HP!\nNeed {MIN_BATTLE_HP_PERCENT}% HP to battle ({currentHp}/{MinBattleHp})";
