@@ -93,9 +93,10 @@ namespace EternalClash.Monetization
                 panel.transform.SetAsLastSibling();
                 panel.gameObject.SetActive(true);
 
-                if (panel.CloseButton != null)
-                    panel.CloseButton.onClick.AddListener(CloseWithoutReward);
-
+                // KHONG gan CloseWithoutReward cho nut X o day: voi video, X da mo
+                // khoa phai la "skip van nhan thuong". Gan truoc thi listener nay
+                // chay truoc SkipWithReward -> bam X sau 7s bi tinh la tu choi va
+                // player khong duoc hoi sinh.
                 VideoClip[] clips = Resources.LoadAll<VideoClip>(AdResourcesFolder);
                 if (clips != null && clips.Length > 0)
                 {
@@ -284,7 +285,10 @@ namespace EternalClash.Monetization
                 }
 
                 videoPlayer.playOnAwake = false;
-                videoPlayer.renderMode = VideoRenderMode.APIOnly;
+                // Phai la RenderTexture: che do APIOnly KHONG ve vao targetTexture
+                // (hinh chi nam o videoPlayer.texture) nen RawImage trong trong
+                // khi tieng van phat - loi "co tieng nhung khong hien video".
+                videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                 videoPlayer.targetTexture = videoTexture;
                 videoPlayer.isLooping = false;
                 videoPlayer.loopPointReached += OnVideoFinished;
@@ -302,12 +306,8 @@ namespace EternalClash.Monetization
                 // duoc thuong luon, nut X khong bao gio mo.
                 if (panel.CloseButton != null)
                 {
-                    panel.CloseButton.interactable = false;
-                    // Play() da gan CloseWithoutReward truoc SkipWithReward; neu de
-                    // ca hai thi bam X (skip) se bi listener tu choi chay truoc va
-                    // nuot ket qua - bo listener tu choi di, X khi skip mo luon
-                    // duoc huong theo luat "skip = nhan thuong".
-                    panel.CloseButton.onClick.RemoveListener(CloseWithoutReward);
+                    // An han nut X cho toi khi xem du thoi gian toi thieu.
+                    panel.CloseButton.gameObject.SetActive(false);
                     panel.CloseButton.onClick.AddListener(SkipWithReward);
                     float clipSeconds = clip.frameRate > 0 ? (float)(clip.frameCount / clip.frameRate) : 0f;
                     float skipAfter = Mathf.Min(MinWatchSecondsForSkip, clipSeconds);
@@ -320,7 +320,7 @@ namespace EternalClash.Monetization
                 if (panel.CountdownLabel != null)
                     panel.CountdownLabel.text = skipUnlocked ? string.Empty : $"Skip in {MinWatchSecondsForSkip}s";
 
-                // Prepare truoc roi moi Play - cach chay chuan cua VideoPlayer APIOnly.
+                // Prepare truoc roi moi Play: luc do moi biet kich thuoc that cua video.
                 videoPlayer.Prepare();
             }
 
@@ -343,7 +343,10 @@ namespace EternalClash.Monetization
             {
                 skipUnlocked = true;
                 if (panel != null && panel.CloseButton != null)
+                {
                     panel.CloseButton.interactable = true;
+                    panel.CloseButton.gameObject.SetActive(true);
+                }
                 if (panel != null && panel.CountdownLabel != null)
                     panel.CountdownLabel.text = "You can skip now";
             }
@@ -357,7 +360,43 @@ namespace EternalClash.Monetization
             private void OnPrepared(VideoPlayer player)
             {
                 player.prepareCompleted -= OnPrepared;
+
+                int width = (int)player.width;
+                int height = (int)player.height;
+                if (width > 0 && height > 0)
+                {
+                    // Render texture dung kich thuoc that cua video (khong keo gian).
+                    if (videoTexture == null || videoTexture.width != width || videoTexture.height != height)
+                    {
+                        RenderTexture old = videoTexture;
+                        videoTexture = new RenderTexture(width, height, 0);
+                        player.targetTexture = videoTexture;
+                        if (panel != null && panel.VideoImage != null)
+                            panel.VideoImage.texture = videoTexture;
+                        if (old != null)
+                        {
+                            old.Release();
+                            Destroy(old);
+                        }
+                    }
+
+                    FitVideoToScreen(width, height);
+                }
+
                 player.Play();
+            }
+
+            /// <summary>Giu dung ti le video, nam gon trong AdScreen (du vien den).</summary>
+            private void FitVideoToScreen(int width, int height)
+            {
+                if (panel == null || panel.VideoImage == null)
+                    return;
+
+                var fitter = panel.VideoImage.GetComponent<AspectRatioFitter>();
+                if (fitter == null)
+                    fitter = panel.VideoImage.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                fitter.aspectRatio = (float)width / height;
             }
 
             /// <summary>Video loi khong chay duoc (codec, file hong...): khong
@@ -440,6 +479,8 @@ namespace EternalClash.Monetization
                         panel.CloseButton.onClick.RemoveListener(SkipWithReward);
                         panel.CloseButton.onClick.RemoveListener(CloseWithoutReward);
                         panel.CloseButton.interactable = true;
+                        // Tra lai trang thai hien cho lan sau (quang cao anh van can nut X).
+                        panel.CloseButton.gameObject.SetActive(true);
                     }
                     if (panel.VideoImage != null)
                     {
