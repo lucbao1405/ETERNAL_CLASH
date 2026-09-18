@@ -147,8 +147,65 @@ namespace EternalClash.BattleResult
                 while (!rewardCompleted)
                     yield return null;
             }
+
+            // Offer X2 (monetization): chi cho thuong Gold/Gem/Material - Equipment
+            // va Gift nhan doi se loi (them mon trang bi / hoa cuc). Phai luu lai
+            // truoc GrantChestReward() vi no xoa pendingChestReward.
+            bool canDouble = pendingChestReward != null && pendingChestReward.amount > 0 &&
+                (pendingChestReward.type == RewardType.Gold ||
+                 pendingChestReward.type == RewardType.Gem ||
+                 pendingChestReward.type == RewardType.Material);
+            RewardType doubleType = canDouble ? pendingChestReward.type : RewardType.Gold;
+            int doubleAmount = canDouble ? pendingChestReward.amount : 0;
+
             GrantChestReward();
+
+            if (canDouble)
+                yield return ShowDoubleRewardOffer(doubleType, doubleAmount);
+
             yield return ShowWinPopupFlow();
+        }
+
+        /// <summary>
+        /// Offer xem quang cao de nhan them mot lan phan thuong ruong (X2). Hien
+        /// sau khi ruong da grant va truoc popup ket qua thang - nhu vay so vang
+        /// tren popup thang da gom ca phan X2 neu nguoi choi xem.
+        /// </summary>
+        private IEnumerator ShowDoubleRewardOffer(RewardType rewardType, int amount)
+        {
+            bool resolved = false;
+            Monetization.OfferOverlayUI.Show(
+                "Double Your Reward!",
+                "Watch an ad to receive the chest reward one more time.",
+                "Watch Ad",
+                onWatchClicked: () => Monetization.AdsService.ShowRewarded("x2_chest", success =>
+                {
+                    if (success)
+                        GrantDoubleChestReward(rewardType, amount);
+                    resolved = true;
+                }),
+                onDeclined: () => resolved = true);
+
+            while (!resolved)
+                yield return null;
+        }
+
+        private void GrantDoubleChestReward(RewardType rewardType, int amount)
+        {
+            switch (rewardType)
+            {
+                case RewardType.Gold:
+                    GoldSystem.Instance?.AddGold(amount);
+                    break;
+                case RewardType.Gem:
+                    GoldSystem.Instance?.AddGem(amount);
+                    break;
+                case RewardType.Material:
+                    AddNormalItemReward(ItemCatalog.Find("Ore"), amount);
+                    break;
+            }
+
+            Debug.Log($"[X2] Nhan doi thuong ruong: +{amount} {rewardType}");
         }
 
         private IEnumerator RunLoseFlow()
@@ -342,7 +399,8 @@ namespace EternalClash.BattleResult
                     entry = BattleRewardData.CreateEntry("Gem", "Gem", amount);
                     break;
                 case ItemType.Flower:
-                    entry = new ItemReward(ItemCatalog.Find("blue_flower"), amount);
+                    entry = new ItemReward(ItemCatalog.Find(
+                        string.IsNullOrEmpty(pickup.itemIdOverride) ? "blue_flower" : pickup.itemIdOverride), amount);
                     break;
             }
 

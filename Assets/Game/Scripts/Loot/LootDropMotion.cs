@@ -71,6 +71,16 @@ namespace EternalClash.Loot
         }
 
         /// <summary>
+        /// Mat dat ma vat pham se dung (tam vat pham khi nam tren dat). Chi dung
+        /// sau khi Play duoc goi; bong dem dung gia tri nay de neo xuong dat.
+        /// </summary>
+        public bool TryGetGroundY(out float y)
+        {
+            y = groundY;
+            return heights != null;
+        }
+
+        /// <summary>
         /// Buoc 0 la vong bay tu than quai xuong dat, cac buoc sau la cu nay nho.
         /// Thoi gian moi buoc ti le voi can bac hai do cao (giong roi tu do).
         /// </summary>
