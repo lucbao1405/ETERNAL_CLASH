@@ -1,0 +1,27 @@
+
+spine.png
+size: 4913,1968
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Layer 2
+  rotate: true
+  xy: 2, 2
+  size: 1964, 1963
+  orig: 1979, 1979
+  offset: 9, 7
+  index: -1
+Layer 20 copy 3
+  rotate: true
+  xy: 1967, 270
+  size: 1696, 1578
+  orig: 1757, 1671
+  offset: 48, 45
+  index: -1
+Layer 23 copy
+  rotate: false
+  xy: 3547, 534
+  size: 1364, 1432
+  orig: 1364, 1548
+  offset: 0, 116
+  index: -1
