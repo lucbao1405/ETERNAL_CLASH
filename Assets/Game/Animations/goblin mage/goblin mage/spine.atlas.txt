@@ -1,0 +1,139 @@
+
+spine.png
+size: 6079,3345
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Layer 10
+  rotate: true
+  xy: 5795, 1869
+  size: 281, 218
+  orig: 2898, 1298
+  offset: 2617, 1080
+  index: -1
+Layer 11
+  rotate: true
+  xy: 4879, 2
+  size: 442, 461
+  orig: 442, 461
+  offset: 0, 0
+  index: -1
+Layer 13
+  rotate: false
+  xy: 5795, 2152
+  size: 270, 374
+  orig: 270, 374
+  offset: 0, 0
+  index: -1
+Layer 14
+  rotate: false
+  xy: 5767, 1079
+  size: 300, 310
+  orig: 300, 310
+  offset: 0, 0
+  index: -1
+Layer 15
+  rotate: false
+  xy: 5795, 2912
+  size: 253, 431
+  orig: 253, 431
+  offset: 0, 0
+  index: -1
+Layer 16
+  rotate: false
+  xy: 5767, 1391
+  size: 310, 372
+  orig: 310, 372
+  offset: 0, 0
+  index: -1
+Layer 2
+  rotate: true
+  xy: 2131, 1381
+  size: 1962, 1963
+  orig: 1979, 1979
+  offset: 7, 8
+  index: -1
+Layer 20 copy 3
+  rotate: false
+  xy: 4096, 1765
+  size: 1697, 1578
+  orig: 1757, 1671
+  offset: 49, 44
+  index: -1
+Layer 23 copy
+  rotate: true
+  xy: 1780, 15
+  size: 1364, 1431
+  orig: 1364, 1548
+  offset: 0, 117
+  index: -1
+Layer 4
+  rotate: false
+  xy: 3213, 11
+  size: 1664, 972
+  orig: 1669, 972
+  offset: 0, 0
+  index: -1
+Layer 5
+  rotate: false
+  xy: 4879, 446
+  size: 1030, 537
+  orig: 1030, 537
+  offset: 0, 0
+  index: -1
+Layer 6
+  rotate: true
+  xy: 3845, 1094
+  size: 285, 237
+  orig: 285, 237
+  offset: 0, 0
+  index: -1
+Layer 7
+  rotate: false
+  xy: 5795, 2528
+  size: 265, 382
+  orig: 265, 382
+  offset: 0, 0
+  index: -1
+Layer 8
+  rotate: true
+  xy: 5798, 204
+  size: 240, 219
+  orig: 240, 219
+  offset: 0, 0
+  index: -1
+Layer 9
+  rotate: true
+  xy: 3213, 1017
+  size: 362, 630
+  orig: 362, 630
+  offset: 0, 0
+  index: -1
+gay phep
+  rotate: false
+  xy: 2, 146
+  size: 1776, 1321
+  orig: 1776, 1321
+  offset: 0, 0
+  index: -1
+head
+  rotate: false
+  xy: 2, 1469
+  size: 2127, 1874
+  orig: 2127, 1874
+  offset: 0, 0
+  index: -1
+l4 vai
+  rotate: false
+  xy: 4096, 985
+  size: 1669, 778
+  orig: 1669, 778
+  offset: 0, 0
+  index: -1
+r hand
+  rotate: true
+  xy: 5342, 129
+  size: 315, 454
+  orig: 315, 454
+  offset: 0, 0
+  index: -1
