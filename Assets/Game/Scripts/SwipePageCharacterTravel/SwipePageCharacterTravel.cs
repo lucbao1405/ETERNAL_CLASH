@@ -1,4 +1,5 @@
 using System.Collections;
+using EternalClash.Story;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -32,6 +33,13 @@ public class SwipePageCharacterTravel : MonoBehaviour,
     private int currentPage;
     private float originalCharacterScaleX;
 
+    // Pages the player has not unlocked yet (TownPageUnlocker) must not be
+    // reachable by swiping, even though their stops still exist in the array.
+    private int UnlockedPageCount =>
+        TownPageUnlocker.Instance != null
+            ? Mathf.Min(TownPageUnlocker.Instance.UnlockedPageCount, characterStops.Length)
+            : characterStops.Length;
+
     private Coroutine pageCoroutine;
     private Coroutine characterCoroutine;
 
@@ -42,7 +50,7 @@ public class SwipePageCharacterTravel : MonoBehaviour,
         originalCharacterScaleX =
             Mathf.Abs(characterRect.localScale.x);
 
-        int pageCount = characterStops.Length;
+        int pageCount = UnlockedPageCount;
 
         currentPage = Mathf.RoundToInt(
             scrollRect.horizontalNormalizedPosition *
@@ -106,7 +114,7 @@ public class SwipePageCharacterTravel : MonoBehaviour,
         targetPage = Mathf.Clamp(
             targetPage,
             0,
-            characterStops.Length - 1
+            UnlockedPageCount - 1
         );
 
         currentPage = targetPage;
@@ -141,15 +149,19 @@ public class SwipePageCharacterTravel : MonoBehaviour,
 
         float targetPosition;
 
-        if (characterStops.Length <= 1)
+        int unlockedCount = UnlockedPageCount;
+
+        if (unlockedCount <= 1)
         {
             targetPosition = 0f;
         }
         else
         {
+            // The Content width shrinks with the unlocked page count, so the
+            // normalized position must be divided by the unlocked range only.
             targetPosition =
                 pageIndex /
-                (float)(characterStops.Length - 1);
+                (float)(unlockedCount - 1);
         }
 
         float elapsed = 0f;
@@ -232,7 +244,7 @@ public class SwipePageCharacterTravel : MonoBehaviour,
     // Gọi sau khi nhân vật tự đi đến chỗ mới để cập nhật trang hiện tại.
     public void SyncCurrentPage()
     {
-        int pageCount = characterStops.Length;
+        int pageCount = UnlockedPageCount;
         currentPage = Mathf.Clamp(
             Mathf.RoundToInt(
                 scrollRect.horizontalNormalizedPosition * (pageCount - 1)

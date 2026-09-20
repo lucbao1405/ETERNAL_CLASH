@@ -13,6 +13,12 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text quantityText;
         [SerializeField] private ItemTooltipController itemDetail;
 
+        /// <summary>Item currently displayed; null when the slot is empty.</summary>
+        public ItemData CurrentItem { get; private set; }
+
+        /// <summary>When set, clicking the slot routes to this callback instead of the tooltip (gift mode).</summary>
+        public System.Action<ItemData> ClickOverride;
+
         private void Awake()
         {
             ResolveReferences();
@@ -22,7 +28,8 @@ namespace EternalClash.UI
         public void Show(ItemData item, int amount)
         {
             ResolveReferences();
-            bool hasItem = item != null && amount > 0;
+            CurrentItem = item != null && amount > 0 ? item : null;
+            bool hasItem = CurrentItem != null;
 
             if (itemIcon != null)
             {
@@ -49,6 +56,12 @@ namespace EternalClash.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (ClickOverride != null && CurrentItem != null)
+            {
+                ClickOverride(CurrentItem);
+                return;
+            }
+
             itemDetail?.ShowItemDetail();
         }
 

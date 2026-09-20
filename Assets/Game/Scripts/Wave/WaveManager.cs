@@ -30,7 +30,11 @@ namespace EternalClash.Wave
 
         [Header("Timing")]
         [Tooltip("Do tre truoc khi Wave dau tien cua man bat dau")]
-        [SerializeField] private float firstWaveDelay = 1f;
+        [SerializeField] private float firstWaveDelay = 0f;
+
+        [Tooltip("He so lam cham spawn cho cac wave TU WAVES 2 TRO DI (1.5 = cham hon 50%). " +
+                 "Wave dau giu nguyen toc do trong WaveData de quai chay ra luon.")]
+        [Min(1f)] [SerializeField] private float laterWaveIntervalMultiplier = 1.5f;
 
         private readonly HashSet<GameObject> aliveEnemies = new HashSet<GameObject>();
         private int currentWaveIndex = -1;
@@ -153,8 +157,9 @@ namespace EternalClash.Wave
             {
                 SpawnEnemy(group.enemyPrefab);
 
-                if (i < group.count - 1 && group.spawnInterval > 0f)
-                    yield return new WaitForSeconds(group.spawnInterval);
+                float interval = group.spawnInterval * (currentWaveIndex > 0 ? laterWaveIntervalMultiplier : 1f);
+                if (i < group.count - 1 && interval > 0f)
+                    yield return new WaitForSeconds(interval);
             }
 
             groupsStillSpawning--;

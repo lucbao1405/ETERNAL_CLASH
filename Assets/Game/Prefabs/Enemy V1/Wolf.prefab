@@ -285,7 +285,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.39868116, y: 7.1230927}
+  m_Offset: {x: 0, y: 0.35}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -296,7 +296,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 19.020355, y: 15.246185}
+  m_Size: {x: 1, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1225538547979031737
 Rigidbody2D:
@@ -368,6 +368,8 @@ MonoBehaviour:
   archerStopDistance: 4.5
   isArcher: 0
   playerStopDistance: 0.75
+  queueSpacing: 0.8
+  queueSettleSpeed: 3
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -417,6 +419,7 @@ MonoBehaviour:
   attackInterval: 2
   attackRange: 1.2
   knockbackForce: 12
+  hitMoment: 0.5
   projectilePrefab: {fileID: 0}
   projectileSpeed: 5
 --- !u!114 &-4430521099706183268
@@ -552,6 +555,7 @@ MonoBehaviour:
   screenMargin: 0.4
   bounceCount: 2
   groundOffsetY: 0
+  hopDuration: 0.75
   magnetDelay: 1
   flyDuration: 0.35
   flyArcHeight: 0.8

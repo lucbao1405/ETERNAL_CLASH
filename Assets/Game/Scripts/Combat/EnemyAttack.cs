@@ -16,6 +16,7 @@ namespace EternalClash.Combat
         [Header("Ranged (GDD 3.4 Goblin Cung)")]
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField] private float projectileSpeed = 5f;
+        [SerializeField] private Vector2 projectileSpawnOffset = new Vector2(0f, 0.8f);
 
         private float timer;
         private Transform player;
@@ -53,10 +54,13 @@ namespace EternalClash.Combat
             // instead of melee damage + knockback.
             if (projectilePrefab != null)
             {
-                var proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+                Vector3 spawnPos = transform.position + (Vector3)projectileSpawnOffset;
+                Vector3 targetPos = GetPlayerColliderCenter();
+                
+                var proj = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
                 var ep = proj.GetComponent<EnemyProjectile>();
                 if (ep != null)
-                    ep.Initialize(damage, projectileSpeed, (player.position - transform.position).normalized);
+                    ep.Initialize(damage, projectileSpeed, (targetPos - spawnPos).normalized);
                 return;
             }
 
@@ -103,6 +107,17 @@ namespace EternalClash.Combat
                 Vector2 direction = (player.position - transform.position).normalized;
                 knockback.ApplyKnockback(direction, knockbackForce);
             }
+        }
+
+        private Vector3 GetPlayerColliderCenter()
+        {
+            if (player == null) return Vector3.zero;
+            
+            var collider = player.GetComponent<Collider2D>();
+            if (collider != null)
+                return collider.bounds.center;
+            
+            return player.position;
         }
     }
 }

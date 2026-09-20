@@ -13,6 +13,23 @@ namespace EternalClash.UI
         private readonly List<BagSlot> slots = new List<BagSlot>(12);
         private readonly Dictionary<string, ItemData> itemLookup = new Dictionary<string, ItemData>(StringComparer.OrdinalIgnoreCase);
         private SaveManager subscribedSaveManager;
+        private System.Action<ItemData> giftClickHandler;
+
+        /// <summary>
+        /// Gift mode: only giftable items (itemType "Gift") are shown and clicking
+        /// one routes to the callback instead of the tooltip. Pass null to restore
+        /// the normal bag.
+        /// </summary>
+        public void SetGiftMode(System.Action<ItemData> onGiftClicked)
+        {
+            giftClickHandler = onGiftClicked;
+            System.Action<ItemData> slotOverride = giftClickHandler != null ? OnGiftSlotClicked : (System.Action<ItemData>)null;
+            foreach (BagSlot slot in slots)
+                slot.ClickOverride = slotOverride;
+            Refresh();
+        }
+
+        private void OnGiftSlotClicked(ItemData item) => giftClickHandler?.Invoke(item);
 
         private void Awake()
         {
@@ -41,6 +58,11 @@ namespace EternalClash.UI
             if (subscribedSaveManager != null)
                 subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
             subscribedSaveManager = null;
+
+            // Leaving the bag (closed via X, scene change) must never keep gift
+            // mode armed, otherwise the next normal open would swallow clicks.
+            if (giftClickHandler != null)
+                SetGiftMode(null);
         }
 
         private void SubscribeToSaveChanges()
@@ -129,7 +151,29 @@ namespace EternalClash.UI
                     !TryGetBagItem(stack.itemId, out ItemData item))
                     continue;
 
+                if (giftClickHandler != null && !IsGiftable(item))
+                    continue;
+
                 slots[slotIndex++].Show(item, stack.amount);
+            }
+        }
+
+        private static bool IsGiftable(ItemData item)
+        {
+            if (item == null) return false;
+            if (string.Equals(item.itemType, "Gift", StringComparison.OrdinalIgnoreCase))
+                return true;
+            // Flowers-and-leaves romance: leaves and wolf hide are "Material" type
+            // but are theme-correct Courier gifts (letters reference them directly).
+            switch (item.itemId)
+            {
+                case "leaf_green":
+                case "leaf_red":
+                case "leaf_yellow":
+                case "wolf_hide":
+                    return true;
+                default:
+                    return false;
             }
         }
 
