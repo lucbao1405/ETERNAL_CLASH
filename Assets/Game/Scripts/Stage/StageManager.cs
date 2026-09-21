@@ -14,6 +14,9 @@ public class StageManager : MonoBehaviour
 
     public static StageManager Instance { get; private set; }
 
+    /// <summary>So man theo kich ban Chapter 1 - StoryManager co noi dung Stage 1..7.</summary>
+    public const int MaxKnownStageLevel = 7;
+
     public StageState CurrentState { get; private set; }
     public float BattleDuration { get; private set; }
 

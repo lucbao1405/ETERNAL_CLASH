@@ -1,57 +1,21 @@
 using UnityEngine;
-using System.Collections.Generic;
 using EternalClash.Core.Save;
-using EternalClash.Village;
-using EternalClash.Dialogue;
 
 namespace EternalClash.Story
 {
-    public class StoryManager : MonoBehaviour
+    /// <summary>
+    /// Chapter 1 story content + lookup helpers. Static on purpose: it holds no
+    /// runtime state, so every scene (Town, Battle) can query it directly.
+    /// </summary>
+    public static class StoryManager
     {
-        public static StoryManager Instance { get; private set; }
+        public const int ElaUnlockStage = 6; // stageLevel after clearing Stage 5
 
-        [Header("References")]
-        [SerializeField] private DialogueManager dialogueManager;
-
-        private HashSet<string> viewedDialogues = new();
-        private HashSet<string> receivedLetters = new();
-
-        public event System.Action<string> OnLetterReceived;
-        public event System.Action OnChapter1Complete;
-        public event System.Action<int> OnNPCEncounter;
-
-        public bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 7;
-        public int CurrentChapter => HasCompletedChapter1 ? 2 : 1;
-
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        private void Start()
-        {
-            LoadProgress();
-            dialogueManager ??= FindObjectOfType<DialogueManager>();
-        }
-
-        private void LoadProgress()
-        {
-            var data = SaveManager.Instance?.Data;
-            if (data == null) return;
-
-            if (data.unlockedLetters != null)
-                receivedLetters = new HashSet<string>(data.unlockedLetters);
-        }
+        public static bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 7;
 
         #region Stage Lore
 
-        public string GetStageName(int stageIndex)
+        public static string GetStageName(int stageIndex)
         {
             return stageIndex switch
             {
@@ -66,7 +30,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetStageLocation(int stageIndex)
+        public static string GetStageLocation(int stageIndex)
         {
             return stageIndex switch
             {
@@ -81,7 +45,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetStageDescription(int stageIndex)
+        public static string GetStageDescription(int stageIndex)
         {
             return stageIndex switch
             {
@@ -96,7 +60,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetPreBattleNarration(int stageIndex)
+        public static string GetPreBattleNarration(int stageIndex)
         {
             return stageIndex switch
             {
@@ -111,7 +75,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetPostVictoryNarration(int stageIndex)
+        public static string GetPostVictoryNarration(int stageIndex)
         {
             return stageIndex switch
             {
@@ -126,7 +90,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string[] GetStageEnemies(int stageIndex)
+        public static string[] GetStageEnemies(int stageIndex)
         {
             return stageIndex switch
             {
@@ -141,7 +105,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string[] GetStageDrops(int stageIndex)
+        public static string[] GetStageDrops(int stageIndex)
         {
             return stageIndex switch
             {
@@ -156,7 +120,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetTutorialFocus(int stageIndex)
+        public static string GetTutorialFocus(int stageIndex)
         {
             return stageIndex switch
             {
@@ -173,20 +137,20 @@ namespace EternalClash.Story
 
         #endregion
 
-        #region NPC Encounters
+        #region Field NPC Encounters (end-of-map meetings)
 
-        public bool HasNPCEncounter(int stageIndex)
+        public static bool HasNPCEncounter(int stageIndex)
         {
             return stageIndex switch
             {
-                1 => true, // Blacksmith Garen (end of Stage 1)
-                2 => true, // Witch Elara (end of Stage 2)
-                5 => true, // Ela - childhood friend (end of Stage 5)
+                1 => true, // Garen the Blacksmith
+                2 => true, // Elara the Witch
+                5 => true, // Ela
                 _ => false
             };
         }
 
-        public string GetNPCName(int stageIndex)
+        public static string GetNPCName(int stageIndex)
         {
             return stageIndex switch
             {
@@ -197,7 +161,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetNPCRole(int stageIndex)
+        public static string GetNPCRole(int stageIndex)
         {
             return stageIndex switch
             {
@@ -208,7 +172,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string[] GetNPCDialogue(int stageIndex)
+        public static string[] GetNPCDialogue(int stageIndex)
         {
             return stageIndex switch
             {
@@ -219,7 +183,7 @@ namespace EternalClash.Story
             };
         }
 
-        public string GetUnlockReward(int stageIndex)
+        public static string GetUnlockReward(int stageIndex)
         {
             return stageIndex switch
             {
@@ -230,7 +194,7 @@ namespace EternalClash.Story
             };
         }
 
-        public bool UnlocksFeature(int stageIndex)
+        public static bool UnlocksFeature(int stageIndex)
         {
             return stageIndex switch
             {
@@ -240,76 +204,33 @@ namespace EternalClash.Story
                 _ => false
             };
         }
-        
-        public string GetNPCSpineName(int stageIndex)
+
+        public static string GetNPCSpineName(int stageIndex)
         {
-            return stageIndex switch
-            {
-                5 => "convo", // Ela uses "convo" spine
-                _ => null // Others use default NPC spines
-            };
-        }
-
-        public void ShowNPCDialogue(int stageIndex, Sprite npcAvatar = null)
-        {
-            if (dialogueManager == null) return;
-
-            var dialogue = GetNPCDialogue(stageIndex);
-            var name = GetNPCName(stageIndex);
-
-            if (dialogue == null || dialogue.Length == 0) return;
-
-            dialogueManager.OpenDialogue(name, npcAvatar, dialogue);
-            OnNPCEncounter?.Invoke(stageIndex);
+            return stageIndex == 5 ? "con vo" : null;
         }
 
         #endregion
 
         #region Story Stages
 
-        public bool IsStoryStage(int stageIndex)
+        public static bool IsStoryStage(int stageIndex) => stageIndex == 6;
+
+        public static string GetStoryEventDescription(int stageIndex)
         {
-            return stageIndex == 6; // Lost Courier Route
+            return stageIndex == 6 ? Chapter1Content.Stage6.STORY_EVENT : null;
         }
 
-        public string GetStoryEventDescription(int stageIndex)
+        public static string[] GetStoryDialogue(int stageIndex)
         {
-            if (stageIndex == 6)
-                return Chapter1Content.Stage6.STORY_EVENT;
-            return null;
-        }
-
-        public string[] GetStoryDialogue(int stageIndex)
-        {
-            if (stageIndex == 6)
-                return Chapter1Content.Stage6.STORY_DIALOGUE;
-            return null;
-        }
-
-        public void ShowStoryDialogue(int stageIndex, Sprite avatar = null)
-        {
-            if (dialogueManager == null || !IsStoryStage(stageIndex)) return;
-
-            var dialogue = GetStoryDialogue(stageIndex);
-            if (dialogue == null) return;
-
-            dialogueManager.OpenDialogue("???", avatar, dialogue);
+            return stageIndex == 6 ? Chapter1Content.Stage6.STORY_DIALOGUE : null;
         }
 
         #endregion
 
-        #region Chapter Progression
+        #region Chapter Ending
 
-        public void OnStageComplete(int stageIndex)
-        {
-            if (stageIndex == 7 && !HasCompletedChapter1)
-            {
-                ShowChapter1OpenEnding();
-                OnChapter1Complete?.Invoke();
-            }
-        }
-
-        public void ShowChapter1OpenEnding()
+        public static void ShowChapter1OpenEnding(DialogueManager dialogueManager)
         {
             if (dialogueManager == null) return;
 
@@ -320,47 +241,27 @@ namespace EternalClash.Story
             );
         }
 
-        public void ShowLetterFromHer()
+        public static void ShowLetterFromHer(DialogueManager dialogueManager)
         {
             if (dialogueManager == null) return;
 
-            var letterLines = new string[]
+            dialogueManager.OpenDialogue("- E", null, new[]
             {
                 $"[Received: {Chapter1Content.LETTER_TITLE}]",
                 "---",
                 Chapter1Content.LETTER_BODY,
                 "---",
                 $"[Gift found: {Chapter1Content.GIFT_DESCRIPTION}]"
-            };
-
-            dialogueManager.OpenDialogue("- E", null, letterLines);
+            });
         }
 
-        #endregion
+        public static string GetLetterBody() => Chapter1Content.LETTER_BODY;
+        public static string GetLetterTitle() => Chapter1Content.LETTER_TITLE;
+        public static string GetGiftDescription() => Chapter1Content.GIFT_DESCRIPTION;
 
-        #region Letter System
-
-        public void MarkLetterRead(string letterId)
-        {
-            receivedLetters.Add(letterId);
-        }
-
-        public bool HasReadLetter(string letterId)
-        {
-            return receivedLetters.Contains(letterId);
-        }
-
-        public string GetLetterBody() => Chapter1Content.LETTER_BODY;
-        public string GetLetterTitle() => Chapter1Content.LETTER_TITLE;
-        public string GetGiftDescription() => Chapter1Content.GIFT_DESCRIPTION;
-
-        #endregion
-
-        #region Chapter Info
-
-        public string GetChapterTitle() => Chapter1Content.CHAPTER_TITLE;
-        public string GetChapterIntro() => Chapter1Content.CHAPTER_INTRO;
-        public string GetChapterId() => Chapter1Content.CHAPTER_ID;
+        public static string GetChapterTitle() => Chapter1Content.CHAPTER_TITLE;
+        public static string GetChapterIntro() => Chapter1Content.CHAPTER_INTRO;
+        public static string GetChapterId() => Chapter1Content.CHAPTER_ID;
 
         #endregion
     }
