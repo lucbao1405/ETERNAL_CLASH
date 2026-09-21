@@ -1,117 +1,152 @@
 
 spine.png
-size: 4930,1588
+size: 2635,3771
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 ban tay 1
-  rotate: false
-  xy: 325, 75
+  rotate: true
+  xy: 1836, 2265
   size: 148, 155
   orig: 148, 155
   offset: 0, 0
   index: -1
 ban tay 2
-  rotate: true
-  xy: 475, 75
+  rotate: false
+  xy: 1993, 2265
   size: 155, 148
   orig: 155, 148
   offset: 0, 0
   index: -1
 body
-  rotate: true
-  xy: 3973, 2
+  rotate: false
+  xy: 1839, 1720
   size: 523, 543
   orig: 523, 543
   offset: 0, 0
   index: -1
 co tay 1
   rotate: true
-  xy: 625, 93
+  xy: 2150, 2276
   size: 137, 340
   orig: 137, 340
   offset: 0, 0
   index: -1
 co tay 2
   rotate: true
-  xy: 2, 64
+  xy: 1513, 2247
   size: 166, 321
   orig: 166, 321
   offset: 0, 0
   index: -1
 dau
   rotate: true
-  xy: 3973, 527
+  xy: 1357, 8
   size: 1059, 955
   orig: 1059, 955
   offset: 0, 0
   index: -1
 giay 1
-  rotate: false
-  xy: 2136, 22
+  rotate: true
+  xy: 1839, 1078
   size: 372, 454
   orig: 372, 454
   offset: 0, 0
   index: -1
 giay 2
-  rotate: false
-  xy: 2136, 22
+  rotate: true
+  xy: 1839, 1078
   size: 372, 454
   orig: 372, 454
   offset: 0, 0
   index: -1
 kinh
   rotate: false
-  xy: 3079, 210
+  xy: 1839, 1452
   size: 588, 266
   orig: 588, 266
   offset: 0, 0
   index: -1
 mat
-  rotate: false
-  xy: 967, 114
+  rotate: true
+  xy: 2429, 1502
   size: 434, 116
   orig: 434, 116
   offset: 0, 0
   index: -1
 no
   rotate: true
-  xy: 2510, 43
+  xy: 2314, 659
   size: 433, 296
   orig: 433, 296
   offset: 0, 0
   index: -1
 toc 1
-  rotate: false
-  xy: 1069, 233
+  rotate: true
+  xy: 2, 2
   size: 1065, 1353
   orig: 1065, 1353
   offset: 0, 0
   index: -1
 toc 2
   rotate: false
-  xy: 2, 232
+  xy: 1513, 2415
   size: 1065, 1354
   orig: 1065, 1354
   offset: 0, 0
   index: -1
+tym - Copy (4)
+  rotate: true
+  xy: 2, 2179
+  size: 1590, 1509
+  orig: 1590, 1509
+  offset: 0, 0
+  index: -1
+tym
+  rotate: true
+  xy: 2, 2179
+  size: 1590, 1509
+  orig: 1590, 1509
+  offset: 0, 0
+  index: -1
+tym - Copy
+  rotate: true
+  xy: 2, 2179
+  size: 1590, 1509
+  orig: 1590, 1509
+  offset: 0, 0
+  index: -1
+tym - Copy (2)
+  rotate: true
+  xy: 2, 2179
+  size: 1590, 1509
+  orig: 1590, 1509
+  offset: 0, 0
+  index: -1
+tym - Copy (3)
+  rotate: true
+  xy: 2, 2179
+  size: 1590, 1509
+  orig: 1590, 1509
+  offset: 0, 0
+  index: -1
 vai 1
   rotate: false
-  xy: 2808, 140
+  xy: 2364, 1938
   size: 269, 336
   orig: 269, 336
   offset: 0, 0
   index: -1
 vai tay 2
-  rotate: true
-  xy: 4518, 267
+  rotate: false
+  xy: 2295, 1094
   size: 258, 356
   orig: 258, 356
   offset: 0, 0
   index: -1
 vay
   rotate: false
-  xy: 2136, 478
+  xy: 2, 1069
   size: 1835, 1108
   orig: 1835, 1108
   offset: 0, 0
