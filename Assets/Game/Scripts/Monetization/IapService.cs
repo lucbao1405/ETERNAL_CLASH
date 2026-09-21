@@ -129,6 +129,26 @@ namespace EternalClash.Monetization
                 Instance = null;
         }
 
+        // Dialog FakeStore (Unity IAP) ve nut bang IMGUI voi kich thuoc mac dinh
+        // rat nho tren man dpi cao. Cac dialog deu dung GUI.skin.button nen phong
+        // to style nay mot lan la lo ca nut Buy/Cancel va cac option "Select Response".
+        // ponytail: GUI skin la global - neu sau nay them IMGUI khac trong game thi
+        // can gioi han viec phong to theo trang thai dialog thay vi set mot lan.
+        const float FakeStoreButtonHeight = 72f;
+        const int FakeStoreButtonFontSize = 28;
+        bool m_FakeStoreSkinEnlarged;
+
+        void OnGUI()
+        {
+            if (m_FakeStoreSkinEnlarged)
+                return;
+
+            m_FakeStoreSkinEnlarged = true;
+            GUIStyle button = GUI.skin.button;
+            button.fixedHeight = FakeStoreButtonHeight;
+            button.fontSize = FakeStoreButtonFontSize;
+        }
+
         public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
         {
             storeController = controller;

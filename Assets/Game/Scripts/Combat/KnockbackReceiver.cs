@@ -20,6 +20,7 @@ namespace EternalClash.Combat
         private PlayerCombatStateMachine combatStateMachine;
         private AutoRunner autoRunner;
         private HealthSystem healthSystem;
+        private EnemyHealthSystem enemyHealthSystem;
         private WorldScroller worldScroller;
         private bool isKnockback;
         private Vector2 targetPosition;
@@ -35,6 +36,7 @@ namespace EternalClash.Combat
             combatStateMachine = GetComponent<PlayerCombatStateMachine>();
             autoRunner = GetComponent<AutoRunner>();
             healthSystem = GetComponent<HealthSystem>();
+            enemyHealthSystem = GetComponent<EnemyHealthSystem>();
         }
 
         private void Start()
@@ -79,6 +81,9 @@ namespace EternalClash.Combat
         public void ApplyKnockback(Vector2 direction, float force)
         {
             if (healthSystem != null && healthSystem.IsDead) return;
+            // HealthSystem (cua Player) tren dich khong bao gio bi tru mau nen
+            // guard tren khong chay: blow ket liem van day xac truot vao ke dung sau.
+            if (enemyHealthSystem != null && enemyHealthSystem.IsDead) return;
             if (isRecoveringFromHit) return;
             if (combatStateMachine != null && combatStateMachine.CurrentState == PlayerCombatState.Hit) return;
             if (combatStateMachine != null && combatStateMachine.CurrentState == PlayerCombatState.Dead) return;

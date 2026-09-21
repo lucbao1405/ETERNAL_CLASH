@@ -164,10 +164,17 @@ namespace EternalClash.Core
         private static void MoveAppToBackground()
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
-            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            using (AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+            try
             {
-                activity.Call<bool>("moveTaskToBack", true);
+                using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    activity.Call<bool>("moveTaskToBack", true);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"MoveAppToBackground failed: {e.Message}");
             }
 #endif
         }
