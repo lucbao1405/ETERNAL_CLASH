@@ -23,6 +23,12 @@ namespace EternalClash.UI
 
         public string IapProductId => iapProductId;
 
+        public void ConfigureIap(string productId)
+        {
+            iapProductId = productId;
+            SyncIapLabels();
+        }
+
         private void OnEnable()
         {
             SyncIapLabels();

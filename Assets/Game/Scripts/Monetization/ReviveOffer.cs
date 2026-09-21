@@ -30,6 +30,10 @@ namespace EternalClash.Monetization
             if (usedThisRun || health == null)
                 return false;
 
+            StageManager stage = StageManager.Instance;
+            if (stage != null && stage.CurrentState != StageManager.StageState.Running)
+                return false;
+
             usedThisRun = true;
             health.MarkRevivePending();
 

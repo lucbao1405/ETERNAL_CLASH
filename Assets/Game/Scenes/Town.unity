@@ -4861,7 +4861,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 166683585}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -4889,38 +4889,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 166683585}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &166683583 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 166683582}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &166683584 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 166683582}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &166683585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 166683584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: coin
-  amount: 480000
-  currencyId: diamon
-  price: 3200
-  iapProductId: 
 --- !u!1 &171822954
 GameObject:
   m_ObjectHideFlags: 0
@@ -10522,7 +10497,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 351017997}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -10550,38 +10525,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 351017997}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &351017995 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 351017994}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &351017996 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 351017994}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &351017997
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351017996}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: diamon
-  amount: 7200
-  currencyId: coin
-  price: 498000
-  iapProductId: com.eternalclash.gem.large
 --- !u!1 &353656272
 GameObject:
   m_ObjectHideFlags: 0
@@ -14991,7 +14941,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 524171777}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -15019,38 +14969,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 524171777}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &524171775 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 524171774}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &524171776 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 524171774}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &524171777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 524171776}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: coin
-  amount: 54000
-  currencyId: diamon
-  price: 480
-  iapProductId: 
 --- !u!1 &525369200
 GameObject:
   m_ObjectHideFlags: 0
@@ -26126,7 +26051,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 980242331}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -26154,38 +26079,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 980242331}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &980242329 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 980242328}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &980242330 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 980242328}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &980242331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 980242330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: diamon
-  amount: 2600
-  currencyId: coin
-  price: 249000
-  iapProductId: com.eternalclash.gem.medium
 --- !u!1 &980519773
 GameObject:
   m_ObjectHideFlags: 0
@@ -37060,7 +36960,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1368697002}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -37084,38 +36984,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1368697002}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1368697000 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1368696999}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1368697001 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 1368696999}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1368697002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1368697001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: diamon
-  amount: 100
-  currencyId: coin
-  price: 29000
-  iapProductId: com.eternalclash.starterpack
 --- !u!1 &1386025075
 GameObject:
   m_ObjectHideFlags: 0
@@ -37936,7 +37811,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1416786149}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -37964,38 +37839,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1416786149}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1416786147 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1416786146}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1416786148 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 1416786146}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1416786149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1416786148}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: diamon
-  amount: 800
-  currencyId: coin
-  price: 129000
-  iapProductId: com.eternalclash.gem.small
 --- !u!1 &1417140660
 GameObject:
   m_ObjectHideFlags: 0
@@ -46232,7 +46082,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1718383085}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -46260,38 +46110,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1718383085}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1718383083 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1718383082}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1718383084 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 1718383082}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1718383085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718383084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: coin
-  amount: 10000
-  currencyId: diamon
-  price: 100
-  iapProductId: 
 --- !u!1 &1724097943
 GameObject:
   m_ObjectHideFlags: 0
@@ -48888,7 +48713,7 @@ PrefabInstance:
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1830319860}
+      objectReference: {fileID: 0}
     - target: {fileID: 943, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -48916,38 +48741,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1830319860}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1830319858 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1830319857}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1830319859 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
-  m_PrefabInstance: {fileID: 1830319857}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1830319860
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1830319859}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemId: coin
-  amount: 118000
-  currencyId: diamon
-  price: 960
-  iapProductId: 
 --- !u!1 &1836137688
 GameObject:
   m_ObjectHideFlags: 0
@@ -50634,7 +50434,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4292471797
   m_fontColor: {r: 0.96, g: 0.92, b: 0.85, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -50647,7 +50447,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -56754,7 +56554,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4292471797
   m_fontColor: {r: 0.96, g: 0.92, b: 0.85, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -56767,7 +56567,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

@@ -293,7 +293,7 @@ namespace EternalClash.UI
 
             // Duoi 60% Max HP khi vao Town thi tu mo popup 1 lan (thua luon dung,
             // thang ma ve lang guc duoi nguong cung duoc offer).
-            if (cond != null && cond.CanOfferGemHeal && !popup.IsOpen)
+            if (cond != null && cond.ShouldAutoShowRecoveryPopup && cond.CanOfferGemHeal && !popup.IsOpen && cond.ConsumeAutoShowRecoveryPopup())
                 popup.Show();
         }
     }

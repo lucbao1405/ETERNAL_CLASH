@@ -144,8 +144,12 @@ namespace EternalClash.Stage
 
             if (Story.StoryManager.HasNPCEncounter(clearedStage) ||
                 Story.StoryManager.IsStoryStage(clearedStage) ||
-                clearedStage == 7)
+                clearedStage == 9) // boss stage: open ending plays after the Chieftain falls
             {
+                // The meeting dialogue is part of the victory flow. Stop all
+                // combat before opening it so a late damage tick cannot trigger
+                // the in-battle revive offer over the dialogue panel.
+                StopCombat();
                 FieldMeetingController.Begin(clearedStage, this);
                 return;
             }
@@ -499,9 +503,9 @@ namespace EternalClash.Stage
             if (dialogueManager != null)
                 dialogueManager.DialogueCompleted -= OnMeetingDialogueClosed;
 
-            // Stage 7 clears Chapter 1: open ending, then her letter, then the
+            // Stage 9 (boss) clears Chapter 1: open ending, then her letter, then the
             // usual victory flow back to the village.
-            if (pendingEncounterStage == 7 && chapterEndingStep < 2)
+            if (pendingEncounterStage == 9 && chapterEndingStep < 2)
             {
                 if (dialogueManager == null)
                 {

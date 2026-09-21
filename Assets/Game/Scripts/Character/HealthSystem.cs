@@ -93,6 +93,13 @@ namespace EternalClash.Character
         {
             if (IsDead) return;
 
+            // Victory/defeat owns the result and dialogue flow. Ignore late
+            // enemy hits while the battle scene is being wrapped up; otherwise
+            // a delayed hit can open the revive offer over the NPC dialogue.
+            if (CompareTag("Player") && StageManager.Instance != null &&
+                StageManager.Instance.CurrentState != StageManager.StageState.Running)
+                return;
+
             currentHealth -= damage;
 
             if (currentHealth < 0)
@@ -134,6 +141,12 @@ namespace EternalClash.Character
                 OnDeath?.Invoke();
                 return;
             }
+
+            // Result/chest/dialogue owns the battle after the stage leaves
+            // Running. A delayed damage callback must not open Revive over it.
+            if (StageManager.Instance != null &&
+                StageManager.Instance.CurrentState != StageManager.StageState.Running)
+                return;
 
             // Offer hoi sinh (monetization): chan lai truoc khi danh dau chet.
             // Trong luc offer mo, TakeDamage -> Die() goi lai thi RevivePending

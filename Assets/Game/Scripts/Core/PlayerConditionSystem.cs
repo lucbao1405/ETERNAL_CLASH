@@ -58,6 +58,20 @@ namespace EternalClash.Core
         public float RecoveryRate => recoveryRatePerSecond;
         public int RecoveryTargetPercent => recoveryTargetPercent;
         public bool IsInjured => Condition == PlayerCondition.Injured;
+        public bool ShouldAutoShowRecoveryPopup { get; private set; }
+
+        public bool ConsumeAutoShowRecoveryPopup()
+        {
+            if (!ShouldAutoShowRecoveryPopup)
+                return false;
+            ShouldAutoShowRecoveryPopup = false;
+            if (SaveManager.Instance?.Data != null)
+            {
+                SaveManager.Instance.Data.recoveryPopupPending = false;
+                SaveCoordinator.RequestSave();
+            }
+            return true;
+        }
 
         private void Awake()
         {
@@ -121,6 +135,7 @@ namespace EternalClash.Core
         /// </summary>
         public void MarkInjured(int playerMaxHp)
         {
+            ShouldAutoShowRecoveryPopup = true;
             maxHp = Mathf.Max(1, playerMaxHp);
             currentHp = Mathf.Clamp(
                 Mathf.CeilToInt(maxHp * REVIVE_HP_PERCENT / 100f), 1, maxHp);
@@ -138,6 +153,8 @@ namespace EternalClash.Core
                 data.recoveryRatePerSecond = recoveryRatePerSecond;
                 data.recoveryTargetPercent = recoveryTargetPercent;
                 SyncToSave();
+                data.recoveryPopupPending = true;
+                SaveCoordinator.RequestSave();
             }
 
             Debug.Log($"[CONDITION] Player marked Injured. HP {currentHp}/{maxHp}, recovering to {recoveryTargetPercent}%.");
@@ -207,8 +224,8 @@ namespace EternalClash.Core
         }
 
         /// <summary>
-        /// Hoi day 100% HP ngay lap tuc va het trang thai bi thuong
-        /// (vd bi mat: tap vao coc o Town). Tra ve false neu mau da day san.
+        /// Hoi day 100% HP ngay lap tuc va het trang thai bi thuong.
+        /// Tra ve false neu mau da day san.
         /// </summary>
         public bool RestoreFullHp()
         {
@@ -279,6 +296,9 @@ namespace EternalClash.Core
         /// </summary>
         public void SetHpAfterBattle(int hp, int playerMaxHp)
         {
+            // A victory with low remaining HP is not a revive flow. Keep the
+            // recovery state, but do not show the defeat recovery popup.
+            ShouldAutoShowRecoveryPopup = false;
             maxHp = Mathf.Max(1, playerMaxHp);
             currentHp = Mathf.Clamp(hp, 1, maxHp);
             recoveryRatePerSecond = DEFAULT_RECOVERY_RATE;
@@ -286,14 +306,19 @@ namespace EternalClash.Core
             recoveryAccumulator = 0f;
 
             var data = SaveManager.Instance?.Data;
+            if (data != null)
+                data.recoveryPopupPending = false;
             int targetHp = Mathf.CeilToInt(maxHp * recoveryTargetPercent / 100f);
 
             if (currentHp >= targetHp)
             {
                 currentHp = maxHp;
                 SetCondition(PlayerCondition.Normal);
-                if (data != null)
-                    data.recoveryStartUnixTime = 0;
+            if (data != null)
+            {
+                data.recoveryPopupPending = false;
+                data.recoveryStartUnixTime = 0;
+            }
             }
             else
             {
@@ -313,6 +338,8 @@ namespace EternalClash.Core
         public void LoadFromSave(SaveData data)
         {
             if (data == null) return;
+
+            ShouldAutoShowRecoveryPopup = data.recoveryPopupPending;
 
             maxHp = Mathf.Max(0, data.maxHp);
             currentHp = Mathf.Clamp(data.currentHp, 0, maxHp);
