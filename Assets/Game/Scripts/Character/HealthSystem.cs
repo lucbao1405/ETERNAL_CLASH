@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using EternalClash.Combat;
+using EternalClash.Enemy;
 
 namespace EternalClash.Character
 {
@@ -156,6 +158,34 @@ namespace EternalClash.Character
             RevivePending = false;
             currentHealth = Mathf.Max(1, maxHealth / 2);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            PushThreatsAwayOnRevive();
+        }
+
+        /// <summary>
+        /// Vua hoi sinh: day quai gan ra xa khoang cach an toan, huy don danh
+        /// dang vung va don docbay trong khong de khong an damage ngay lap tuc
+        /// khi song lai (tran bi dong bang khi offer mo nen dan van giu nguyen
+        /// vi tri va se bay tiep ngay sau khi tran chay lai).
+        /// </summary>
+        private void PushThreatsAwayOnRevive()
+        {
+            const float safeDistance = 4f;
+
+            foreach (EnemyMover mover in FindObjectsOfType<EnemyMover>())
+            {
+                mover.PushAwayFrom(transform.position, safeDistance);
+                // World scroll keo quai quay lai rat nhanh (~2,5 u/s) nen cho
+                // quai dung yen them mot nhip de nguoi choi co khoang tho.
+                mover.PauseMovement(1.5f);
+
+                var attack = mover.GetComponent<EnemyAttack>();
+                if (attack != null)
+                    attack.CancelPendingAttack();
+            }
+
+            foreach (EnemyProjectile projectile in FindObjectsOfType<EnemyProjectile>())
+                Destroy(projectile.gameObject);
         }
 
         /// <summary>

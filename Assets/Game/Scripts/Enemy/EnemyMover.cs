@@ -132,8 +132,11 @@ namespace EternalClash.Enemy
                 side = -1f;
 
             // Xep hang: con dung dau dung sat Player, moi con sau lui them queueSpacing.
+            // Quai xa (Goblin Mage/Archer) dung lai o archerStopDistance de ban tu xa
+            // thay vi di san sat Player nhu quai can chien.
             int queueIndex = GetQueueIndex(currentX, side);
-            float stopX = player.position.x + side * (playerStopDistance + queueIndex * queueSpacing);
+            float stopDistance = isArcher ? archerStopDistance : playerStopDistance;
+            float stopX = player.position.x + side * (stopDistance + queueIndex * queueSpacing);
 
             // Con dau hang giu nguyen cach cu: khong bao gio duoc vuot qua cho dung.
             // Con phia sau neu dang lan vao cho con truoc (vd sau khi bi day lui, hang
@@ -161,6 +164,11 @@ namespace EternalClash.Enemy
                 if (other == null || other == this || other.IsDead)
                     continue;
 
+                // Xep hang rieng theo loai: archer chi tinh cac archer dung truoc,
+                // neu khong no bi day lui sau moi quai can chien va mat tam ban.
+                if (other.isArcher != isArcher)
+                    continue;
+
                 float otherX = other.rb != null ? other.rb.position.x : other.transform.position.x;
                 if (Mathf.Sign(otherX - player.position.x) != side)
                     continue;
@@ -178,6 +186,37 @@ namespace EternalClash.Enemy
         }
 
         private bool IsDead => health != null && health.IsDead;
+
+        /// <summary>
+        /// Day quai ra xa vi tri origin (dung khi player hoi sinh): con nao dang
+        /// dung gan hon minDistance duoc dich chuyen tuc thoi ra vung bien cung
+        /// phia. Quai la Kinematic di theo world scroll nen chi can dat lai vi
+        /// tri, hang tu xep lai dan nhu sau khi bi day lui thong thuong.
+        /// </summary>
+        public void PushAwayFrom(Vector2 origin, float minDistance)
+        {
+            if (IsDead)
+                return;
+
+            float currentX = rb != null ? rb.position.x : transform.position.x;
+            if (Mathf.Abs(currentX - origin.x) >= minDistance)
+                return;
+
+            float side = Mathf.Sign(currentX - origin.x);
+            if (Mathf.Abs(side) < 0.01f)
+                side = 1f;
+            float targetX = origin.x + side * minDistance;
+
+            if (rb != null)
+            {
+                rb.position = new Vector2(targetX, lockedY);
+                // Ghi de lenh MovePosition dang treo tu FixedUpdate truoc (target
+                // la vi tri sat Player tinh truoc khi tran dong bang), nguoi thi
+                // quai bi keo ve vi tri cu ngay buoc vat ly ke tiep.
+                rb.MovePosition(new Vector2(targetX, lockedY));
+            }
+            transform.position = new Vector3(targetX, lockedY, transform.position.z);
+        }
 
         public void StopMovement() => isPaused = true;
         public void ResumeMovement() => isPaused = false;
