@@ -15,7 +15,7 @@ public class SceneLoader : MonoBehaviour
         PlayerConditionSystem condition = PlayerConditionSystem.Instance;
         if (condition != null && !condition.CanStartBattle())
         {
-            ToastMessage.Show(condition.GetInjuredBlockReason());
+            // ToastMessage đã bị khóa: không hiển thị popup cảnh báo khi HP thấp.
             HpLowBlink.BlinkAll();
             Debug.Log("[TOWN] Chan vao tran: " + condition.GetInjuredBlockReason());
             return;
