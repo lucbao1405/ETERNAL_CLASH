@@ -76,6 +76,9 @@ namespace EternalClash.Player
                 if (enemyObject == null || hitEnemies.Contains(enemyObject))
                     continue;
 
+                if (enemyObject.TryGetComponent<EnemyHealthSystem>(out var health) && health.IsDead)
+                    continue;
+
                 Vector3 toEnemy = enemyObject.transform.position - origin;
                 if (toEnemy.x < FrontMinOffsetX || toEnemy.x > chargeReach)
                     continue;
@@ -89,6 +92,9 @@ namespace EternalClash.Player
         private void HandleChargeHit(GameObject enemyObject)
         {
             if (enemyObject == null || hitEnemies.Contains(enemyObject))
+                return;
+
+            if (enemyObject.TryGetComponent<EnemyHealthSystem>(out var health) && health.IsDead)
                 return;
 
             hitEnemies.Add(enemyObject);

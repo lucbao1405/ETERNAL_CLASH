@@ -20,6 +20,7 @@ namespace EternalClash.Combat
 
         private float timer;
         private Transform player;
+        private Coroutine meleeCoroutine;
 
         private void Awake()
         {
@@ -66,7 +67,16 @@ namespace EternalClash.Combat
 
             // Melee: dmg den o giua state Attack (theo do dai clip Spine)
             // thay vi ngay khi bat dau state.
-            StartCoroutine(MeleeHitRoutine());
+            meleeCoroutine = StartCoroutine(MeleeHitRoutine());
+        }
+
+        public void CancelPendingAttack()
+        {
+            if (meleeCoroutine != null)
+            {
+                StopCoroutine(meleeCoroutine);
+                meleeCoroutine = null;
+            }
         }
 
         private IEnumerator MeleeHitRoutine()
@@ -84,7 +94,6 @@ namespace EternalClash.Combat
                 return;
 
             // Truyen gameObject lam attacker de Khien phan lai 5 DMG ve chinh con quai
-            // vua danh (GDD 3.3). Thieu tham so nay thi phan don khong kich hoat.
             CombatDamageResolver.Instance?.DealDamage(
                 player.gameObject,
                 damage,

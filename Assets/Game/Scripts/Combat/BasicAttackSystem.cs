@@ -66,7 +66,10 @@ namespace EternalClash.Combat
         }
         private GameObject FindNearestEnemy(){GameObject[] enemies=GameObject.FindGameObjectsWithTag("Enemy");GameObject nearest=null;float nearestDistance=attackRange;foreach(GameObject enemy in enemies){if(!IsValidTarget(enemy))continue;float distance=Vector2.Distance(transform.position,enemy.transform.position);if(distance<=nearestDistance){nearestDistance=distance;nearest=enemy;}}return nearest;}
         private bool IsTargetInRange(GameObject enemy)=>enemy!=null&&Vector2.Distance(transform.position,enemy.transform.position)<=attackRange;
-        private static bool IsValidTarget(GameObject enemy)=>enemy!=null&&enemy.CompareTag("Enemy")&&enemy.activeInHierarchy;
+        private static bool IsValidTarget(GameObject enemy)=>enemy!=null&&enemy.CompareTag("Enemy")&&enemy.activeInHierarchy&&!IsDead(enemy);
+        // Xac dang chay anim chet van activeInHierarchy: phai loai truoc khi no
+        // chiem cho muc tieu gan nhat va chan player danh ke dung sau no.
+        private static bool IsDead(GameObject enemy)=>enemy.TryGetComponent<EternalClash.Enemy.EnemyHealthSystem>(out var health)&&health.IsDead;
         private static GameObject ResolveEnemyRoot(GameObject obj){if(obj==null)return null;if(obj.CompareTag("Enemy"))return obj;Transform parent=obj.transform.parent;while(parent!=null){if(parent.CompareTag("Enemy"))return parent.gameObject;parent=parent.parent;}return null;}
     }
 }
