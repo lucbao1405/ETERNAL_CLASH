@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using EternalClash.Audio;
+using EternalClash.Monetization;
 
 namespace EternalClash.UI
 {
@@ -20,6 +21,36 @@ namespace EternalClash.UI
             AutoWireReferences();
             if (closeButton != null) closeButton.onClick.AddListener(Close);
             if (bottomCloseButton != null) bottomCloseButton.onClick.AddListener(Close);
+            WireRuntimeIapCards();
+        }
+
+        private void WireRuntimeIapCards()
+        {
+            ShopItemSlotUI[] slots = GetComponentsInChildren<ShopItemSlotUI>(true);
+            string[] productIds = {
+                IapService.GemSmallId,
+                IapService.GemMediumId,
+                IapService.GemLargeId
+            };
+
+            int productIndex = 0;
+            foreach (ShopItemSlotUI slot in slots)
+            {
+                if (productIndex >= productIds.Length)
+                    break;
+
+                Button buyButton = slot.GetComponentInChildren<Button>(true);
+                if (buyButton == null)
+                    continue;
+
+                ShopOfferCard card = slot.GetComponent<ShopOfferCard>();
+                if (card == null)
+                    card = slot.gameObject.AddComponent<ShopOfferCard>();
+                card.ConfigureIap(productIds[productIndex++]);
+
+                buyButton.onClick.RemoveAllListeners();
+                buyButton.onClick.AddListener(card.Buy);
+            }
         }
 
         private void OnEnable()

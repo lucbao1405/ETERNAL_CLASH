@@ -11,7 +11,7 @@ namespace EternalClash.Story
     {
         public const int ElaUnlockStage = 6; // stageLevel after clearing Stage 5
 
-        public static bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 7;
+        public static bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 9;
 
         #region Stage Lore
 
@@ -26,6 +26,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.NAME,
                 6 => Chapter1Content.Stage6.NAME,
                 7 => Chapter1Content.Stage7.NAME,
+                8 => Chapter1Content.Stage8.NAME,
+                9 => Chapter1Content.Stage9.NAME,
                 _ => $"Stage {stageIndex}"
             };
         }
@@ -41,6 +43,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.LOCATION,
                 6 => Chapter1Content.Stage6.LOCATION,
                 7 => Chapter1Content.Stage7.LOCATION,
+                8 => Chapter1Content.Stage8.LOCATION,
+                9 => Chapter1Content.Stage9.LOCATION,
                 _ => "Unknown"
             };
         }
@@ -56,6 +60,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.DESCRIPTION,
                 6 => Chapter1Content.Stage6.DESCRIPTION,
                 7 => Chapter1Content.Stage7.DESCRIPTION,
+                8 => Chapter1Content.Stage8.DESCRIPTION,
+                9 => Chapter1Content.Stage9.DESCRIPTION,
                 _ => ""
             };
         }
@@ -71,6 +77,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.PRE_BATTLE,
                 6 => Chapter1Content.Stage6.PRE_BATTLE,
                 7 => Chapter1Content.Stage7.PRE_BATTLE,
+                8 => Chapter1Content.Stage8.PRE_BATTLE,
+                9 => Chapter1Content.Stage9.PRE_BATTLE,
                 _ => null
             };
         }
@@ -86,6 +94,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.POST_VICTORY,
                 6 => Chapter1Content.Stage6.POST_VICTORY,
                 7 => Chapter1Content.Stage7.POST_VICTORY,
+                8 => Chapter1Content.Stage8.POST_VICTORY,
+                9 => Chapter1Content.Stage9.POST_VICTORY,
                 _ => null
             };
         }
@@ -101,6 +111,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.ENEMIES,
                 6 => Chapter1Content.Stage6.ENEMIES,
                 7 => Chapter1Content.Stage7.ENEMIES,
+                8 => Chapter1Content.Stage8.ENEMIES,
+                9 => Chapter1Content.Stage9.ENEMIES,
                 _ => new string[0]
             };
         }
@@ -116,6 +128,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.DROPS,
                 6 => Chapter1Content.Stage6.DROPS,
                 7 => Chapter1Content.Stage7.DROPS,
+                8 => Chapter1Content.Stage8.DROPS,
+                9 => Chapter1Content.Stage9.DROPS,
                 _ => new string[0]
             };
         }
@@ -131,6 +145,8 @@ namespace EternalClash.Story
                 5 => Chapter1Content.Stage5.TUTORIAL_FOCUS,
                 6 => Chapter1Content.Stage6.TUTORIAL_FOCUS,
                 7 => Chapter1Content.Stage7.TUTORIAL_FOCUS,
+                8 => Chapter1Content.Stage8.TUTORIAL_FOCUS,
+                9 => Chapter1Content.Stage9.TUTORIAL_FOCUS,
                 _ => ""
             };
         }

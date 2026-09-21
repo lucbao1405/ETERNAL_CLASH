@@ -56,6 +56,7 @@ namespace EternalClash.Monetization
 
         private IStoreController storeController;
         private IExtensionProvider extensionProvider;
+        private static string pendingProductId;
 
         public static void InitializeIfNeeded()
         {
@@ -66,7 +67,9 @@ namespace EternalClash.Monetization
 
             // ponytail: Editor chay FakeStore de test mua khong can store that.
             // Khi len Google Play / App Store thi bo dong duoi di.
-            StandardPurchasingModule.Instance().useFakeStoreAlways = Application.isEditor;
+            // Test mode: keep purchases fake on device until a real store is
+            // configured. This must not depend on Application.isEditor.
+            StandardPurchasingModule.Instance().useFakeStoreAlways = true;
 
             ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (IapProductDef product in Catalog)
@@ -84,6 +87,7 @@ namespace EternalClash.Monetization
 
             if (Instance == null || Instance.storeController == null)
             {
+                pendingProductId = productId;
                 Debug.LogWarning($"[IAP] Store chua san sang, khong the mua {productId}.");
                 return;
             }
@@ -154,6 +158,12 @@ namespace EternalClash.Monetization
             storeController = controller;
             extensionProvider = extensions;
             Debug.Log("[IAP] Store khoi tao thanh cong.");
+            if (!string.IsNullOrEmpty(pendingProductId))
+            {
+                string productId = pendingProductId;
+                pendingProductId = null;
+                storeController.InitiatePurchase(productId);
+            }
         }
 
 #pragma warning disable 0618

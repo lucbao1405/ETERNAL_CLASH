@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -32,6 +33,7 @@ public class DialogueManager : MonoBehaviour
     private int currentLine;
     private RectTransform panelRectTransform;
     private Button panelButton;
+    private Button touchButton;
     private Coroutine typingCoroutine;
     private Coroutine slideCoroutine;
     private bool isTyping;
@@ -46,6 +48,7 @@ public class DialogueManager : MonoBehaviour
 
     private void Awake()
     {
+        EnsureTouchInput();
         AutoAssignReferences();
 
         if (!ValidateReferences())
@@ -70,17 +73,54 @@ public class DialogueManager : MonoBehaviour
                 panelButton = dialoguePanel.AddComponent<Button>();
 
             panelButton.transition = Selectable.Transition.None;
-            panelButton.targetGraphic = dialoguePanel.GetComponent<Graphic>();
+            Graphic panelGraphic = dialoguePanel.GetComponent<Graphic>();
+            if (panelGraphic == null)
+            {
+                panelGraphic = dialoguePanel.AddComponent<Image>();
+                panelGraphic.color = new Color(0f, 0f, 0f, 0f);
+            }
+            panelGraphic.raycastTarget = true;
+            panelButton.targetGraphic = panelGraphic;
             panelButton.onClick.AddListener(AdvanceDialogue);
+
+            GameObject touchTarget = new GameObject("DialogueTouchTarget", typeof(RectTransform),
+                typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            touchTarget.transform.SetParent(dialoguePanel.transform, false);
+            RectTransform touchRect = touchTarget.GetComponent<RectTransform>();
+            touchRect.anchorMin = Vector2.zero;
+            touchRect.anchorMax = Vector2.one;
+            touchRect.offsetMin = Vector2.zero;
+            touchRect.offsetMax = Vector2.zero;
+            touchTarget.transform.SetAsLastSibling();
+            Image touchImage = touchTarget.GetComponent<Image>();
+            touchImage.color = new Color(0f, 0f, 0f, 0f);
+            touchButton = touchTarget.GetComponent<Button>();
+            touchButton.transition = Selectable.Transition.None;
+            touchButton.targetGraphic = touchImage;
+            touchButton.onClick.AddListener(AdvanceDialogue);
         }
 
+        // Keep the dialogue panel above transparent/runtime UI overlays on
+        // touch devices so the first tap advances the conversation.
+        dialoguePanel.transform.SetAsLastSibling();
+
         dialoguePanel.SetActive(false);
+    }
+
+    private static void EnsureTouchInput()
+    {
+        if (FindObjectOfType<EventSystem>() != null)
+            return;
+
+        new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
     }
 
     private void OnDestroy()
     {
         if (panelButton != null)
             panelButton.onClick.RemoveListener(AdvanceDialogue);
+        if (touchButton != null)
+            touchButton.onClick.RemoveListener(AdvanceDialogue);
     }
 
     public void OpenDialogue(

@@ -74,6 +74,7 @@ public class SaveData
     public int currentHp = 0;
     public int maxHp = 0;
     public long recoveryStartUnixTime = 0;
+    public bool recoveryPopupPending;
     public float recoveryRatePerSecond = 5f;
     public int recoveryTargetPercent = 80;
 
