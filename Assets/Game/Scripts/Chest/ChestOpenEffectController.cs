@@ -84,6 +84,14 @@ namespace EternalClash.Chest
             if (Instance != null)
                 return Instance;
 
+            // Uu tien dung overlay da dat thu cong trong scene (Battle).
+            ChestOpenEffectController existing = FindObjectOfType<ChestOpenEffectController>(true);
+            if (existing != null)
+            {
+                Instance = existing;
+                return existing;
+            }
+
             GameObject root = new GameObject("ChestOpenEffectController");
 
             Canvas canvas = root.AddComponent<Canvas>();

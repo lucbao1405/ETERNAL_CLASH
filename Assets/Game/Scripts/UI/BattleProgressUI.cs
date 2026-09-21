@@ -25,6 +25,21 @@ namespace EternalClash.UI
 
         private WaveManager waveManager;
 
+        private void Awake()
+        {
+            // Scene Battle da co object nay dat thu cong trong hierarchy:
+            // chi resolve tham chieu con, khong build lai.
+            group = GetComponent<CanvasGroup>();
+            if (group == null)
+                group = gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            group.interactable = false;
+
+            titleText ??= transform.Find("Title")?.GetComponent<TMP_Text>();
+            barFill ??= transform.Find("Bar/Fill")?.GetComponent<Image>();
+            countText ??= transform.Find("Bar/Count")?.GetComponent<TMP_Text>();
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallSceneHook()
         {
@@ -209,6 +224,9 @@ namespace EternalClash.UI
                 group.alpha = 0f;
                 return;
             }
+
+            if (titleText == null || countText == null || barFill == null)
+                return;
 
             group.alpha = 1f;
 

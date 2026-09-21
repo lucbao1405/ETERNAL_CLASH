@@ -119,6 +119,12 @@ namespace EternalClash.Core
                     candidates.Add((slide, slide.ClosePanel));
             }
 
+            foreach (EternalClash.UI.BackClosePanel closable in FindObjectsOfType<EternalClash.UI.BackClosePanel>())
+            {
+                if (closable.IsOpen)
+                    candidates.Add((closable, closable.Close));
+            }
+
             if (candidates.Count == 0)
                 return false;
 

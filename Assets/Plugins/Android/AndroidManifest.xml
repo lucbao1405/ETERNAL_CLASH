@@ -15,7 +15,7 @@
         <activity android:name="com.unity3d.player.UnityPlayerActivity"
             android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen"
             android:launchMode="singleTask"
-            android:screenOrientation="landscape"
+            android:screenOrientation="potrait"
             android:exported="true">
             
             <intent-filter>
