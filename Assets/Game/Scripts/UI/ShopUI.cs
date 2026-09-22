@@ -30,15 +30,13 @@ namespace EternalClash.UI
             string[] productIds = {
                 IapService.GemSmallId,
                 IapService.GemMediumId,
-                IapService.GemLargeId
+                IapService.GemLargeId,
+                IapService.GemHugeId
             };
 
             int productIndex = 0;
             foreach (ShopItemSlotUI slot in slots)
             {
-                if (productIndex >= productIds.Length)
-                    break;
-
                 Button buyButton = slot.GetComponentInChildren<Button>(true);
                 if (buyButton == null)
                     continue;
@@ -46,9 +44,16 @@ namespace EternalClash.UI
                 ShopOfferCard card = slot.GetComponent<ShopOfferCard>();
                 if (card == null)
                     card = slot.gameObject.AddComponent<ShopOfferCard>();
-                card.ConfigureIap(productIds[productIndex++]);
 
                 buyButton.onClick.RemoveAllListeners();
+
+                // 4 card kim cuong dau tien mua bang tien that (fake khi test);
+                // cac card con lai (vang) mua bang kim cuong trong game.
+                if (productIndex < productIds.Length)
+                    card.ConfigureIap(productIds[productIndex++]);
+                else
+                    card.ConfigureGemPurchase();
+
                 buyButton.onClick.AddListener(card.Buy);
             }
         }

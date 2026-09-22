@@ -41,5 +41,36 @@ namespace EternalClash.UI
             if (quantity != null) quantity.text = amount.ToString("N0");
             if (priceText != null) priceText.text = priceLabel;
         }
+
+        /// <summary>
+        /// Doc lai (so luong, gia) tu label tren card, bo cac dau phan cach
+        /// ("10.000" -> 10000). Gia USD co '$' se tu choi de nham card IAP.
+        /// </summary>
+        public bool TryReadOffer(out int amount, out int price)
+        {
+            quantity ??= transform.Find("QuantityPill/Quantity")?.GetComponent<TMP_Text>();
+            quantity ??= transform.Find("Quantity")?.GetComponent<TMP_Text>();
+            priceText ??= transform.Find("BuyButton/PriceText")?.GetComponent<TMP_Text>();
+
+            string priceLabel = priceText != null ? priceText.text : null;
+            amount = ParseDigits(quantity != null ? quantity.text : null);
+            price = ParseDigits(priceLabel);
+            return amount > 0 && price > 0 && priceLabel != null && !priceLabel.Contains("$");
+        }
+
+        private static int ParseDigits(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            int value = 0;
+            foreach (char c in text)
+            {
+                if (c < '0' || c > '9')
+                    continue;
+                value = value * 10 + (c - '0');
+            }
+            return value;
+        }
     }
 }
