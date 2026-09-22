@@ -161,6 +161,7 @@ namespace EternalClash.Stage
                 // combat before opening it so a late damage tick cannot trigger
                 // the in-battle revive offer over the dialogue panel.
                 StopCombat();
+                EternalClash.Monetization.OfferOverlayUI.Close();
                 FieldMeetingController.Begin(clearedStage, this);
                 return;
             }
@@ -180,6 +181,7 @@ namespace EternalClash.Stage
                 return;
 
             StopCombat();
+            EternalClash.Monetization.OfferOverlayUI.Close();
 
             float stageTime = ResolveBattleTime(60f);
 

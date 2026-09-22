@@ -134,6 +134,7 @@ namespace EternalClash.BattleResult
             StopCombat();
             PlayResultSound(EternalClash.Audio.SoundId.Win);
             HideAllPopups();
+            EternalClash.Monetization.OfferOverlayUI.Close();
             PrepareChestReward();
 
             if (victoryDelay > 0f)
