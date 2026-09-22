@@ -40,6 +40,12 @@ namespace EternalClash.Stage
         // End-of-map field meeting state (see FieldMeetingController).
         private DialogueManager battleDialogue;
 
+        // Man vua clear, doc mot lan trong BeginPostStageFlow khi stageLevel chua
+        // duoc tang. Duong flow co gap NPC ket thuc SAU khi CompleteStage tang
+        // stageLevel, nen ProceedToVictoryFlow phai dung gia tri nay thay vi doc
+        // lai SaveManager (se sinh thuong cua man ke tiep).
+        private int lastClearedStage = 1;
+
         private const string BattleSceneName = "Battle";
 
         /// <summary>
@@ -138,9 +144,14 @@ namespace EternalClash.Stage
             // End-of-map meeting: stages with a field NPC (or a story moment)
             // keep the hero running down the road first; the dialogue plays
             // there, and ProceedToVictoryFlow continues afterwards.
-            int stageLevel = SaveManager.Instance != null && SaveManager.Instance.Data != null
-                ? SaveManager.Instance.Data.stageLevel : 2;
-            int clearedStage = Mathf.Max(1, stageLevel - 1);
+            // StageManager.CompleteStage() goi ham nay TRUOC khi tang stageLevel,
+            // nen stageLevel doc o day chinh la man vua clear. Tru di 1 lam le hen
+            // mot man: thang man 2 van gap Garen (roi duong phu thuy mo som trong
+            // khi chua gap Elara), Elara chi gap o man 3, va Ela (man 5) + ket mo
+            // chuong (man 9) bi le hen tuong tu.
+            int clearedStage = SaveManager.Instance != null && SaveManager.Instance.Data != null
+                ? Mathf.Max(1, SaveManager.Instance.Data.stageLevel) : 1;
+            lastClearedStage = clearedStage;
 
             if (Story.StoryManager.HasNPCEncounter(clearedStage) ||
                 Story.StoryManager.IsStoryStage(clearedStage) ||
@@ -172,10 +183,6 @@ namespace EternalClash.Stage
 
             float stageTime = ResolveBattleTime(60f);
 
-            int stageLevel = SaveManager.Instance != null && SaveManager.Instance.Data != null
-                ? Mathf.Clamp(SaveManager.Instance.Data.stageLevel, 1, StageManager.MaxKnownStageLevel)
-                : 1;
-
             // Khong con thuong them khi thang. Popup bao dung so EXP va vang da kiem
             // duoc trong tran (nhat tu quai va vat pham) - nhung so nay da duoc cong
             // vao tai khoan ngay luc nhat roi, o day chi doc lai de hien thi.
@@ -184,7 +191,7 @@ namespace EternalClash.Stage
             int earnedGold = GoldSystem.Instance != null
                 ? GoldSystem.Instance.SessionGoldEarned : 0;
 
-            currentReward = RewardGenerator.GenerateStageReward(stageLevel);
+            currentReward = RewardGenerator.GenerateStageReward(lastClearedStage);
 
             stageResult = new StageResultData
             {

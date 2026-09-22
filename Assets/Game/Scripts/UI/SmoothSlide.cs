@@ -77,17 +77,19 @@ public class SmoothSlide : MonoBehaviour
 
     public void OpenPanel()
     {
-        if (!gameObject.activeSelf)
-            isOpen = false;
+        // Panelinvisible = closed, regardless of a stale isOpen flag left
+        // behind by a killed coroutine; otherwise the button would stay dead.
+        if (isOpen && gameObject.activeInHierarchy)
+            return;
 
-        if (!isOpen)
-            TogglePanel();
+        isOpen = false;
+        TogglePanel();
     }
 
 
     public void ClosePanel()
     {
-        if (!gameObject.activeSelf)
+        if (!gameObject.activeInHierarchy)
         {
             isOpen = false;
             if (panelRect != null)
@@ -107,11 +109,19 @@ public class SmoothSlide : MonoBehaviour
         if (!Initialize())
             return;
 
-        isOpen = !isOpen;
+        // Derive the effective state from reality: a panel that is not in the
+        // hierarchy is closed even if isOpen was left true (e.g. the GameObject
+        // was deactivated while a coroutine was still moving it). Without this
+        // the second press on the shop button flips into the close branch and
+        // StartCoroutine on an inactive object fails silently - the button dies.
+        isOpen = !(isOpen && gameObject.activeInHierarchy);
         EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
 
         if (slideCoroutine != null)
+        {
             StopCoroutine(slideCoroutine);
+            slideCoroutine = null;
+        }
 
         if (isOpen)
         {
@@ -121,9 +131,15 @@ public class SmoothSlide : MonoBehaviour
 
             slideCoroutine = StartCoroutine(OpenPanelRoutine());
         }
-        else
+        else if (gameObject.activeInHierarchy)
         {
             slideCoroutine = StartCoroutine(ClosePanelRoutine());
+        }
+        else
+        {
+            // Nothing to animate: coroutines cannot run on an inactive object.
+            if (panelRect != null)
+                panelRect.anchoredPosition = offScreenPos;
         }
     }
 

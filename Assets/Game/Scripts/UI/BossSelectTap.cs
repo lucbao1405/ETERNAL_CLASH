@@ -106,6 +106,13 @@ namespace EternalClash.UI
                         slide.bounceDistance = 100f;
                     }
 
+                    Button closeButton = candidate.Find("X")?.GetComponent<Button>();
+                    if (closeButton != null)
+                    {
+                        closeButton.onClick.RemoveAllListeners();
+                        closeButton.onClick.AddListener(slide.ClosePanel);
+                    }
+
                     return slide;
                 }
             }
