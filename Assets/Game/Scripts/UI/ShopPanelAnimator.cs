@@ -36,20 +36,22 @@ public sealed class ShopPanelAnimator : MonoBehaviour
             closeButton.onClick.RemoveListener(Close);
     }
 
-    private void OnEnable()
-    {
-        PanelDim.Acquire(this);
-    }
-
     private void OnDisable()
     {
         PanelDim.Release(this);
     }
 
+    // KHONG giu nen toi trong OnEnable: Shop_Tho_Ren va Shop_Phu_Thuy nam san
+    // trong scene o trang thai active (CloseImmediate chi day ra ngoai man hinh,
+    // khong tat GameObject). Giu o OnEnable thi vua vao Town la nen toi da bat
+    // du chua mo bang nao. Chi giu khi thuc su mo bang.
+
     public void Open()
     {
         if (shopPanel == null)
             return;
+
+        PanelDim.Acquire(this);
 
         gameObject.SetActive(true);
         // Awake closes a panel that starts active in the scene. When Open is what
@@ -64,6 +66,8 @@ public sealed class ShopPanelAnimator : MonoBehaviour
 
     public void Close()
     {
+        PanelDim.Release(this);
+
         if (shopPanel == null || State == PanelState.Closed || State == PanelState.Closing)
             return;
 
@@ -76,6 +80,8 @@ public sealed class ShopPanelAnimator : MonoBehaviour
 
     public void CloseImmediate()
     {
+        PanelDim.Release(this);
+
         if (animationCoroutine != null)
             StopCoroutine(animationCoroutine);
         animationCoroutine = null;

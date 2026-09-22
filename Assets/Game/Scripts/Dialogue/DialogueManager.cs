@@ -149,7 +149,10 @@ public class DialogueManager : MonoBehaviour
         Debug.Log($"[Dialogue] Opening {newLines.Length} line(s) for '{characterName}'.", this);
 
         dialoguePanel.SetActive(true);
-        PanelDim.Acquire(this);
+        // Giu nen toi theo CHINH BANG hoi thoai, khong theo script nay: script nam
+        // tren Canvas (luon bat) nen neu bang bi tat bang duong khac, khong ai
+        // phat hien ra de nha nen toi. Lay bang lam chu so huu thi PanelDim tu bo.
+        PanelDim.Acquire(dialoguePanel);
         panelRectTransform = dialoguePanel.GetComponent<RectTransform>();
         panelRectTransform.anchoredPosition = HiddenAnchoredPosition;
 
@@ -216,6 +219,10 @@ public class DialogueManager : MonoBehaviour
             return;
 
         isOpen = false;
+
+        // Nha nen toi NGAY, khong doi animation dong bang chay xong: coroutine do
+        // co the bi ngat (doi scene, mo bang khac) khien nen toi ket lai.
+        PanelDim.Release(dialoguePanel);
 
         if (typingCoroutine != null)
         {
@@ -315,7 +322,7 @@ public class DialogueManager : MonoBehaviour
         if (!deactivateAtEnd)
             yield break;
 
-        PanelDim.Release(this);
+        PanelDim.Release(dialoguePanel);
         dialoguePanel.SetActive(false);
 
         DialogueCompleted?.Invoke();
