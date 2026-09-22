@@ -13,9 +13,11 @@ namespace EternalClash.Enemy
         private static readonly List<EnemyMover> activeMovers = new List<EnemyMover>();
         private static EternalClash.World.WorldScroller cachedScroller;
 
-        [SerializeField] private float archerStopDistance = 2.5f;
+        [SerializeField] private float archerStopDistance = 4.5f;
         [SerializeField] private bool isArcher = false;
         [SerializeField] private float playerStopDistance = 0.75f;
+        [Tooltip("Khi Player charge: quai can chien duoc trôi sát hơn bình thường (để liên tục lọt cửa sổ charge hitbox) nhưng vẫn bị chặn trước mặt Player, không được xuyên qua.")]
+        [SerializeField] private float chargeFlowStopDistance = 0.2f;
 
         [Header("Queue")]
         [Tooltip("Khoang cach giua 2 quai dung lien nhau trong hang.")]
@@ -23,12 +25,24 @@ namespace EternalClash.Enemy
         [Tooltip("Toc do lui ve cho cua minh khi dang dung lan vao cho cua con phia truoc.")]
         [SerializeField] private float queueSettleSpeed = 3f;
 
+        [Header("Death")]
+        [Tooltip("Toc do văng ra sau (xa Player) lúc xác mới chết.")]
+        [SerializeField] private float deathKnockbackSpeed = 9f;
+        [Tooltip("Gia tốc hãm cú văng; hết phần này thì xác chỉ còn trượt theo world scroll.")]
+        [SerializeField] private float deathKnockbackDecel = 20f;
+        [Tooltip("Độ cao vòng cung nhỏ khi văng. 0 = trượt sát đất.")]
+        [SerializeField] private float deathHopHeight = 0.6f;
+
         private EnemyController controller;
         private EnemyHealthSystem health;
         private Rigidbody2D rb;
         private Transform player;
         private EternalClash.Player.PlayerChargeController chargeController;
         private bool isPaused;
+        private bool isDrifting;
+        private float knockbackVelocity;
+        private float knockbackTravel;
+        private float knockbackTotal;
         private float lockedY;
 
         private void OnEnable()
@@ -76,6 +90,14 @@ namespace EternalClash.Enemy
 
         private void FixedUpdate()
         {
+            // Xac quai: chi trôi theo world scroll, khong xep hang/clamp quanh
+            // Player nen no troi xuyen qua Player cho toi khi bi destroy.
+            if (isDrifting)
+            {
+                DriftWithWorld();
+                return;
+            }
+
             if (isPaused) return;
             if (EnemyFormationManager.Instance != null && EnemyFormationManager.Instance.IsLocked()) return;
             if (controller != null && !controller.canMove) return;
@@ -117,10 +139,17 @@ namespace EternalClash.Enemy
             if (player == null)
                 return nextX;
 
+            // Trong lúc Player charge: quai can chien van duoc trôi vào sát hơn bình
+            // thường (để liên tục lọt cửa sổ charge hitbox quét phía trước thay vì
+            // dừng ở con đầu tiên), nhưng vẫn bị chặn trước mặt Player: quai chưa
+            // chết không được trôi xuyên qua Player rồi đánh từ phía sau. Quai tầm
+            // xa (Goblin Mage/Archer) giữ nguyên khoảng cách dừng: nếu không, con
+            // ngoài màn hình bị world scroll (x4 khi charge) hút thẳng vào Player.
+            bool chargingFlow = false;
             if (chargeController == null)
                 chargeController = player.GetComponent<EternalClash.Player.PlayerChargeController>();
-            if (chargeController != null && chargeController.IsCharging)
-                return nextX;
+            if (chargeController != null && chargeController.IsCharging && !isArcher)
+                chargingFlow = true;
 
             float currentX = rb != null ? rb.position.x : transform.position.x;
             float side = Mathf.Sign(currentX - player.position.x);
@@ -130,8 +159,13 @@ namespace EternalClash.Enemy
                 side = -1f;
 
             // Xep hang: con dung dau dung sat Player, moi con sau lui them queueSpacing.
+            // Quai xa (Goblin Mage/Archer) dung lai o archerStopDistance de ban tu xa
+            // thay vi di san sat Player nhu quai can chien.
             int queueIndex = GetQueueIndex(currentX, side);
-            float stopX = player.position.x + side * (playerStopDistance + queueIndex * queueSpacing);
+            float stopDistance = isArcher
+                ? archerStopDistance
+                : chargingFlow ? chargeFlowStopDistance : playerStopDistance;
+            float stopX = player.position.x + side * (stopDistance + queueIndex * queueSpacing);
 
             // Con dau hang giu nguyen cach cu: khong bao gio duoc vuot qua cho dung.
             // Con phia sau neu dang lan vao cho con truoc (vd sau khi bi day lui, hang
@@ -157,6 +191,11 @@ namespace EternalClash.Enemy
             foreach (EnemyMover other in activeMovers)
             {
                 if (other == null || other == this || other.IsDead)
+                    continue;
+
+                // Xep hang rieng theo loai: archer chi tinh cac archer dung truoc,
+                // neu khong no bi day lui sau moi quai can chien va mat tam ban.
+                if (other.isArcher != isArcher)
                     continue;
 
                 float otherX = other.rb != null ? other.rb.position.x : other.transform.position.x;
@@ -211,6 +250,67 @@ namespace EternalClash.Enemy
         public void StopMovement() => isPaused = true;
         public void ResumeMovement() => isPaused = false;
         public void PauseMovement(float duration){isPaused=true;Invoke(nameof(ResumeMovement),duration);}
+
+        /// <summary>
+        /// Chuyen sang che do xac: boc văng ra sau (xa Player) với tốc độ
+        /// deathKnockbackSpeed, hãm dần theo deathKnockbackDecel; khi hết cú
+        /// văng thì chỉ còn trượt theo world scroll cho tới khi bị destroy.
+        /// rb da bi tat simulated khi chet nen dich thang transform.
+        /// </summary>
+        public void StartDrift()
+        {
+            isDrifting = true;
+            float side = Mathf.Sign(GetDriftSideX() - GetPlayerX());
+            if (Mathf.Abs(side) < 0.01f)
+                side = 1f;
+            knockbackVelocity = side * deathKnockbackSpeed;
+            knockbackTravel = 0f;
+            knockbackTotal = Mathf.Abs(knockbackVelocity) > 0.001f
+                ? knockbackVelocity * knockbackVelocity / (2f * deathKnockbackDecel)
+                : 0f;
+        }
+
+        private void DriftWithWorld()
+        {
+            if (cachedScroller == null)
+                cachedScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            float worldVelocityX = cachedScroller != null ? cachedScroller.GetWorldVelocity().x : 0f;
+
+            Vector3 position = transform.position;
+            position.x += (worldVelocityX + knockbackVelocity) * Time.fixedDeltaTime;
+
+            if (Mathf.Abs(knockbackVelocity) > 0.001f)
+            {
+                knockbackTravel += Mathf.Abs(knockbackVelocity) * Time.fixedDeltaTime;
+                if (deathHopHeight > 0f && knockbackTotal > 0f)
+                {
+                    // Vòng cung nhảy nhỏ: 0 ở đầu/cuối cú văng, cao nhất ở giữa.
+                    float t = Mathf.Clamp01(knockbackTravel / knockbackTotal);
+                    position.y = lockedY + deathHopHeight * 4f * t * (1f - t);
+                }
+                knockbackVelocity = Mathf.MoveTowards(
+                    knockbackVelocity, 0f, deathKnockbackDecel * Time.fixedDeltaTime);
+            }
+            else
+            {
+                position.y = lockedY;
+                knockbackVelocity = 0f;
+            }
+
+            transform.position = position;
+        }
+
+        private float GetPlayerX()
+        {
+            if (player == null)
+            {
+                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+                player = playerObject != null ? playerObject.transform : null;
+            }
+            return player != null ? player.position.x : transform.position.x;
+        }
+
+        private float GetDriftSideX() => rb != null ? rb.position.x : transform.position.x;
         public bool IsArcher=>isArcher;
         public float ArcherStopDistance=>archerStopDistance;
     }

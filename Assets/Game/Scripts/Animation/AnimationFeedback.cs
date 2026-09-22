@@ -7,7 +7,8 @@ namespace EternalClash.Animation
     /// </summary>
     public interface IPlayerAnimationFeedback
     {
-        void NotifyAttack();
+        /// <summary>speedScale &gt; 1 thi clip chay nhanh len (danh thanh tho hon).</summary>
+        void NotifyAttack(float speedScale = 1f);
 
         /// <summary>Do dai clip attack (giay), 0 neu khong ro. Combat dung de dinh thoi diem gay dmg.</summary>
         float GetAttackDuration();

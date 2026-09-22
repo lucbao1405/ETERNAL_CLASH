@@ -86,8 +86,26 @@ namespace EternalClash.UI
         {
             GameAudio.Play(SoundId.UIClick);
             ShopPanelAnimator animator = GetComponent<ShopPanelAnimator>();
-            if (animator != null) animator.Close();
-            else gameObject.SetActive(false);
+            if (animator != null)
+            {
+                animator.Close();
+                return;
+            }
+
+            // Panel root co the duoc SmoothSlide quan ly (vd Canvas/Man_Hinh_Khac/Shop,
+            // con ShopUI nam tren VatPhamMua). Khong duoc tu SetActive(false) o day
+            // vi khong ai bat lai object nay khi mo panel lan sau - chi forward close
+            // cho manager go ben duoc va de no tat root.
+            SmoothSlide slide = GetComponent<SmoothSlide>()
+                ?? GetComponentInParent<SmoothSlide>(true);
+            if (slide != null)
+            {
+                if (slide.IsOpen)
+                    slide.ClosePanel();
+                return;
+            }
+
+            gameObject.SetActive(false);
         }
     }
 }

@@ -212,13 +212,16 @@ namespace EternalClash.Animation
         /// <summary>Chet hoac thang man: giu nguyen animation cuoi, khong doi nua.</summary>
         private bool IsFinished => dead || state == VisualState.Death || state == VisualState.Victory;
 
-        public void NotifyAttack()
+        public void NotifyAttack(float speedScale = 1f)
         {
             if (IsFinished)
                 return;
             if (state == VisualState.Shield || state == VisualState.Charge)
                 return; // giu tu the do khien / luot kiem
-            PlayOneShot(AnimAttack, VisualState.Attack);
+            float clipDuration = GetAttackDuration();
+            // speedScale > 1: cho clip gan xong som hon de don ke tiep kip nhau (mash).
+            float fitDuration = speedScale > 1f && clipDuration > 0f ? clipDuration / speedScale : 0f;
+            PlayOneShot(AnimAttack, VisualState.Attack, fitDuration);
         }
 
         public float GetAttackDuration()

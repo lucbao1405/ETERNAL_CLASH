@@ -65,6 +65,11 @@ namespace EternalClash.Character
                     currentHealth = condition.GetBattleStartHp(maxHealth);
             }
 
+            // Vao tran phai con song: save huong currentHp=0 (van de luu dang
+            // dieu tra) khong duoc bien khung dau tran thanh xac chet vo han.
+            if (CompareTag("Player") && currentHealth <= 0)
+                currentHealth = 1;
+
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
@@ -194,7 +199,10 @@ namespace EternalClash.Character
 
                 var attack = mover.GetComponent<EnemyAttack>();
                 if (attack != null)
+                {
+                    attack.InterruptAttack(); // huy pha ngam (telegraph) neu dang co
                     attack.CancelPendingAttack();
+                }
             }
 
             foreach (EnemyProjectile projectile in FindObjectsOfType<EnemyProjectile>())

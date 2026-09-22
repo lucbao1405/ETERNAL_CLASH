@@ -442,7 +442,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 5
-  attackCooldown: 1
+  attackCooldown: 0.6
   knockbackForce: 5
   attackRange: 0.85
   hitMoment: 0.5

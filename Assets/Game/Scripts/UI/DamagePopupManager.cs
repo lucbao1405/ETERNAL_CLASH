@@ -43,6 +43,13 @@ namespace EternalClash.UI
             SpawnPopup(position, "BLOCK " + amount, PopupType.Block);
         }
 
+        /// <summary>Bao so combo (Postknight style "x3"). Vi tri = diem quai bi danh.</summary>
+        public void ShowCombo(Vector3 position, int combo)
+        {
+            // Cao hon so damage mot chut de khong che nhau.
+            SpawnPopup(position + Vector3.up * 0.8f, "x" + combo, PopupType.Combo);
+        }
+
         private void SpawnPopup(Vector3 position, string value, PopupType type)
         {
             if (damagePopupPrefab == null)
@@ -66,7 +73,8 @@ namespace EternalClash.UI
             Heal,
             Block,
             // Them vao cuoi enum de khong lam lech gia tri da serialize san.
-            Critical
+            Critical,
+            Combo
         }
     }
 }

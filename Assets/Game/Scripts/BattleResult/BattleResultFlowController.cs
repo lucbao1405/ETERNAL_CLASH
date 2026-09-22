@@ -38,6 +38,8 @@ namespace EternalClash.BattleResult
         private readonly List<ItemReward> battleLoot = new List<ItemReward>();
         private readonly List<ItemReward> chestRewards = new List<ItemReward>();
         private RewardData pendingChestReward;
+        private RewardType pendingDoubleType;
+        private int pendingDoubleAmount;
         private bool flowActive;
         private bool battleFinished;
         private bool returnRequested;
@@ -161,34 +163,41 @@ namespace EternalClash.BattleResult
 
             GrantChestReward();
 
-            if (canDouble)
-                yield return ShowDoubleRewardOffer(doubleType, doubleAmount);
+            // Offer X2 khong hien truoc popup nua: ShowWinPopupFlow se de no len
+            // TREN popup thang vua mo voi dem nguoc 5s tu dong dong.
+            pendingDoubleType = doubleType;
+            pendingDoubleAmount = canDouble ? doubleAmount : 0;
 
             yield return ShowWinPopupFlow();
         }
 
         /// <summary>
         /// Offer xem quang cao de nhan them mot lan phan thuong ruong (X2). Hien
-        /// sau khi ruong da grant va truoc popup ket qua thang - nhu vay so vang
-        /// tren popup thang da gom ca phan X2 neu nguoi choi xem.
+        /// TREN popup ket qua thang sau khi ruong da grant, tu dong dong sau 5
+        /// giay khong chon. Neu nguoi choi xem thi so lieu tren popup duoc cap
+        /// nhat theo (RefreshWinPopupAfterDouble).
         /// </summary>
         private IEnumerator ShowDoubleRewardOffer(RewardType rewardType, int amount)
         {
+            bool success = false;
             bool resolved = false;
             Monetization.OfferOverlayUI.Show(
                 "Double Your Reward!",
                 "Watch an ad to receive the chest reward one more time.",
                 "Watch Ad",
-                onWatchClicked: () => Monetization.AdsService.ShowRewarded("x2_chest", success =>
+                onWatchClicked: () => Monetization.AdsService.ShowRewarded("x2_chest", watched =>
                 {
-                    if (success)
-                        GrantDoubleChestReward(rewardType, amount);
+                    success = watched;
                     resolved = true;
                 }),
-                onDeclined: () => resolved = true);
+                onDeclined: () => resolved = true,
+                autoDeclineSeconds: 5f);
 
             while (!resolved)
                 yield return null;
+
+            if (success)
+                RefreshWinPopupAfterDouble();
         }
 
         private void GrantDoubleChestReward(RewardType rewardType, int amount)
@@ -207,6 +216,22 @@ namespace EternalClash.BattleResult
             }
 
             Debug.Log($"[X2] Nhan doi thuong ruong: +{amount} {rewardType}");
+        }
+
+        /// <summary>
+        /// Sau khi X2 duoc grant, cap nhat lai so lieu tren popup thang: entry
+        /// cua ruong nhan doi (vat pham) va doc lai SessionGoldEarned (tien).
+        /// Chi doi danh sach hien thi, khong chay lai animation thanh EXP.
+        /// </summary>
+        private void RefreshWinPopupAfterDouble()
+        {
+            if (winUI == null || winPopup == null || !winPopup.activeSelf)
+                return;
+
+            if (chestRewards.Count > 0 && chestRewards[0] != null)
+                chestRewards[0].quantity *= 2;
+
+            winUI.RefreshRewards(BuildResultData(true).GetDisplayItems());
         }
 
         private IEnumerator RunLoseFlow()
@@ -277,6 +302,15 @@ namespace EternalClash.BattleResult
 
                 bool clicked = false;
                 winUI.ShowVictory(data.exp, data.gold, data.battleTime, data.GetDisplayItems(), () => clicked = true);
+
+                // Offer X2 xem quang cao nam tren popup thang: khong chon trong
+                // 5 giay thi tu dong dong (OfferOverlayUI autoDecline).
+                if (pendingDoubleAmount > 0)
+                {
+                    yield return ShowDoubleRewardOffer(pendingDoubleType, pendingDoubleAmount);
+                    pendingDoubleAmount = 0;
+                }
+
                 yield return WaitForResultClick(() => clicked);
                 winUI.Close();
                 BattlePopupController.SetResultOverlay(false);

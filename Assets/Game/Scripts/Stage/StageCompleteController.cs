@@ -147,15 +147,15 @@ namespace EternalClash.Stage
             // StageManager.CompleteStage() goi ham nay TRUOC khi tang stageLevel,
             // nen stageLevel doc o day chinh la man vua clear. Tru di 1 lam le hen
             // mot man: thang man 2 van gap Garen (roi duong phu thuy mo som trong
-            // khi chua gap Elara), Elara chi gap o man 3, va Ela (man 5) + ket mo
-            // chuong (man 9) bi le hen tuong tu.
+            // khi chua gap Elara), Elara chi gap o man 3. Boss (man cuoi) duoc
+            // kiem tra TRUOC de khong bi NPC/story cua cung so man chiem flow.
             int clearedStage = SaveManager.Instance != null && SaveManager.Instance.Data != null
                 ? Mathf.Max(1, SaveManager.Instance.Data.stageLevel) : 1;
             lastClearedStage = clearedStage;
 
-            if (Story.StoryManager.HasNPCEncounter(clearedStage) ||
-                Story.StoryManager.IsStoryStage(clearedStage) ||
-                clearedStage == 9) // boss stage: open ending plays after the Chieftain falls
+            if (IsBossStage(clearedStage) || // boss stage: open ending plays after the Chieftain falls
+                Story.StoryManager.HasNPCEncounter(clearedStage) ||
+                Story.StoryManager.IsStoryStage(clearedStage))
             {
                 // The meeting dialogue is part of the victory flow. Stop all
                 // combat before opening it so a late damage tick cannot trigger
@@ -506,15 +506,24 @@ namespace EternalClash.Stage
 
         private int pendingEncounterStage;
 
+        /// <summary>
+        /// Boss = man cuoi cung cua stageCatalog. Doc dong tu StageManager de
+        /// them/giam so man khong phai sua code o day.
+        /// </summary>
+        private static bool IsBossStage(int clearedStage) =>
+            StageManager.Instance != null
+                ? clearedStage >= StageManager.Instance.MaxStageLevel
+                : clearedStage >= 5;
+
         private void OnMeetingDialogueClosed()
         {
             var dialogueManager = battleDialogue;
             if (dialogueManager != null)
                 dialogueManager.DialogueCompleted -= OnMeetingDialogueClosed;
 
-            // Stage 9 (boss) clears Chapter 1: open ending, then her letter, then the
+            // Boss stage clears Chapter 1: open ending, then her letter, then the
             // usual victory flow back to the village.
-            if (pendingEncounterStage == 9 && chapterEndingStep < 2)
+            if (IsBossStage(pendingEncounterStage) && chapterEndingStep < 2)
             {
                 if (dialogueManager == null)
                 {

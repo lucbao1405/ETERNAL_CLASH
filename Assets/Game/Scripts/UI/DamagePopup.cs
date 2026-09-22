@@ -18,6 +18,7 @@ public class DamagePopup : MonoBehaviour
     public Color healColor = Color.green;
     public Color blockColor = Color.cyan;
     public Color criticalColor = new Color(1f, 0.85f, 0.2f);
+    public Color comboColor = Color.white;
 
     [Tooltip("He so phong to chu khi sat thuong chi mang")]
     public float criticalScale = 1.4f;
@@ -63,6 +64,10 @@ public class DamagePopup : MonoBehaviour
                 // Phong to ngay tu dau; hieu ung scalePunch san co van chay tiep tren nen nay.
                 startScale *= criticalScale;
                 transform.localScale = startScale;
+                break;
+
+            case DamagePopupManager.PopupType.Combo:
+                text.color = comboColor;
                 break;
 
             default:

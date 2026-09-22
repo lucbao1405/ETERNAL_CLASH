@@ -58,10 +58,11 @@ namespace EternalClash.Combat
                 if (playerController != null)
                     playerController.StopMovement();
 
-                // Stop enemy movement
-                var enemyMover = other.GetComponent<EternalClash.Enemy.EnemyMover>();
-                if (enemyMover != null)
-                    enemyMover.StopMovement();
+                // Khong StopMovement() enemy o day: trigger cham nhau o khoang cach
+                // (mep phai circle ~0.885 + mep trai hitbox quai) luon xa hon tam danh
+                // 0.85, neu dung thi quai dong bang truoc khi vao tam (Goblin Mage hitbox
+                // rong) va khong bao gio duoc resume vi van con overlap.
+                // EnemyMover.ClampBeforePlayer moi la noi giu khoang cach dung cua tung loai quai.
             }
         }
 
@@ -86,9 +87,8 @@ namespace EternalClash.Combat
                 if (playerController != null)
                     playerController.ResumeMovement();
 
-                var enemyMover = other.GetComponent<EternalClash.Enemy.EnemyMover>();
-                if (enemyMover != null)
-                    enemyMover.ResumeMovement();
+                // Khong ResumeMovement() enemy: exit co the xa ra khi quai dang bi
+                // choang/treo boi he thong khac, resume o day se vo hieu hoa trang thai do.
             }
         }
     }

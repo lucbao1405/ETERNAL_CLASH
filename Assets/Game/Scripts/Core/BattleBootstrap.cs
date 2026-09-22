@@ -45,13 +45,16 @@ public class BattleBootstrap : MonoBehaviour
         var health = player != null ? player.GetComponent<EternalClash.Character.HealthSystem>() : null;
         if (health == null) return;
 
-        int current = Mathf.Clamp(data.currentHp, 0, data.maxHp);
+        int current = Mathf.Clamp(data.currentHp, 1, data.maxHp);
         int delta = current - health.CurrentHealth;
         if (delta > 0) health.Heal(delta);
         else if (delta < 0)
         {
-            int newHp = Mathf.Max(0, current);
-            while (health.CurrentHealth > newHp && health.CurrentHealth > 0)
+            // Tran nao cung phai vao voi it nhat 1 HP: drain xuong 0 thi Player
+            // chet ngay luc spawn -> ReviveOffer mo -> timeScale 0 -> ket tran
+            // va save lai 0 HP -> vong lap chet vo han o cac tran sau.
+            int newHp = Mathf.Max(1, current);
+            while (health.CurrentHealth > newHp && health.CurrentHealth > 1)
             {
                 health.TakeDamage(1);
             }

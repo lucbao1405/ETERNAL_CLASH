@@ -59,6 +59,10 @@ namespace EternalClash.Player
                 skillManager = currentPlayer.AddComponent<SkillManager>();
             skillManager.EnsureSkills();
 
+            // Nut danh (tap/Space) phai luon ton tai tren player spawn runtime.
+            if (currentPlayer.GetComponent<InputController>() == null)
+                currentPlayer.AddComponent<InputController>();
+
             EternalClash.Village.EquipmentVisualBinder visualBinder =
                 currentPlayer.GetComponent<EternalClash.Village.EquipmentVisualBinder>();
             if (visualBinder == null)

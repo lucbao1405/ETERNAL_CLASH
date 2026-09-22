@@ -9,9 +9,9 @@ namespace EternalClash.Story
     /// </summary>
     public static class StoryManager
     {
-        public const int ElaUnlockStage = 6; // stageLevel after clearing Stage 5
+        public const int ElaUnlockStage = 4; // stageLevel after clearing Stage 3 (Ela)
 
-        public static bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 9;
+        public static bool HasCompletedChapter1 => SaveManager.Instance?.Data?.stageLevel > 5;
 
         #region Stage Lore
 
@@ -23,11 +23,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.NAME,
                 3 => Chapter1Content.Stage3.NAME,
                 4 => Chapter1Content.Stage4.NAME,
-                5 => Chapter1Content.Stage5.NAME,
-                6 => Chapter1Content.Stage6.NAME,
-                7 => Chapter1Content.Stage7.NAME,
-                8 => Chapter1Content.Stage8.NAME,
-                9 => Chapter1Content.Stage9.NAME,
+                5 => Chapter1Content.Stage9.NAME, // boss stage
                 _ => $"Stage {stageIndex}"
             };
         }
@@ -40,11 +36,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.LOCATION,
                 3 => Chapter1Content.Stage3.LOCATION,
                 4 => Chapter1Content.Stage4.LOCATION,
-                5 => Chapter1Content.Stage5.LOCATION,
-                6 => Chapter1Content.Stage6.LOCATION,
-                7 => Chapter1Content.Stage7.LOCATION,
-                8 => Chapter1Content.Stage8.LOCATION,
-                9 => Chapter1Content.Stage9.LOCATION,
+                5 => Chapter1Content.Stage9.LOCATION, // boss stage
                 _ => "Unknown"
             };
         }
@@ -57,11 +49,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.DESCRIPTION,
                 3 => Chapter1Content.Stage3.DESCRIPTION,
                 4 => Chapter1Content.Stage4.DESCRIPTION,
-                5 => Chapter1Content.Stage5.DESCRIPTION,
-                6 => Chapter1Content.Stage6.DESCRIPTION,
-                7 => Chapter1Content.Stage7.DESCRIPTION,
-                8 => Chapter1Content.Stage8.DESCRIPTION,
-                9 => Chapter1Content.Stage9.DESCRIPTION,
+                5 => Chapter1Content.Stage9.DESCRIPTION, // boss stage
                 _ => ""
             };
         }
@@ -74,11 +62,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.PRE_BATTLE,
                 3 => Chapter1Content.Stage3.PRE_BATTLE,
                 4 => Chapter1Content.Stage4.PRE_BATTLE,
-                5 => Chapter1Content.Stage5.PRE_BATTLE,
-                6 => Chapter1Content.Stage6.PRE_BATTLE,
-                7 => Chapter1Content.Stage7.PRE_BATTLE,
-                8 => Chapter1Content.Stage8.PRE_BATTLE,
-                9 => Chapter1Content.Stage9.PRE_BATTLE,
+                5 => Chapter1Content.Stage9.PRE_BATTLE, // boss stage
                 _ => null
             };
         }
@@ -91,11 +75,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.POST_VICTORY,
                 3 => Chapter1Content.Stage3.POST_VICTORY,
                 4 => Chapter1Content.Stage4.POST_VICTORY,
-                5 => Chapter1Content.Stage5.POST_VICTORY,
-                6 => Chapter1Content.Stage6.POST_VICTORY,
-                7 => Chapter1Content.Stage7.POST_VICTORY,
-                8 => Chapter1Content.Stage8.POST_VICTORY,
-                9 => Chapter1Content.Stage9.POST_VICTORY,
+                5 => Chapter1Content.Stage9.POST_VICTORY, // boss stage
                 _ => null
             };
         }
@@ -108,11 +88,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.ENEMIES,
                 3 => Chapter1Content.Stage3.ENEMIES,
                 4 => Chapter1Content.Stage4.ENEMIES,
-                5 => Chapter1Content.Stage5.ENEMIES,
-                6 => Chapter1Content.Stage6.ENEMIES,
-                7 => Chapter1Content.Stage7.ENEMIES,
-                8 => Chapter1Content.Stage8.ENEMIES,
-                9 => Chapter1Content.Stage9.ENEMIES,
+                5 => Chapter1Content.Stage9.ENEMIES, // boss stage
                 _ => new string[0]
             };
         }
@@ -125,11 +101,7 @@ namespace EternalClash.Story
                 2 => Chapter1Content.Stage2.DROPS,
                 3 => Chapter1Content.Stage3.DROPS,
                 4 => Chapter1Content.Stage4.DROPS,
-                5 => Chapter1Content.Stage5.DROPS,
-                6 => Chapter1Content.Stage6.DROPS,
-                7 => Chapter1Content.Stage7.DROPS,
-                8 => Chapter1Content.Stage8.DROPS,
-                9 => Chapter1Content.Stage9.DROPS,
+                5 => Chapter1Content.Stage9.DROPS, // boss stage
                 _ => new string[0]
             };
         }
@@ -161,7 +133,7 @@ namespace EternalClash.Story
             {
                 1 => true, // Garen the Blacksmith
                 2 => true, // Elara the Witch
-                5 => true, // Ela
+                3 => true, // Ela
                 _ => false
             };
         }
@@ -172,7 +144,7 @@ namespace EternalClash.Story
             {
                 1 => Chapter1Content.Stage1.NPC_NAME,
                 2 => Chapter1Content.Stage2.NPC_NAME,
-                5 => Chapter1Content.Stage5.NPC_NAME,
+                3 => Chapter1Content.Stage5.NPC_NAME, // Ela
                 _ => null
             };
         }
@@ -183,7 +155,7 @@ namespace EternalClash.Story
             {
                 1 => Chapter1Content.Stage1.NPC_ROLE,
                 2 => Chapter1Content.Stage2.NPC_ROLE,
-                5 => Chapter1Content.Stage5.NPC_ROLE,
+                3 => Chapter1Content.Stage5.NPC_ROLE, // Ela
                 _ => null
             };
         }
@@ -194,7 +166,7 @@ namespace EternalClash.Story
             {
                 1 => Chapter1Content.Stage1.NPC_DIALOGUE,
                 2 => Chapter1Content.Stage2.NPC_DIALOGUE,
-                5 => Chapter1Content.Stage5.NPC_DIALOGUE,
+                3 => Chapter1Content.Stage5.NPC_DIALOGUE, // Ela
                 _ => null
             };
         }
@@ -205,7 +177,7 @@ namespace EternalClash.Story
             {
                 1 => Chapter1Content.Stage1.UNLOCK_REWARD,
                 2 => Chapter1Content.Stage2.UNLOCK_REWARD,
-                5 => Chapter1Content.Stage5.UNLOCK_REWARD,
+                3 => Chapter1Content.Stage5.UNLOCK_REWARD, // Ela
                 _ => null
             };
         }
@@ -216,14 +188,14 @@ namespace EternalClash.Story
             {
                 1 => Chapter1Content.Stage1.UNLOCKS_FEATURE,
                 2 => Chapter1Content.Stage2.UNLOCKS_FEATURE,
-                5 => Chapter1Content.Stage5.UNLOCKS_FEATURE,
+                3 => Chapter1Content.Stage5.UNLOCKS_FEATURE, // Ela
                 _ => false
             };
         }
 
         public static string GetNPCSpineName(int stageIndex)
         {
-            return stageIndex == 5 ? "con vo" : null;
+            return stageIndex == 3 ? "con vo" : null;
         }
 
         #endregion

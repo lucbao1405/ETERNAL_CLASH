@@ -38,7 +38,12 @@ namespace EternalClash.Enemy
             yield return new WaitForSeconds(duration);
 
             if (attackTiming != null)
+            {
                 attackTiming.enabled = true;
+                // Component bi disable la lam dung coroutine o giua Prepare/Warning:
+                // phai dua ve Idle chu cua so counter se mac State cu mai mai.
+                attackTiming.ResetToIdle();
+            }
 
             if (decision != null)
                 decision.enabled = true;

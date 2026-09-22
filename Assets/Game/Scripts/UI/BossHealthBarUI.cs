@@ -8,7 +8,8 @@ namespace EternalClash.UI
     /// <summary>
     /// Thanh mau Boss kieu Postknight: avatar tron + thanh do co khung + so HP
     /// "current/max", xuat hien o dau man hinh khi boss chinh thuc tran dau, an di
-    /// khi boss chet. Toan bo UI tu tao tai runtime nen khong phai gan gi trong scene.
+    /// khi boss chet. Uu tien ban cung "BossHealthBar" da dung trong scene (de chinh
+    /// kich thuoc trong Inspector); neu scene thieu thi tu tao tai runtime nhu cu.
     /// BossController goi BossHealthBarUI.ShowFor() khi boss lo mat dat / an don dau.
     /// </summary>
     public class BossHealthBarUI : MonoBehaviour
@@ -47,6 +48,17 @@ namespace EternalClash.UI
         {
             if (instance != null)
                 return;
+
+            // Uu tien ban cung trong scene; chi tu tao runtime khi scene chua co.
+            foreach (BossHealthBarUI existing in Resources.FindObjectsOfTypeAll<BossHealthBarUI>())
+            {
+                if (existing.gameObject.scene.IsValid())
+                {
+                    instance = existing;
+                    instance.HookupExisting();
+                    return;
+                }
+            }
 
             var root = new GameObject("BossHealthBar", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             Canvas canvas = root.GetComponent<Canvas>();
@@ -112,6 +124,28 @@ namespace EternalClash.UI
                 hpText.color = Color.white;
                 hpText.raycastTarget = false;
             }
+
+            gameObject.SetActive(false); // an di cho den khi co boss tran dau
+        }
+
+        /// <summary>Noi reference vao ban cung trong scene (Holder/Avatar/Bar/Hp_Fill...).</summary>
+        private void HookupExisting()
+        {
+            RectTransform root = (RectTransform)transform;
+            Transform bar = root.Find("Holder/Bar");
+            if (bar != null)
+            {
+                Transform fill = bar.Find(HpBarSprites.FillObjectName);
+                Transform ghost = bar.Find(HpBarSprites.GhostObjectName);
+                fillImage = fill ? fill.GetComponent<Image>() : null;
+                ghostFill = ghost ? ghost.GetComponent<Image>() : null;
+                hpText = bar.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            Transform avatar = root.Find("Holder/Avatar");
+            Image avatarImage = avatar ? avatar.GetComponent<Image>() : null;
+            if (avatarImage != null && avatarImage.sprite == null)
+                avatarImage.sprite = GetCircleSprite(); // placeholder khi chua gan anh chan boss
 
             gameObject.SetActive(false); // an di cho den khi co boss tran dau
         }

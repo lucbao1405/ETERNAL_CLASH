@@ -21,6 +21,9 @@ namespace EternalClash.Combat
         public AttackState State { get; private set; } = AttackState.Idle;
         public bool CanHit { get; private set; }
 
+        /// <summary>Cua so attack bi phan don/choang pha trong luc chay.</summary>
+        public bool Interrupted { get; private set; }
+
         private float stateTimer;
 
         public bool IsPreparingAttack(float window)
@@ -38,12 +41,14 @@ namespace EternalClash.Combat
             StopAllCoroutines();
             CanHit = false;
             State = AttackState.Recover;
+            Interrupted = true;
         }
 
         public void ApplyStun(float duration)
         {
             StopAllCoroutines();
             StartCoroutine(StunRoutine(duration));
+            Interrupted = true;
         }
 
         private System.Collections.IEnumerator StunRoutine(float duration)
@@ -57,7 +62,17 @@ namespace EternalClash.Combat
         public void StartAttack()
         {
             if (State != AttackState.Idle) return;
+            Interrupted = false;
             StartCoroutine(AttackRoutine());
+        }
+
+        /// <summary>Dua ve Idle sau khi het choang de chu ky ngam/danh chay lai.</summary>
+        public void ResetToIdle()
+        {
+            StopAllCoroutines();
+            CanHit = false;
+            Interrupted = false;
+            State = AttackState.Idle;
         }
 
         private System.Collections.IEnumerator AttackRoutine()

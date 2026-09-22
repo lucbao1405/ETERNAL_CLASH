@@ -33,6 +33,13 @@ namespace EternalClash.Enemy
         [Tooltip("Toc do tu buoc vao man hinh luc xuat hien (world scroll cong them).")]
         [SerializeField] private float approachSpeed = 1.2f;
 
+        [Tooltip("Tam dung lai de BAN (tinh tu player). Boss dung o xa hon tam danh cua " +
+                 "player de bay dan, xong moi troi tiep vao tam danh de cho player danh.")]
+        [SerializeField] private float shootRange = 2.2f;
+
+        [Tooltip("Toc do troi ve phia player TRUC LUC dan (state Attack).")]
+        [SerializeField] private float attackDriftSpeed = 0.8f;
+
         [Tooltip("Toc do NET khi chay lui. Da tu bu lai world scroll nen ke ca khi player " +
                  "charge (scroll x4) boss van thoat ra duoc.")]
         [SerializeField] private float retreatSpeed = 6f;
@@ -41,8 +48,9 @@ namespace EternalClash.Enemy
         [SerializeField] private float chargeSpeed = 4f;
 
         [Header("Khung man hinh")]
-        [Tooltip("Qua day (viewport 0..1) tinh la da ra khoi man hinh.")]
-        [SerializeField] private float exitViewportMargin = 0.15f;
+        [Tooltip("Vi tri viewport X (0..1) boss chay lui den de dung khieu khich. " +
+                 "Boss phai con nam TRONG man hinh khi khieu khich.")]
+        [SerializeField] private float tauntViewportX = 0.9f;
 
         private State state = State.Enter;
         private bool pendingRetreat; // player vua danh trung: het state hien tai thi lui
@@ -133,7 +141,7 @@ namespace EternalClash.Enemy
             while (!dead)
             {
                 if (!pendingRetreat)
-                    yield return AttackRoutine(); // vao tam roi: danh 1 phat
+                    yield return AttackRoutine(); // dung o xa: ban 1 phat + troi vao
 
                 if (pendingRetreat)
                 {
@@ -142,14 +150,17 @@ namespace EternalClash.Enemy
 
                     if (anim != null)
                         anim.SetFacingAway(false); // quay lai ve phia player de khieu khich
-                    yield return TauntRoutine();   // ra khoi man hinh -> dung lai khieu khich
+                    yield return TauntRoutine();   // dung can man hinh khieu khich
                     if (dead) yield break;
 
-                    yield return ChargeRoutine();  // roi lao vao danh tiep
+                    yield return ChargeRoutine();  // lao ve tam ban (xa)
                 }
                 else
                 {
-                    yield return StandRoutine();   // dung cho player danh
+                    yield return ApproachRoutine(); // troi tiep vao tam danh player
+                    if (dead) yield break;
+
+                    yield return StandRoutine();    // dung cho player danh
                     if (dead) yield break;
                 }
             }
@@ -158,7 +169,7 @@ namespace EternalClash.Enemy
         private IEnumerator EnterRoutine()
         {
             state = State.Enter;
-            while (!dead && !pendingRetreat && !IsInAttackRange())
+            while (!dead && !pendingRetreat && !IsAtShootRange())
                 yield return null;
         }
 
@@ -171,6 +182,14 @@ namespace EternalClash.Enemy
 
             float duration = anim != null ? anim.GetAttackDuration() : 0f;
             yield return new WaitForSeconds(duration > 0f ? duration + 0.1f : 0.8f);
+        }
+
+        /// <summary>Sau khi ban: troi tiep vao tam danh cua player de bi danh trai. </summary>
+        private IEnumerator ApproachRoutine()
+        {
+            state = State.Enter; // van cho phep bi lam lui khi troi vao
+            while (!dead && !pendingRetreat && !IsInAttackRange())
+                yield return null;
         }
 
         private IEnumerator StandRoutine()
@@ -186,7 +205,7 @@ namespace EternalClash.Enemy
             state = State.Retreat;
             if (anim != null)
                 anim.SetFacingAway(true); // chay lui thi quay mat di, clip run moi tu nhien
-            while (!dead && !IsOffScreen())
+            while (!dead && !IsAtTauntSpot())
                 yield return null;
         }
 
@@ -200,7 +219,7 @@ namespace EternalClash.Enemy
         private IEnumerator ChargeRoutine()
         {
             state = State.Charge;
-            while (!dead && !IsInAttackRange())
+            while (!dead && !IsAtShootRange())
                 yield return null;
         }
 
@@ -237,8 +256,13 @@ namespace EternalClash.Enemy
                 case State.Charge:
                     return -chargeSpeed * side;
 
+                case State.Attack:
+                    // Vua ban vua troi ve phia player (bu ca scroll de troi deu
+                    // tren man hinh), dung lai dung luc ket thuc don.
+                    return -scroll - attackDriftSpeed * side;
+
                 default:
-                    // Dung cho / danh / khieu khich: giu nguyen tren man hinh.
+                    // Dung cho / khieu khich: giu nguyen tren man hinh.
                     return -scroll;
             }
         }
@@ -316,11 +340,27 @@ namespace EternalClash.Enemy
             if (target == null)
                 return false;
 
-            float range = attack != null ? attack.attackRange : 1.2f;
+            // Day la khoang cach boss DUNG LAI de cho player danh, khong phai tam
+            // danh cua boss (1.4). Dung ca attackRange thi boss do tai 1.4 - ngoai
+            // tam vo cua player (BasicAttackSystem 0.85) nen player khong bao gio
+            // danh trung. Nua tam danh (0.7) trung khop voi minSeparation cua
+            // ClampBeforePlayer: boss dung dung tai 0.7, trong tam danh cua player.
+            float range = attack != null ? attack.attackRange * 0.5f : 0.6f;
             return Mathf.Abs(transform.position.x - target.position.x) <= range;
         }
 
-        private bool IsOffScreen()
+        /// <summary>Du xa de dung lai ban dan (truoc khi troi vao tam danh player).</summary>
+        private bool IsAtShootRange()
+        {
+            Transform target = GetPlayer();
+            if (target == null)
+                return false;
+
+            return Mathf.Abs(transform.position.x - target.position.x) <= shootRange;
+        }
+
+        /// <summary>Canh ben phai man hinh (van trong tam nhin) de dung khieu khich.</summary>
+        private bool IsAtTauntSpot()
         {
             if (cam == null)
                 cam = Camera.main;
@@ -328,7 +368,7 @@ namespace EternalClash.Enemy
                 return false;
 
             float vx = cam.WorldToViewportPoint(transform.position).x;
-            return vx > 1f + exitViewportMargin || vx < -exitViewportMargin;
+            return vx >= tauntViewportX;
         }
 
         private bool IsOnScreen()
