@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using EternalClash.Audio;
+using EternalClash.Monetization;
 
 namespace EternalClash.UI
 {
@@ -20,6 +21,41 @@ namespace EternalClash.UI
             AutoWireReferences();
             if (closeButton != null) closeButton.onClick.AddListener(Close);
             if (bottomCloseButton != null) bottomCloseButton.onClick.AddListener(Close);
+            WireRuntimeIapCards();
+        }
+
+        private void WireRuntimeIapCards()
+        {
+            ShopItemSlotUI[] slots = GetComponentsInChildren<ShopItemSlotUI>(true);
+            string[] productIds = {
+                IapService.GemSmallId,
+                IapService.GemMediumId,
+                IapService.GemLargeId,
+                IapService.GemHugeId
+            };
+
+            int productIndex = 0;
+            foreach (ShopItemSlotUI slot in slots)
+            {
+                Button buyButton = slot.GetComponentInChildren<Button>(true);
+                if (buyButton == null)
+                    continue;
+
+                ShopOfferCard card = slot.GetComponent<ShopOfferCard>();
+                if (card == null)
+                    card = slot.gameObject.AddComponent<ShopOfferCard>();
+
+                buyButton.onClick.RemoveAllListeners();
+
+                // 4 card kim cuong dau tien mua bang tien that (fake khi test);
+                // cac card con lai (vang) mua bang kim cuong trong game.
+                if (productIndex < productIds.Length)
+                    card.ConfigureIap(productIds[productIndex++]);
+                else
+                    card.ConfigureGemPurchase();
+
+                buyButton.onClick.AddListener(card.Buy);
+            }
         }
 
         private void OnEnable()

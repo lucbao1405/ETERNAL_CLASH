@@ -481,9 +481,9 @@ namespace EternalClash.BattleResult
         private int ResolveStageLevel()
         {
             if (StageManager.Instance != null)
-                return Mathf.Clamp(StageManager.Instance.CurrentStageLevel, 1, 5);
+                return Mathf.Clamp(StageManager.Instance.CurrentStageLevel, 1, StageManager.MaxKnownStageLevel);
             var saveData = EternalClash.Core.Save.SaveManager.Instance?.Data;
-            return saveData != null ? Mathf.Clamp(saveData.stageLevel, 1, 5) : 1;
+            return saveData != null ? Mathf.Clamp(saveData.stageLevel, 1, StageManager.MaxKnownStageLevel) : 1;
         }
 
         private float GetBattleTime()

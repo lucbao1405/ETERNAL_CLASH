@@ -117,11 +117,14 @@ namespace EternalClash.Enemy
             if (player == null)
                 return nextX;
 
-            // Trong lúc Player charge: khong xep hang, cho quai trôi vào tầm charge
-            // de chiêu day liên tuc xuyen qua ca bầy thay vì dừng ở con đầu tiên.
+            // Trong lúc Player charge: khong xep hang, cho quai can chien trôi vào
+            // tầm charge de chiêu day liên tuc xuyen qua ca bầy thay vì dừng ở con
+            // đầu tiên. Riêng quai tầm xa (Goblin Mage/Archer) vẫn giữ khoảng cách
+            // dừng: nếu không, con ngoài màn hình bị world scroll (x4 khi charge)
+            // hút thẳng vào Player.
             if (chargeController == null)
                 chargeController = player.GetComponent<EternalClash.Player.PlayerChargeController>();
-            if (chargeController != null && chargeController.IsCharging)
+            if (chargeController != null && chargeController.IsCharging && !isArcher)
                 return nextX;
 
             float currentX = rb != null ? rb.position.x : transform.position.x;

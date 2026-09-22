@@ -298,11 +298,6 @@ namespace EternalClash.Story
 
         private void BuildNpcInTown()
         {
-            // Before the field meeting there is no Ela here at all — the house is
-            // just scenery. She only moves in after you clear her stage.
-            if (!IsUnlocked)
-                return;
-
             GameObject content = GameObject.Find("Canvas/Up_Panel/Background/Viewport/Content");
             Transform page1 = content != null ? content.transform.Find("Page_1") : null;
             Transform house = page1 != null ? page1.Find("nha") : null;
@@ -311,6 +306,39 @@ namespace EternalClash.Story
                 Debug.LogWarning("[ElaNPC] Page_1/nha not found; Ela NPC not placed.");
                 return;
             }
+
+            // Uu tien dung NPC da dat thu cong trong scene (Page_1/Ela_ClickArea).
+            Transform bakedArea = page1.Find("Ela_ClickArea");
+            if (bakedArea != null)
+            {
+                Button bakedButton = bakedArea.GetComponent<Button>();
+                if (bakedButton == null)
+                {
+                    bakedButton = bakedArea.gameObject.AddComponent<Button>();
+                    bakedButton.transition = Selectable.Transition.None;
+                }
+                bakedButton.onClick.RemoveListener(OnElaClicked);
+                bakedButton.onClick.AddListener(OnElaClicked);
+
+                // Truoc khi mo khoa (stageLevel < 6) Ela van an, giong nhu
+                // truoc day khong tao NPC — chi la object nam san trong scene.
+                bakedArea.gameObject.SetActive(IsUnlocked);
+
+                Transform bakedSkeleton = page1.Find("Ela");
+                if (bakedSkeleton != null)
+                {
+                    bakedSkeleton.gameObject.SetActive(IsUnlocked);
+                    FaceLeft(bakedSkeleton.GetComponent<SkeletonGraphic>());
+                }
+
+                Debug.Log("[ElaNPC] Dung object Ela da dat trong scene, unlocked=" + IsUnlocked);
+                return;
+            }
+
+            // Before the field meeting there is no Ela here at all — the house is
+            // just scenery. She only moves in after you clear her stage.
+            if (!IsUnlocked)
+                return;
 
             TrySpawnConvoSkeleton(page1, house);
 
@@ -339,8 +367,27 @@ namespace EternalClash.Story
             Debug.Log("[ElaNPC] Click area placed over the first house.");
         }
 
+        /// <summary>Mirrors the spine so Ela looks toward the approaching hero.</summary>
+        private static void FaceLeft(SkeletonGraphic skeleton)
+        {
+            if (skeleton == null) return;
+            if (skeleton.SkeletonDataAsset != null && skeleton.Skeleton == null)
+                skeleton.Initialize(true);
+            if (skeleton.Skeleton != null)
+                skeleton.Skeleton.ScaleX = -Mathf.Abs(skeleton.Skeleton.ScaleX);
+        }
+
         private void TrySpawnConvoSkeleton(Transform page1, Transform house)
         {
+            // Skeleton da duoc dat thu cong trong scene thi chi dieu khien an/hien.
+            Transform existing = page1.Find("Ela");
+            if (existing != null)
+            {
+                existing.gameObject.SetActive(IsUnlocked);
+                FaceLeft(existing.GetComponent<SkeletonGraphic>());
+                return;
+            }
+
             SkeletonDataAsset skeletonData = Resources.Load<SkeletonDataAsset>(ConvoSkeletonPath);
             if (skeletonData == null)
                 return; // Spine not added yet — click area alone is enough.
@@ -389,6 +436,34 @@ namespace EternalClash.Story
                 return;
             }
 
+            // Menu da duoc dat thu cong trong scene (Man_Hinh_Khac/ElaMenu + ElaTopics):
+            // chi wire nut bam, khong build lai.
+            Transform bakedMenu = screens.Find("ElaMenu");
+            Transform bakedTopics = screens.Find("ElaTopics");
+            if (bakedMenu != null && bakedTopics != null)
+            {
+                menuPanel = bakedMenu.gameObject;
+                topicsPanel = bakedTopics.gameObject;
+
+                menuTitle = bakedMenu.Find("Ela")?.GetComponent<TMP_Text>();
+                menuTitle ??= bakedMenu.GetComponentInChildren<TMP_Text>(true);
+
+                BindBakedButton(bakedMenu, "Btn_Talk", OnTalkClicked);
+                BindBakedButton(bakedMenu, "Btn_Give a Gift", OnGiftClicked);
+                BindBakedButton(bakedMenu, "Btn_Receive", OnReceiveClicked);
+                BindBakedButton(bakedMenu, "Btn_Close", () => menuPanel.SetActive(false));
+                BindBakedButton(bakedTopics, "Btn_Back",
+                    () => { topicsPanel.SetActive(false); menuPanel.SetActive(true); });
+
+                topicButtonContainer = bakedTopics.Find("TopicList");
+                topicButtonContainer ??= bakedTopics;
+
+                menuPanel.SetActive(false);
+                topicsPanel.SetActive(false);
+                Debug.Log("[ElaNPC] Menu UI wired from baked hierarchy.");
+                return;
+            }
+
             TMP_Text fontSource = null;
             TMP_Text[] texts = dialogueManager != null
                 ? dialogueManager.GetComponentsInChildren<TMP_Text>(true)
@@ -403,6 +478,7 @@ namespace EternalClash.Story
             BuildButton(menuPanel.transform, "Give a Gift", new Vector2(0f, -60f), fontSource, OnGiftClicked);
             BuildButton(menuPanel.transform, "Receive", new Vector2(0f, -180f), fontSource, OnReceiveClicked);
             BuildButton(menuPanel.transform, "Close", new Vector2(0f, -300f), fontSource, () => menuPanel.SetActive(false));
+            menuPanel.AddComponent<BackClosePanel>();
             menuPanel.SetActive(false);
 
             topicsPanel = BuildPanel(screens, "ElaTopics", 640f, 900f);
@@ -410,6 +486,7 @@ namespace EternalClash.Story
             topicButtonContainer = BuildVerticalLayout(topicsPanel.transform, new Vector2(0f, 30f), new Vector2(520f, 560f));
             BuildButton(topicsPanel.transform, "Back", new Vector2(0f, -380f), fontSource,
                 () => { topicsPanel.SetActive(false); menuPanel.SetActive(true); });
+            topicsPanel.AddComponent<BackClosePanel>();
             topicsPanel.SetActive(false);
 
             Debug.Log("[ElaNPC] Menu UI built.");
@@ -567,6 +644,18 @@ namespace EternalClash.Story
         }
 
         // ------------------------------------------------------------------ ui helpers
+
+        private static void BindBakedButton(Transform root, string childName, System.Action onClick)
+        {
+            Button button = root.Find(childName)?.GetComponent<Button>();
+            if (button == null)
+            {
+                Debug.LogWarning("[ElaNPC] Baked button not found: " + childName);
+                return;
+            }
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => onClick());
+        }
 
         private static GameObject BuildPanel(Transform parent, string name, float width, float height)
         {

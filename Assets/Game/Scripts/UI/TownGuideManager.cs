@@ -39,6 +39,54 @@ namespace EternalClash.UI
         {
             WireGuideButtons();
             CacheHolders();
+            CachePages();
+        }
+
+        private readonly List<RectTransform> cachedPages = new List<RectTransform>();
+
+        private void CachePages()
+        {
+            cachedPages.Clear();
+
+            RectTransform content = playerRect != null ? playerRect.parent as RectTransform : null;
+            if (content == null)
+                return;
+
+            for (int n = 1; n <= 4; n++)
+            {
+                if (content.Find("Page_" + n) is RectTransform page)
+                    cachedPages.Add(page);
+            }
+        }
+
+        /// <summary>
+        /// Cac dich den (Character_Stop_N) nam ngoai cac Page, nen Page bi khoa
+        /// khong lam chung bi an di theo. Chi cho phep chi duong khi dich den
+        /// nam tren mot Page da mo khoa, nguoc lai bong noi se chi sai duong.
+        /// </summary>
+        private bool IsTargetReachable(TownGuideData guide)
+        {
+            if (guide.target == null || !guide.target.gameObject.activeInHierarchy)
+                return false;
+
+            RectTransform content = playerRect != null ? playerRect.parent as RectTransform : null;
+            if (content == null || cachedPages == null || cachedPages.Count == 0)
+                return true; // khong suy dien duoc trang thi giu hanh vi cu
+
+            float targetX = content.InverseTransformPoint(guide.target.position).x;
+
+            for (int i = 0; i < cachedPages.Count; i++)
+            {
+                RectTransform page = cachedPages[i];
+                if (page == null || !page.gameObject.activeInHierarchy)
+                    continue;
+
+                float pageX = content.InverseTransformPoint(page.position).x;
+                if (Mathf.Abs(targetX - pageX) <= page.rect.width * 0.5f + 1f)
+                    return true;
+            }
+
+            return false;
         }
 
         private void AutoWireReferences()
@@ -172,7 +220,7 @@ namespace EternalClash.UI
 
             float direction = targetRect.anchoredPosition.x - playerRect.anchoredPosition.x;
             float distance = Mathf.Abs(direction);
-            bool visible = distance > showDistance;
+            bool visible = distance > showDistance && IsTargetReachable(guide);
             holder.gameObject.SetActive(visible);
             if (!visible)
                 return;
@@ -199,7 +247,7 @@ namespace EternalClash.UI
                 return;
 
             TownGuideData guide = guides[index];
-            if (guide.target == null)
+            if (guide.target == null || !IsTargetReachable(guide))
                 return;
 
             if (navigation != null)

@@ -34,6 +34,14 @@ namespace EternalClash.Monetization
         public const string GemSmallId = "com.eternalclash.gem.small";
         public const string GemMediumId = "com.eternalclash.gem.medium";
         public const string GemLargeId = "com.eternalclash.gem.large";
+        public const string GemHugeId = "com.eternalclash.gem.huge";
+
+        /// <summary>
+        /// Test mode: mo ta thanh toan gia tren moi platform (grant truc tiep,
+        /// khong qua store). Biet false khi dang ky san pham that tren
+        /// Google Play / App Store de quay lai luong Unity Purchasing.
+        /// </summary>
+        internal const bool FakePayments = true;
 
         /// <summary>
         /// QUY UOC SHOP: kim cuong mua bang TIEN THAT (IAP ben duoi), con VANG
@@ -50,12 +58,14 @@ namespace EternalClash.Monetization
             new IapProductDef { productId = GemSmallId, displayName = "Kim cương", priceLabel = "$0.99", gem = 20 },
             new IapProductDef { productId = GemMediumId, displayName = "Kim cương", priceLabel = "$4.99", gem = 120 },
             new IapProductDef { productId = GemLargeId, displayName = "Kim cương", priceLabel = "$9.99", gem = 300 },
+            new IapProductDef { productId = GemHugeId, displayName = "Kim cương", priceLabel = "$49.99", gem = 7200 },
         };
 
         public static IapService Instance { get; private set; }
 
         private IStoreController storeController;
         private IExtensionProvider extensionProvider;
+        private static string pendingProductId;
 
         public static void InitializeIfNeeded()
         {
@@ -66,7 +76,9 @@ namespace EternalClash.Monetization
 
             // ponytail: Editor chay FakeStore de test mua khong can store that.
             // Khi len Google Play / App Store thi bo dong duoi di.
-            StandardPurchasingModule.Instance().useFakeStoreAlways = Application.isEditor;
+            // Test mode: keep purchases fake on device until a real store is
+            // configured. This must not depend on Application.isEditor.
+            StandardPurchasingModule.Instance().useFakeStoreAlways = true;
 
             ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (IapProductDef product in Catalog)
@@ -80,10 +92,28 @@ namespace EternalClash.Monetization
 
         public static void Buy(string productId)
         {
+            // Fake payment: grant ngay lap tuc. Dialog FakeStore (IMGUI) khong
+            // dang tin dung tren dien thoai (nut qua nho / khong hien) nen o
+            // che do test ta khong di qua Unity Purchasing.
+            if (FakePayments)
+            {
+                IapProductDef product = Find(productId);
+                if (product == null)
+                {
+                    Debug.LogWarning($"[IAP] Khong tim thay san pham {productId} trong Catalog.");
+                    return;
+                }
+
+                Debug.Log($"[IAP] Fake payment: {productId} (grant truc tiep).");
+                Grant(productId);
+                return;
+            }
+
             InitializeIfNeeded();
 
             if (Instance == null || Instance.storeController == null)
             {
+                pendingProductId = productId;
                 Debug.LogWarning($"[IAP] Store chua san sang, khong the mua {productId}.");
                 return;
             }
@@ -154,6 +184,12 @@ namespace EternalClash.Monetization
             storeController = controller;
             extensionProvider = extensions;
             Debug.Log("[IAP] Store khoi tao thanh cong.");
+            if (!string.IsNullOrEmpty(pendingProductId))
+            {
+                string productId = pendingProductId;
+                pendingProductId = null;
+                storeController.InitiatePurchase(productId);
+            }
         }
 
 #pragma warning disable 0618

@@ -171,13 +171,10 @@ namespace EternalClash.UI
                 expText.gameObject.SetActive(true);
             }
 
-            // Gold (chỉ hiện khi thắng)
+            // Gold is already represented by the Gold loot slot. Do not show a
+            // second textual reward line in the result popup.
             if (goldText != null)
-            {
-                goldText.gameObject.SetActive(victory && gold > 0);
-                if (victory && gold > 0)
-                    goldText.text = $"Gold +{gold}";
-            }
+                goldText.gameObject.SetActive(false);
 
             // Time
             if (timeText != null)

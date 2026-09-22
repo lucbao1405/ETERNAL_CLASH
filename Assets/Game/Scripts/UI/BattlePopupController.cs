@@ -424,15 +424,7 @@ namespace EternalClash.UI
             if (motion.GoldLabel == null)
                 return;
 
-            if (totalGold > 0)
-            {
-                motion.GoldLabel.text = $"Gold +{totalGold}";
-                motion.GoldLabel.gameObject.SetActive(true);
-            }
-            else
-            {
-                motion.GoldLabel.gameObject.SetActive(false);
-            }
+            motion.GoldLabel.gameObject.SetActive(false);
         }
 
         private void ApplyRewardLine(PanelMotion motion, RewardData reward)

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using EternalClash.Combat;
 using EternalClash.Enemy;
 
 namespace EternalClash.Wave
@@ -173,8 +174,22 @@ namespace EternalClash.Wave
             // Diem spawn duy nhat = vi tri cua chinh GameObject dang gan WaveManager nay.
             Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(transform.position);
             GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
+            ApplyStageScaling(enemy);
 
             aliveEnemies.Add(enemy);
+        }
+
+        // Do kho tang dan theo man: +15% mau va sat thuong cho moi man (man 7 ~ x1.9),
+        // ket hop voi so luong quai tang dan trong tung StageData.
+        private void ApplyStageScaling(GameObject enemy)
+        {
+            int level = StageManager.Instance != null ? StageManager.Instance.CurrentStageLevel : 1;
+            float multiplier = 1f + 0.15f * (level - 1);
+            if (multiplier <= 1f)
+                return;
+
+            enemy.GetComponent<EnemyHealthSystem>()?.ScaleHealth(multiplier);
+            enemy.GetComponent<EnemyAttack>()?.ScaleDamage(multiplier);
         }
 
         // Nhan bao chet tu EnemyDeathEvent (xem huong dan phan 2 ben duoi).

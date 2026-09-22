@@ -107,7 +107,9 @@ namespace EternalClash.World
 
         public void SetSpeedMultiplier(float multiplier)
         {
-            targetMultiplier = Mathf.Max(1f, multiplier);
+            // Cho phep multiplier < 1 (vd Shield block-walk kieu Postknight di cham).
+            // Goi voi 0f van dung khi muon dung han (StageComplete, FieldMeeting).
+            targetMultiplier = Mathf.Max(0f, multiplier);
             Debug.Log("[WORLD] Speed multiplier x" + targetMultiplier);
         }
 

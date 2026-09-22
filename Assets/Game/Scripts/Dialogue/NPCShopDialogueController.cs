@@ -24,6 +24,8 @@ public sealed class NPCShopDialogueController : MonoBehaviour
 
     private Button npcButton;
     private bool waitingForDialogue;
+    private bool dialogueSubscribed;
+    private static NPCShopDialogueController activeConversation;
 
     private void Awake()
     {
@@ -42,14 +44,21 @@ public sealed class NPCShopDialogueController : MonoBehaviour
     {
         ResolveReferences();
         CreateTransparentClickArea();
-        if (dialogueManager != null)
+        if (dialogueManager != null && !dialogueSubscribed)
+        {
             dialogueManager.DialogueCompleted += OnDialogueComplete;
+            dialogueSubscribed = true;
+        }
     }
 
     private void OnDisable()
     {
         if (dialogueManager != null)
             dialogueManager.DialogueCompleted -= OnDialogueComplete;
+        dialogueSubscribed = false;
+        waitingForDialogue = false;
+        if (activeConversation == this)
+            activeConversation = null;
     }
 
     private void OnDestroy()
@@ -61,6 +70,10 @@ public sealed class NPCShopDialogueController : MonoBehaviour
     public void StartConversation()
     {
         ResolveReferences();
+        if (waitingForDialogue || activeConversation != null ||
+            (dialogueManager != null && dialogueManager.IsOpen))
+            return;
+
         if (dialogueManager == null || dialogueLines == null || dialogueLines.Length == 0)
         {
             Debug.LogError($"Shop dialogue '{dialogueId}' is not configured on '{name}'.", this);
@@ -68,6 +81,7 @@ public sealed class NPCShopDialogueController : MonoBehaviour
         }
 
         shopPanelAnimator?.CloseImmediate();
+        activeConversation = this;
         waitingForDialogue = true;
         dialogueManager.OpenDialogue(characterName, avatar, dialogueLines);
     }
@@ -78,6 +92,8 @@ public sealed class NPCShopDialogueController : MonoBehaviour
             return;
 
         waitingForDialogue = false;
+        if (activeConversation == this)
+            activeConversation = null;
         OpenShop();
     }
 

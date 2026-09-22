@@ -13,14 +13,18 @@ namespace EternalClash.Skill
         public float shieldDuration = 1.0f;
         public int reflectDamage = 5;
 
+        [Header("Postknight Block Walk")]
+        [Tooltip("Toc do cuon the gioi khi giơ khiên so voi binh thuong (1 = normal). Postknight: van bu di cham thay vi dung yen.")]
+        [SerializeField] private float walkSpeedMultiplier = 0.35f;
+
         public bool Active { get; private set; }
 
         private PlayerController playerController;
         private WorldScroller worldScroller;
 
-        // Chi cho cuon lai neu chinh Khien la thu da dung no. Tranh truong hop man
+        // Chi ha toc neu chinh Khien la thu da ha no. Tranh truong hop man
         // da ket thuc (StageCompleteController goi StopScroll) ma Khien lai bat len.
-        private bool stoppedScroll;
+        private bool slowedWorld;
 
         protected override void Awake()
         {
@@ -41,12 +45,12 @@ namespace EternalClash.Skill
                 reflectDamage = AlchemistUpgradeSystem.Instance.GetShieldValue();
 
             Active = true;
-            Debug.Log("[SKILL] Shield ACTIVATED (Duration: 1s, -80% DMG, Reflect 5 DMG)");
+            Debug.Log("[SKILL] Shield ACTIVATED (Duration: 1s, -80% DMG, Reflect 5 DMG, walk x" + walkSpeedMultiplier + ")");
 
             if (playerController != null)
                 playerController.StopMovement();
 
-            StopWorld();
+            SlowWorld();
 
             CancelInvoke(nameof(DisableShield));
             Invoke(nameof(DisableShield), shieldDuration);
@@ -60,16 +64,16 @@ namespace EternalClash.Skill
             if (playerController != null)
                 playerController.ResumeMovement();
 
-            ResumeWorld();
+            RestoreWorld();
         }
 
         /// <summary>
-        /// "Khung lai 1s" cua GDD 3.3. Day la auto-scroller: nguoi choi dung yen con
-        /// NEN cuon, nen dung buoc chan = dung cuon nen. Truoc day chi goi
-        /// PlayerController.StopMovement(), ma chuoi do dan toi AutoRunner.isRunning -
-        /// mot co khong dieu khien chuyen dong nao, nen khien khong he lam cham tien do.
+        /// Block kieu Postknight: khong dung yen ma VAN DI CHAM. Player bi khoa vi
+        /// tri, tien do = cuon nen, nen chi can ha speed multiplier xuong thap thay
+        /// vi StopScroll(). Truoc day dung yen nguyen man hinh, khac voi Postknight
+        /// (giuong khiên van bu tu tu).
         /// </summary>
-        private void StopWorld()
+        private void SlowWorld()
         {
             if (worldScroller == null)
                 worldScroller = FindObjectOfType<WorldScroller>();
@@ -77,19 +81,19 @@ namespace EternalClash.Skill
             if (worldScroller == null || !worldScroller.IsScrolling)
                 return;
 
-            worldScroller.StopScroll();
-            stoppedScroll = true;
+            worldScroller.SetSpeedMultiplier(walkSpeedMultiplier);
+            slowedWorld = true;
         }
 
-        private void ResumeWorld()
+        private void RestoreWorld()
         {
-            if (!stoppedScroll)
+            if (!slowedWorld)
                 return;
 
-            stoppedScroll = false;
+            slowedWorld = false;
 
             if (worldScroller != null)
-                worldScroller.ResumeScroll();
+                worldScroller.ResetSpeed();
         }
 
         public int BlockDamage(int incomingDamage, GameObject attacker = null)

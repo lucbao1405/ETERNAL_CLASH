@@ -43,6 +43,15 @@ namespace EternalClash.Combat
             }
         }
 
+        /// <summary>Nhan sat thuong theo do kho man (goi ngay sau khi spawn).</summary>
+        public void ScaleDamage(float multiplier)
+        {
+            if (multiplier <= 1f)
+                return;
+
+            damage = Mathf.Max(1, Mathf.RoundToInt(damage * multiplier));
+        }
+
         public void AttackPlayer()
         {
             Debug.Log("Enemy attack player");

@@ -21,6 +21,20 @@ namespace EternalClash.Enemy
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
+        /// <summary>
+        /// Nhan doi mau theo do kho man (goi ngay sau khi spawn, truoc khi quai
+        /// nhan bat ky sat thuong nao). Day la cho duy nhat duoc phep sua maxHealth.
+        /// </summary>
+        public void ScaleHealth(float multiplier)
+        {
+            if (multiplier <= 1f)
+                return;
+
+            maxHealth = Mathf.Max(1, Mathf.RoundToInt(maxHealth * multiplier));
+            currentHealth = maxHealth;
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        }
+
         public void TakeDamage(int damage)
         {
             if (IsDead) return;

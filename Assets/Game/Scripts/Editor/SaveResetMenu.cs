@@ -66,6 +66,15 @@ namespace EternalClash.EditorTools
         [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 4", false, 23)]
         private static void PlayStage4() => SetStageLevel(4);
 
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 5", false, 24)]
+        private static void PlayStage5() => SetStageLevel(5);
+
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 6", false, 25)]
+        private static void PlayStage6() => SetStageLevel(6);
+
+        [MenuItem("Tools/Eternal Clash/Choi Stage/Stage 7", false, 26)]
+        private static void PlayStage7() => SetStageLevel(7);
+
         /// <summary>
         /// Chi doi stageLevel, giu nguyen moi tien trinh khac (Level, vang, trang bi...).
         /// Co hieu luc tu lan vao Battle ke tiep.

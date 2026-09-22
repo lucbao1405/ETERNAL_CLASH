@@ -23,6 +23,35 @@ namespace EternalClash.UI
 
         public string IapProductId => iapProductId;
 
+        public void ConfigureIap(string productId)
+        {
+            iapProductId = productId;
+            SyncIapLabels();
+        }
+
+        /// <summary>
+        /// Noi lai card mua bang VANG (tra bang kim cuong) sau khi component
+        /// ShopOfferCard da bi thao khoi scene (sua crash Android). Gia va so
+        /// luong chi con tren label cua card nen doc lai tu label.
+        /// ponytail: parse label thay vi tai data asset; khi shop co data asset
+        /// rieng thi thay cho nay.
+        /// </summary>
+        public void ConfigureGemPurchase()
+        {
+            ShopItemSlotUI slot = GetComponent<ShopItemSlotUI>();
+            if (slot == null || !slot.TryReadOffer(out int amount, out int price))
+            {
+                Debug.LogWarning($"[ShopOfferCard] {name} khong doc du gia/so luong tu label - bo qua.");
+                return;
+            }
+
+            itemId = "coin";
+            currencyId = "diamon";
+            this.amount = amount;
+            this.price = price;
+            iapProductId = "";
+        }
+
         private void OnEnable()
         {
             SyncIapLabels();

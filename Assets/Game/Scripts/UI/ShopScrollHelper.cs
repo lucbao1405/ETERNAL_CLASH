@@ -10,6 +10,13 @@ namespace EternalClash.UI
             if (shopPanel == null)
                 return;
 
+            // Panel da co scroll hoat dong (vd ShopPanel goc chua ShopScrollView)
+            // thi khong duoc dong vao: viec tao them Viewport/Content va reparent
+            // node "Hang" lamroi cac card va hien khung trong.
+            ScrollRect existing = shopPanel.GetComponentInChildren<ScrollRect>(true);
+            if (existing != null && existing.content != null)
+                return;
+
             ScrollRect scrollRect = shopPanel.GetComponent<ScrollRect>();
             if (scrollRect == null)
                 scrollRect = shopPanel.AddComponent<ScrollRect>();

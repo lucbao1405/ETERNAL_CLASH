@@ -263,7 +263,6 @@ namespace EternalClash.Story
             public const string ID = "stage_07_monster_surge";
             public const string NAME = "Monster Surge Area";
             public const string LOCATION = "Surge Grounds";
-            
             public const string DESCRIPTION = 
                 "The Monster Surge's focal point in the Plains. " +
                 "Every type of monster gathers here — the final test before leaving this region.";
@@ -283,6 +282,58 @@ namespace EternalClash.Story
             
             public static readonly string[] ENEMIES = { "Slime", "Wolf", "Goblin Archer" };
             public static readonly string[] DROPS = { "Wood", "Copper Ore", "Rare Material" };
+        }
+
+        public static class Stage8
+        {
+            public const int INDEX = 8;
+            public const string ID = "stage_08_surge_front";
+            public const string NAME = "Surge Front";
+            public const string LOCATION = "The Surge Front";
+
+            public const string DESCRIPTION =
+                "The deepest goblin push into the Plains. Wave after wave crashes " +
+                "against the last Courier outpost before the Chieftain's arena.";
+
+            public const string PRE_BATTLE =
+                "[Hero]: The banners are torn, the outpost is burning — but the goblins keep coming.\n\n" +
+                "Every Courier before me held this line. Today it's my turn.\n\n" +
+                "Watch the archers — the waves come fast and don't stop.";
+
+            public const string POST_VICTORY =
+                "The assault breaks. The road to the Chieftain's arena lies open.\n\n" +
+                "Whatever waits beyond that gate... you've earned the right to face it.";
+
+            public const string TUTORIAL_FOCUS = "Endurance Test";
+
+            public static readonly string[] ENEMIES = { "Slime", "Wolf", "Goblin Archer" };
+            public static readonly string[] DROPS = { "Copper Ore", "Rare Material" };
+        }
+
+        public static class Stage9
+        {
+            public const int INDEX = 9;
+            public const string ID = "stage_09_chieftain_arena";
+            public const string NAME = "Chieftain's Arena";
+            public const string LOCATION = "The Chieftain's Arena";
+
+            public const string DESCRIPTION =
+                "[BOSS STAGE] The goblin warlord's arena. His elite guard holds the " +
+                "road; the Chieftain himself waits at its end.";
+
+            public const string PRE_BATTLE =
+                "[Hero]: His guard is elite — the strongest monsters I've faced yet.\n\n" +
+                "And beyond them... the Chieftain. Twelve thousand strikes of steel, they say.\n\n" +
+                "Ela is waiting at the capital. The Chieftain is in my way. There's nothing else to say.";
+
+            public const string POST_VICTORY =
+                "The Chieftain falls. The Plains are silent for the first time in years.\n\n" +
+                "The road to the capital is open... and someone is watching from the tree line.";
+
+            public const string TUTORIAL_FOCUS = "BOSS: Goblin Chieftain";
+
+            public static readonly string[] ENEMIES = { "Slime", "Wolf", "Goblin Archer", "Boss" };
+            public static readonly string[] DROPS = { "Rare Material", "Gold" };
         }
 
         // OPEN ENDING (After Stage 7)
