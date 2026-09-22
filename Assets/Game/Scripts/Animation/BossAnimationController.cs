@@ -201,6 +201,7 @@ namespace EternalClash.Animation
             state = VisualState.Taunt;
             currentBase = null;
             SetAnimatorTrigger("Taunt");
+            EternalClash.Audio.GameAudio.PlayEnemy(gameObject, EternalClash.Audio.EnemySound.Taunt);
 
             int version = ++animVersion;
             TrackEntry entry = skeletonAnimation.AnimationState.SetAnimation(0, AnimTaunt, false);

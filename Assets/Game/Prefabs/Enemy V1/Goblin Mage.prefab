@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   archerStopDistance: 0.75
-  isArcher: 1
+  isArcher: 0
   playerStopDistance: 0.75
   queueSpacing: 0.8
   queueSettleSpeed: 3

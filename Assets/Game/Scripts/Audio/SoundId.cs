@@ -46,6 +46,7 @@ namespace EternalClash.Audio
     {
         Attack,
         Hit,
-        Death
+        Death,
+        Taunt
     }
 }

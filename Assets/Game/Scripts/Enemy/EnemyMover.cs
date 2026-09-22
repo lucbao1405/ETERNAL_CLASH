@@ -13,7 +13,7 @@ namespace EternalClash.Enemy
         private static readonly List<EnemyMover> activeMovers = new List<EnemyMover>();
         private static EternalClash.World.WorldScroller cachedScroller;
 
-        [SerializeField] private float archerStopDistance = 4.5f;
+        [SerializeField] private float archerStopDistance = 2.5f;
         [SerializeField] private bool isArcher = false;
         [SerializeField] private float playerStopDistance = 0.75f;
 
@@ -117,14 +117,9 @@ namespace EternalClash.Enemy
             if (player == null)
                 return nextX;
 
-            // Trong lúc Player charge: khong xep hang, cho quai can chien trôi vào
-            // tầm charge de chiêu day liên tuc xuyen qua ca bầy thay vì dừng ở con
-            // đầu tiên. Riêng quai tầm xa (Goblin Mage/Archer) vẫn giữ khoảng cách
-            // dừng: nếu không, con ngoài màn hình bị world scroll (x4 khi charge)
-            // hút thẳng vào Player.
             if (chargeController == null)
                 chargeController = player.GetComponent<EternalClash.Player.PlayerChargeController>();
-            if (chargeController != null && chargeController.IsCharging && !isArcher)
+            if (chargeController != null && chargeController.IsCharging)
                 return nextX;
 
             float currentX = rb != null ? rb.position.x : transform.position.x;
@@ -135,11 +130,8 @@ namespace EternalClash.Enemy
                 side = -1f;
 
             // Xep hang: con dung dau dung sat Player, moi con sau lui them queueSpacing.
-            // Quai xa (Goblin Mage/Archer) dung lai o archerStopDistance de ban tu xa
-            // thay vi di san sat Player nhu quai can chien.
             int queueIndex = GetQueueIndex(currentX, side);
-            float stopDistance = isArcher ? archerStopDistance : playerStopDistance;
-            float stopX = player.position.x + side * (stopDistance + queueIndex * queueSpacing);
+            float stopX = player.position.x + side * (playerStopDistance + queueIndex * queueSpacing);
 
             // Con dau hang giu nguyen cach cu: khong bao gio duoc vuot qua cho dung.
             // Con phia sau neu dang lan vao cho con truoc (vd sau khi bi day lui, hang
@@ -165,11 +157,6 @@ namespace EternalClash.Enemy
             foreach (EnemyMover other in activeMovers)
             {
                 if (other == null || other == this || other.IsDead)
-                    continue;
-
-                // Xep hang rieng theo loai: archer chi tinh cac archer dung truoc,
-                // neu khong no bi day lui sau moi quai can chien va mat tam ban.
-                if (other.isArcher != isArcher)
                     continue;
 
                 float otherX = other.rb != null ? other.rb.position.x : other.transform.position.x;

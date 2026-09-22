@@ -61,6 +61,16 @@ namespace EternalClash.Monetization
                 return;
             }
 
+            // Stage da ket thuc (thang/thua) thi khong con nen hoi sinh.
+            // Popup co the con mo khi flow victory bat dau (race condition).
+            StageManager stage = StageManager.Instance;
+            if (stage != null && stage.CurrentState != StageManager.StageState.Running)
+            {
+                Debug.Log("[Revive] Da qua tran, bo qua hoi sinh.");
+                OfferOverlayUI.Close();
+                return;
+            }
+
             if (success)
             {
                 Debug.Log("[Revive] Nguoi choi hoi sinh voi 50% HP.");

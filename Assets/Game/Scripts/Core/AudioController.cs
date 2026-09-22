@@ -335,6 +335,7 @@ namespace EternalClash.Core
 
             AudioClip[] clips = type == EnemySound.Attack ? sounds.attack
                 : type == EnemySound.Hit ? sounds.hit
+                : type == EnemySound.Taunt ? sounds.taunt
                 : sounds.death;
 
             // Nhieu quai trung don cung luc (Luot kiem) thi chi phat 1 tieng moi loai.
