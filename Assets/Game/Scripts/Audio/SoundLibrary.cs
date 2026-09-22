@@ -43,6 +43,8 @@ namespace EternalClash.Audio
             public AudioClip[] attack;
             public AudioClip[] hit;
             public AudioClip[] death;
+            [Tooltip("Am thanh dac biet rieng cua loai quai (vd Boss khieu khich).")]
+            public AudioClip[] taunt;
             [Range(0f, 1f)] public float volume = 1f;
             [Range(0f, 0.3f)] public float pitchVariance = 0.08f;
         }
