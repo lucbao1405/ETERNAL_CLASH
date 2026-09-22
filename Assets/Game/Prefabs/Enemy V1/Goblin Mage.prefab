@@ -294,6 +294,7 @@ MonoBehaviour:
   attackRange: 4
   knockbackForce: 5
   hitMoment: 0.5
+  windUpTime: 0.6
   projectilePrefab: {fileID: 1190294507443897956, guid: b035958e50e59704f8a47e0cf6dd8b0e, type: 3}
   projectileSpeed: 5
   projectileSpawnOffset: {x: 0, y: 0.5}
@@ -804,6 +805,6 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -125.55986, y: 24.471779}
+  m_Offset: {x: -71.38675, y: 24.471779}
   serializedVersion: 2
-  m_Radius: 145.11072
+  m_Radius: 90.937546

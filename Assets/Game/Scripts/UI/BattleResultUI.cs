@@ -144,6 +144,15 @@ namespace EternalClash.UI
             ShowCore(exp, 0, battleTime, false, items, continueAction);
         }
 
+        /// <summary>
+        /// Cap nhat lai danh sach vat pham tren popup (sau khi xem ad X2) ma khong
+        /// chay lai animation thanh EXP hay banner.
+        /// </summary>
+        public void RefreshRewards(IList<ItemReward> items)
+        {
+            PopulateItems(items);
+        }
+
         public void Close()
         {
             StopExpAnimation();

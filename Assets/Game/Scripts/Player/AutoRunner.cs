@@ -32,11 +32,9 @@ namespace EternalClash.Player
                 return;
             }
 
-            float x = homePosition.x;
             float y = Mathf.Clamp(transform.position.y,
                 homePosition.y - maxVerticalOffset, homePosition.y + maxVerticalOffset);
-
-            transform.position = new Vector3(x, y, homePosition.z);
+            transform.position = new Vector3(homePosition.x, y, homePosition.z);
         }
 
         public void StopRunning()

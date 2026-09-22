@@ -37,6 +37,17 @@ namespace EternalClash.Wave
                  "Wave dau giu nguyen toc do trong WaveData de quai chay ra luon.")]
         [Min(1f)] [SerializeField] private float laterWaveIntervalMultiplier = 1.5f;
 
+        [Header("Spacing")]
+        [Tooltip("So quai toi da song dong thoi tren truong. Chi spawn quai moi khi so quai " +
+                 "dang song nho hon con so nay (1-3 con la dang danh).")]
+        [Min(1)] [SerializeField] private int maxAliveOnField = 3;
+
+        [Tooltip("Khoang cach toi thieu (giay) giua 2 lan spawn bat ky, ke ca 2 nhom khac nhau, " +
+                 "de quai khong ra cung luc va de len nhau.")]
+        [Min(0f)] [SerializeField] private float minSpawnGap = 0.8f;
+
+        private float nextSpawnAllowed;
+
         private readonly HashSet<GameObject> aliveEnemies = new HashSet<GameObject>();
         private int currentWaveIndex = -1;
         private int groupsStillSpawning;
@@ -90,6 +101,7 @@ namespace EternalClash.Wave
 
             aliveEnemies.Clear();
             currentWaveIndex = -1;
+            nextSpawnAllowed = 0f;
             stageRoutine = StartCoroutine(RunStage());
         }
 
@@ -156,6 +168,11 @@ namespace EternalClash.Wave
 
             for (int i = 0; i < group.count; i++)
             {
+                // Giu slot roi moi spawn: moi thoi diem chi 1 con duoc spawn (cac nhom
+                // chay song song nhung phai xep hang qua chung 1 slot nay).
+                while (!TryClaimSpawnSlot())
+                    yield return null;
+
                 SpawnEnemy(group.enemyPrefab);
 
                 float interval = group.spawnInterval * (currentWaveIndex > 0 ? laterWaveIntervalMultiplier : 1f);
@@ -164,6 +181,19 @@ namespace EternalClash.Wave
             }
 
             groupsStillSpawning--;
+        }
+
+        /// Chi 1 coroutine giu duoc slot trong 1 thoi diem: kiem tra va dat lich chay
+        /// trong cung 1 frame, nen 2 nhom khong the spawn cung luc.
+        /// Con dieu kien: khong vuot maxAliveOnField quai song + da qua minSpawnGap.
+        private bool TryClaimSpawnSlot()
+        {
+            aliveEnemies.RemoveWhere(enemy => enemy == null);
+            if (aliveEnemies.Count >= maxAliveOnField || Time.time < nextSpawnAllowed)
+                return false;
+
+            nextSpawnAllowed = Time.time + minSpawnGap;
+            return true;
         }
 
         private void SpawnEnemy(GameObject prefab)

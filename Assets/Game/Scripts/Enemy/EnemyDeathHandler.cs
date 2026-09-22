@@ -43,7 +43,7 @@ public class EnemyDeathHandler : MonoBehaviour
 
         EternalClash.Enemy.EnemyMover mover = GetComponent<EternalClash.Enemy.EnemyMover>();
         if (mover != null)
-            mover.StopMovement();
+            mover.StartDrift();
 
         EternalClash.Enemy.EnemyController controller = GetComponent<EternalClash.Enemy.EnemyController>();
         if (controller != null)

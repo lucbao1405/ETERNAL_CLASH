@@ -5,30 +5,48 @@ namespace EternalClash.Combat
 {
     public class EnemyKnockbackReceiver : MonoBehaviour
     {
-        public float knockbackDistance = 1.0f;
+        // Day lui nho cho MOI don trung (Postknight: quai bat lui nhe moi don).
+        // ponytail: gia tri cu 1.0 khong dung thi lam quai khong bao gio vuot
+        // lai tam danh vi quai chi tien lai bang world scroll. Muon day manh
+        // hon (phan don/charge) thi set knockbackDistance tai cho goi.
+        public float knockbackDistance = 0.35f;
         public float knockbackSpeed = 8f;
 
         private Vector2 target;
         private bool knocked;
         private float lockedY;
         private EnemyMover mover;
+        private Rigidbody2D rb;
 
         private void Awake()
         {
             mover = GetComponent<EnemyMover>();
+            rb = GetComponent<Rigidbody2D>();
         }
 
         private void Update()
         {
             if (!knocked) return;
 
-            Vector3 current = transform.position;
-            Vector2 next = Vector2.MoveTowards(new Vector2(current.x, lockedY), target, knockbackSpeed * Time.deltaTime);
-            transform.position = new Vector3(next.x, lockedY, current.z);
+            // Quai la kinematic Rigidbody2D (EnemyMover dieu khien bang
+            // MovePosition) nen phai di qua rb: ghi truc tiep transform.position
+            // bi pose cua rb ghi de lai ngay buoc vat ly ke tiep.
+            float currentX = rb != null ? rb.position.x : transform.position.x;
+            Vector2 next = Vector2.MoveTowards(new Vector2(currentX, lockedY), target, knockbackSpeed * Time.deltaTime);
 
-            if (Mathf.Abs(transform.position.x - target.x) < 0.05f)
+            if (rb != null)
+                rb.MovePosition(next);
+            else
+                transform.position = new Vector3(next.x, lockedY, transform.position.z);
+
+            if (Mathf.Abs(currentX - target.x) < 0.05f)
             {
-                transform.position = new Vector3(target.x, lockedY, current.z);
+                if (rb != null)
+                {
+                    rb.position = target;
+                    rb.MovePosition(target);
+                }
+                transform.position = new Vector3(target.x, lockedY, transform.position.z);
                 knocked = false;
             }
         }

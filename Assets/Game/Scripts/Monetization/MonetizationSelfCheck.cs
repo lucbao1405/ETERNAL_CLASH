@@ -25,6 +25,7 @@ namespace EternalClash.Monetization
                 CheckHealthSystem();
                 CheckIapCatalog();
                 CheckSaveFields();
+                CheckX2DisplayRefresh();
             }
             catch (System.Exception exception)
             {
@@ -90,6 +91,27 @@ namespace EternalClash.Monetization
         {
             SaveData data = new SaveData();
             Check(!data.starterPackPurchased, "starterPackPurchased mac dinh false");
+        }
+
+        /// <summary>
+        /// X2 cuoi tran: sau khi xem ad, entry cua ruong tren popup thang phai
+        /// bao dung so gap doi (RefreshWinPopupAfterDouble nhan doi quantity
+        /// roi doc lai display list).
+        /// </summary>
+        private static void CheckX2DisplayRefresh()
+        {
+            UI.ItemReward ore = BattleResult.BattleRewardData.CreateEntry("Ore", "Copper Ore", 5);
+            Check(ore != null && ore.quantity == 5, "Tao entry ruong Ore 5 don vi");
+
+            ore.quantity *= 2;
+            BattleResult.BattleRewardData data = new BattleResult.BattleRewardData();
+            data.chestReward.Add(ore);
+
+            UI.ItemReward shown = data.GetDisplayItems().Find(entry =>
+                entry != null && entry.item != null &&
+                string.Equals(entry.item.itemId, "Ore", System.StringComparison.OrdinalIgnoreCase));
+            Check(shown != null && shown.quantity == 10,
+                $"X2: entry ruong sau khi nhan doi phai hien thi 10 (thay {(shown != null ? shown.quantity.ToString() : "khong co")})");
         }
 
         private static void Check(bool condition, string label)

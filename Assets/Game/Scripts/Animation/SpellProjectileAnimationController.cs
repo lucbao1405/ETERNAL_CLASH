@@ -24,9 +24,13 @@ namespace EternalClash.Animation
             if (skeletonAnimation == null || skeletonAnimation.Skeleton == null ||
                 skeletonAnimation.Skeleton.Data == null) return;
 
+            // "bay" la clip cua Spell; projectile khac (vd Bullet chi co "shot")
+            // tu quay ve clip dau tien cua skeleton.
             string animName = "bay";
-            if (skeletonAnimation.Skeleton.Data.FindAnimation(animName) != null)
-                skeletonAnimation.AnimationState.SetAnimation(0, animName, true);
+            if (skeletonAnimation.Skeleton.Data.FindAnimation(animName) == null)
+                animName = FindFirstAnimation();
+            if (animName == null) return;
+            skeletonAnimation.AnimationState.SetAnimation(0, animName, true);
         }
 
         private string FindFirstAnimation()

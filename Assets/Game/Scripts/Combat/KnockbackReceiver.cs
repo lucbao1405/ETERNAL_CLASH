@@ -78,7 +78,11 @@ namespace EternalClash.Combat
             }
         }
 
-        public void ApplyKnockback(Vector2 direction, float force)
+        /// <summary>
+        /// distance &gt; 0 thi dung chinh no lam quang duoi (push-pull tung don danh),
+        /// de trong thi dung knockbackDistance serialize san (hanh vi cu).
+        /// </summary>
+        public void ApplyKnockback(Vector2 direction, float force, float distance = -1f)
         {
             if (healthSystem != null && healthSystem.IsDead) return;
             // HealthSystem (cua Player) tren dich khong bao gio bi tru mau nen
@@ -102,8 +106,9 @@ namespace EternalClash.Combat
             if (enemyMover != null)
                 enemyMover.PauseMovement(enemyStunTime);
 
+            float pushDistance = distance > 0f ? distance : knockbackDistance;
             targetPosition = new Vector2(
-                originalPosition.x + Mathf.Sign(direction.x) * knockbackDistance,
+                originalPosition.x + Mathf.Sign(direction.x) * pushDistance,
                 originalPosition.y);
             isKnockback = true;
         }
@@ -133,6 +138,7 @@ namespace EternalClash.Combat
             float totalLockTime = recoveryTime + (worldScroller != null ? worldScroller.KnockbackTotalDuration : 0f);
             Invoke(nameof(RecoverFromHit), totalLockTime);
 
+            CombatVFXController.Instance?.Shake(0.1f);
             Debug.Log("[KNOCKBACK] Player environment knockback: force=" + force);
         }
 
