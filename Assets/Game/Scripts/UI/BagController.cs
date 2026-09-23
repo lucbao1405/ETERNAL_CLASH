@@ -23,10 +23,18 @@ namespace EternalClash.UI
         public void SetGiftMode(System.Action<ItemData> onGiftClicked)
         {
             giftClickHandler = onGiftClicked;
+            RearmGiftMode();
+            Refresh();
+        }
+
+        // SetGiftMode can run while the panel is still inactive (Ela menu arms it
+        // before opening the bag); slots are only discovered in Awake/OnEnable, so
+        // re-apply the override whenever the panel wakes up.
+        private void RearmGiftMode()
+        {
             System.Action<ItemData> slotOverride = giftClickHandler != null ? OnGiftSlotClicked : (System.Action<ItemData>)null;
             foreach (BagSlot slot in slots)
                 slot.ClickOverride = slotOverride;
-            Refresh();
         }
 
         private void OnGiftSlotClicked(ItemData item) => giftClickHandler?.Invoke(item);
@@ -43,6 +51,7 @@ namespace EternalClash.UI
                 DiscoverSlots();
             if (itemLookup.Count == 0)
                 BuildItemLookup();
+            RearmGiftMode();
             Refresh();
             SubscribeToSaveChanges();
         }
