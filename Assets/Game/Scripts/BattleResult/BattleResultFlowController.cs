@@ -28,6 +28,12 @@ namespace EternalClash.BattleResult
         [SerializeField] private BattleResultUI winUI;
         [SerializeField] private BattleResultUI loseUI;
 
+        [Header("Monetization")]
+        [Tooltip("Hien bang 'xem quang cao de nhan doi thuong ruong' sau khi thang. " +
+                 "Dang TAT: tinh nang nay chua chot, bat len thi moi tran thang deu " +
+                 "hien quang cao de len popup ket qua.")]
+        [SerializeField] private bool enableDoubleRewardOffer = false;
+
         [Header("Flow Timing")]
         [SerializeField, Min(0f)] private float victoryDelay = 2f;
         [SerializeField, Min(0f)] private float defeatDelay = 0f;
@@ -62,6 +68,7 @@ namespace EternalClash.BattleResult
             chestRewards.Clear();
             pendingChestReward = null;
             battleFinished = false;
+            RewardsDoubled = false;
             ItemPickup.OnItemCollected += HandleItemCollected;
         }
 
@@ -154,7 +161,8 @@ namespace EternalClash.BattleResult
             // Offer X2 (monetization): chi cho thuong Gold/Gem/Material - Equipment
             // va Gift nhan doi se loi (them mon trang bi / hoa cuc). Phai luu lai
             // truoc GrantChestReward() vi no xoa pendingChestReward.
-            bool canDouble = pendingChestReward != null && pendingChestReward.amount > 0 &&
+            bool canDouble = enableDoubleRewardOffer &&
+                pendingChestReward != null && pendingChestReward.amount > 0 &&
                 (pendingChestReward.type == RewardType.Gold ||
                  pendingChestReward.type == RewardType.Gem ||
                  pendingChestReward.type == RewardType.Material);
@@ -223,6 +231,62 @@ namespace EternalClash.BattleResult
         /// cua ruong nhan doi (vat pham) va doc lai SessionGoldEarned (tien).
         /// Chi doi danh sach hien thi, khong chay lai animation thanh EXP.
         /// </summary>
+        /// <summary>Tran nay da nhan doi vat pham chua (nut QCx2Item chi dung 1 lan).</summary>
+        public bool RewardsDoubled { get; private set; }
+
+        /// <summary>
+        /// Nhan doi TOAN BO thu dang hien trong o Vat_Pham cua Win popup: cong
+        /// them dung mot lan nua vao tui do / tien, roi cap nhat so luong tren
+        /// popup. Goi sau khi nguoi choi xem xong quang cao X2.
+        /// Tra ve false neu da nhan doi roi hoac khong co gi de nhan.
+        /// </summary>
+        public bool DoubleDisplayedRewards()
+        {
+            if (RewardsDoubled || winUI == null)
+                return false;
+
+            List<ItemReward> shown = BuildResultData(true).GetDisplayItems();
+            if (shown == null || shown.Count == 0)
+                return false;
+
+            RewardsDoubled = true;
+
+            foreach (ItemReward entry in shown)
+            {
+                if (entry == null || entry.item == null || entry.quantity <= 0)
+                    continue;
+
+                string itemId = entry.item.itemId ?? string.Empty;
+                if (string.Equals(itemId, "Gold", StringComparison.OrdinalIgnoreCase))
+                    GoldSystem.Instance?.AddGold(entry.quantity);
+                else if (string.Equals(itemId, "Gem", StringComparison.OrdinalIgnoreCase))
+                    GoldSystem.Instance?.AddGem(entry.quantity);
+                else
+                    AddNormalItemReward(entry.item, entry.quantity);
+            }
+
+            // So hien tren popup: vang tu cap nhat theo SessionGoldEarned (AddGold
+            // o tren da cong), cac item con lai nhan doi truc tiep trong danh sach.
+            DoubleQuantities(battleLoot);
+            DoubleQuantities(chestRewards);
+
+            winUI.RefreshRewards(BuildResultData(true).GetDisplayItems());
+            Debug.Log("[Ads] X2 vat pham: da nhan doi phan thuong tran nay.");
+            return true;
+        }
+
+        private static void DoubleQuantities(List<ItemReward> list)
+        {
+            if (list == null)
+                return;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] != null && list[i].quantity > 0)
+                    list[i].quantity *= 2;
+            }
+        }
+
         private void RefreshWinPopupAfterDouble()
         {
             if (winUI == null || winPopup == null || !winPopup.activeSelf)

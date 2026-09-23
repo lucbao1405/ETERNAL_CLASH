@@ -34,7 +34,7 @@ namespace EternalClash.UI
 
         [Header("EXP Bar Animation")]
         [Tooltip("So giay de thanh EXP chay tu rong toi day.")]
-        [SerializeField, Min(0.1f)] private float expFullBarDuration = 5f;
+        [SerializeField, Min(0.1f)] private float expFullBarDuration = 2f;
         [Tooltip("So giay nhan vat dien animation thang khi thanh EXP day (len cap).")]
         [SerializeField, Min(0f)] private float levelUpAnimDuration = 2f;
         [SerializeField] private string levelUpAnimation = "victory";
