@@ -59,7 +59,7 @@ public class SaveData
     public int affinityPoints = 0;
     public List<string> unlockedLetters = new List<string>();
 
-    // Ela (romance NPC at the first house, unlocked after Stage 5)
+    // Ela (romance NPC at the first house, unlocked after clearing Stage 3)
     public int elaAffinity = 0;
     public List<string> elaTopicsDone = new List<string>();
     public List<string> elaGiftsReceived = new List<string>();

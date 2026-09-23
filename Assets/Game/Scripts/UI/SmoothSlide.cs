@@ -58,6 +58,14 @@ public class SmoothSlide : MonoBehaviour
         }
 
         isOpen = false;
+
+        // Panel dat san trong man hinh trong editor: ve dung cho do khi mo.
+        if (PanelPlacement.TryDerive(panelRect, out Vector2 shownPos, out Vector2 hiddenPos))
+        {
+            onScreenPos = shownPos;
+            offScreenPos = hiddenPos;
+        }
+
         panelRect.anchoredPosition = offScreenPos;
 
         initialized = true;

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using Spine.Unity;
+using EternalClash.Character;
 using EternalClash.Combat;
 using EternalClash.Dialogue;
 using EternalClash.Player;
@@ -158,6 +159,8 @@ namespace EternalClash.Stage
                 yield return new WaitForSeconds(NoNpcRunSeconds);
             }
 
+            // Hero dung lai (stand) truoc NPC, bat dau hoi thoai. Chi sau khi
+            // hoi thoai dong, ProceedToVictoryFlow moi mo animation victory.
             var scroller = FindObjectOfType<WorldScroller>();
             if (scroller != null)
             {
@@ -185,11 +188,14 @@ namespace EternalClash.Stage
         /// </summary>
         private GameObject ActivateMeetingNpc(GameObject hero)
         {
+            // Phai dung cung so man voi StoryManager.HasNPCEncounter:
+            // 1=Garen, 2=Elara, 3=Ela. Sai so man thi NPC khong bao gio xuat
+            // hien (chi co hoi thoai khong than).
             string npcGoName = stageIndex switch
             {
                 1 => "FieldNPC_Garen",
                 2 => "FieldNPC_Elara",
-                5 => "FieldNPC_Ela",
+                3 => "FieldNPC_Ela",
                 _ => null
             };
 
@@ -220,13 +226,25 @@ namespace EternalClash.Stage
                 skeleton.AnimationState.SetAnimation(0, "stand", true);
             }
 
+            // Spine "con vo" (Ela) duoc ve quay PHAI (mat nam phia ben phai
+            // khoi toc trong atlas) - khac Garen/Elara quay trai. Lat bang
+            // ScaleX cua chinh skeleton Spine, khong dung localScale am vi no
+            // lat quanh pivot cua Transform va de lam lech vi tri hien thi.
+            if (skeleton != null && skeleton.skeleton != null && stageIndex == 3)
+                skeleton.skeleton.ScaleX = -1f;
+
+            // Field NPC khong co tag Player/Enemy nen CharacterShadowBootstrapper
+            // bo qua; them bong giong nhan vat de NPC khong troi khoi mat dat.
+            if (npc.GetComponent<CharacterShadow>() == null)
+                npc.gameObject.AddComponent<CharacterShadow>();
+
             return npc.gameObject;
         }
 
         /// <summary>
-        /// Scales the NPC so they stand eye-to-eye with the hero, then turns
-        /// them toward the approaching hero (player-authored spines face right;
-        /// waiting NPCs must face left).
+        /// Scales the NPC so they stand eye-to-eye with the hero. Cac spine NPC
+        /// deu duoc ve quay mat vao duong (trai, ve phia nhan vat chay den)
+        /// giong nhau - ke ca Ela - nen khong lat khung hinh NPC nao.
         /// </summary>
         private void MatchHeroHeightAndFaceHero(Transform npc, GameObject hero)
         {
@@ -248,13 +266,9 @@ namespace EternalClash.Stage
             }
 
             float scale = (heroWorldHeight * 1.05f) / npcData.Height;
-            // Garen/Elara spines are authored facing the road (left, like in
-            // Town). Character spines like Ela's "con vo" are authored facing
-            // right, so those get mirrored to look back at the hero.
-            bool flipToFaceLeft = stageIndex == 5;
-            npc.localScale = new Vector3(
-                flipToFaceLeft ? -Mathf.Abs(scale) : Mathf.Abs(scale),
-                Mathf.Abs(scale), 1f);
+            // Scale duong cho moi NPC; rieng huong mat xu ly rieng o
+            // ActivateMeetingNpc (Ela bi lat bang skeleton.ScaleX = -1).
+            npc.localScale = new Vector3(Mathf.Abs(scale), Mathf.Abs(scale), 1f);
         }
 
         /// <summary>Called by StageCompleteController when the dialogue closes.</summary>

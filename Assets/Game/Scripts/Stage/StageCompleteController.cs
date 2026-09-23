@@ -157,10 +157,11 @@ namespace EternalClash.Stage
                 Story.StoryManager.HasNPCEncounter(clearedStage) ||
                 Story.StoryManager.IsStoryStage(clearedStage))
             {
-                // The meeting dialogue is part of the victory flow. Stop all
-                // combat before opening it so a late damage tick cannot trigger
-                // the in-battle revive offer over the dialogue panel.
-                StopCombat();
+                // KHONG StopCombat() o day: no dung ca world + AutoRunner, khien
+                // nhan vat dung im thay vi run den NPC. FieldMeetingController
+                // tu tat phan chien dau (PartialStopCombat) nhung van giu world
+                // cuon + hero run; dung toan bo chi xay khi NPC dung lai, va
+                // lan cuoi cung la StopCombat trong victory flow sau hoi thoai.
                 EternalClash.Monetization.OfferOverlayUI.Close();
                 FieldMeetingController.Begin(clearedStage, this);
                 return;
@@ -176,6 +177,14 @@ namespace EternalClash.Stage
         /// </summary>
         public void ProceedToVictoryFlow()
         {
+            // Animation "victory" chi mo khi flow thang that su chay: khong co
+            // NPC thi ngay tai day, co NPC thi FieldMeetingController goi lai
+            // SAU khi hoi thoai ket thuc (nhan vat chay toi NPC truoc do).
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+                player.GetComponentInChildren<EternalClash.Animation.PlayerAnimationController>()
+                    ?.NotifyVictory();
+
             if (BattleResultFlowController.Instance != null &&
                 BattleResultFlowController.Instance.StartVictoryFlow())
                 return;
@@ -486,6 +495,16 @@ namespace EternalClash.Stage
                 speaker = Story.StoryManager.GetStageName(clearedStage);
                 lines = Story.StoryManager.GetStoryDialogue(clearedStage);
             }
+            else if (IsBossStage(clearedStage))
+            {
+                // Boss khong co NPC tren duong nhung van phai mo mot doan hoi thoai:
+                // OnMeetingDialogueClosed phu thuoc DialogueCompleted de chay chuoi
+                // ket chapter (open ending -> thu cua Ela). Khong co nhanh nay thi
+                // pendingEncounterStage khong duoc gan va phan ket khong bao gio chay.
+                speaker = Story.StoryManager.GetStageName(clearedStage);
+                string narration = Story.StoryManager.GetPostVictoryNarration(clearedStage);
+                lines = string.IsNullOrEmpty(narration) ? null : new[] { narration };
+            }
 
             DialogueManager dialogueManager = EnsureDialogueManager();
             if (dialogueManager == null || lines == null || lines.Length == 0)
@@ -562,9 +581,14 @@ namespace EternalClash.Stage
                 // The thoai prefab's DialogueManager sits on a panel that is
                 // deactivated right after Awake, so plain FindObjectOfType
                 // misses it. Any scene-object instance is valid, active or not.
+                // Any scene-object instance is valid, active or not — but it must
+                // have run Awake at least once: an inactive object never Awake'd,
+                // so its references are still the prefab defaults (null panel) and
+                // every OpenDialogue would fail ValidateReferences silently.
                 foreach (DialogueManager candidate in Resources.FindObjectsOfTypeAll<DialogueManager>())
                 {
-                    if (candidate != null && candidate.gameObject.scene.IsValid())
+                    if (candidate != null && candidate.gameObject.scene.IsValid() &&
+                        (candidate.gameObject.activeInHierarchy || candidate.IsInitialized))
                     {
                         battleDialogue = candidate;
                         break;

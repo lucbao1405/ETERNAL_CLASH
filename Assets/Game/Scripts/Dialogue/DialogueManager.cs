@@ -19,7 +19,7 @@ public class DialogueManager : MonoBehaviour
     [SerializeField, Min(0f)] private float charactersPerSecond = 40f;
 
     [Header("Slide Animation")]
-    [Tooltip("Anchored position while visible. Leave (0, 0) to calculate it from the panel's hidden editor position.")]
+    [Tooltip("Anchored position while visible. Leave (0, 0) to use the panel's editor position (where it sits on screen) as the shown position.")]
     [SerializeField] private Vector2 shownAnchoredPosition;
     [Tooltip("How far above the shown position the panel waits while hidden.")]
     [SerializeField, Min(0f)] private float hiddenOffset = 525f;
@@ -41,10 +41,19 @@ public class DialogueManager : MonoBehaviour
 
     /// <summary>Hop hoi thoai dang hien. Dung cho nut Back Android.</summary>
     public bool IsOpen => isOpen;
+
+    /// <summary>
+    /// Awake da chay va tham chieu panel hop le. Ban sao DialogueManager tren
+    /// prefab "thoai" nam tren object bi tat nen khong bao gio Awake: panel van
+    /// null va moi OpenDialogue se that bai im lang.
+    /// </summary>
+    public bool IsInitialized => dialoguePanel != null;
     private GameObject panelToOpenAfterDialogue;
 
     private Vector2 HiddenAnchoredPosition =>
         shownAnchoredPosition + Vector2.up * hiddenOffset;
+
+    private Vector2 hiddenPosition;
 
     private void Awake()
     {
@@ -56,15 +65,29 @@ public class DialogueManager : MonoBehaviour
 
         panelRectTransform = dialoguePanel.GetComponent<RectTransform>();
 
-        // In Town the brown panel is placed just above the screen in the editor.
-        // When no explicit shown position is configured, derive it from there.
+        // Panel dat san TRONG man hinh trong editor: do la diem ket thuc khi mo,
+        // vi tri an = day het panel len tren canh canvas. Panel van dat NGOAI
+        // man hinh trong editor thi coi do la vi tri an nhu cach dat cu.
         if (shownAnchoredPosition == Vector2.zero)
         {
-            shownAnchoredPosition = panelRectTransform.anchoredPosition
-                - Vector2.up * hiddenOffset;
+            if (PanelPlacement.TryDerive(panelRectTransform,
+                    out shownAnchoredPosition, out Vector2 derivedHiddenPos))
+            {
+                hiddenPosition = derivedHiddenPos;
+            }
+            else
+            {
+                shownAnchoredPosition = panelRectTransform.anchoredPosition
+                    - Vector2.up * hiddenOffset;
+                hiddenPosition = HiddenAnchoredPosition;
+            }
+        }
+        else
+        {
+            hiddenPosition = HiddenAnchoredPosition;
         }
 
-        panelRectTransform.anchoredPosition = HiddenAnchoredPosition;
+        panelRectTransform.anchoredPosition = hiddenPosition;
 
         if (panelClickAdvances)
         {
@@ -154,7 +177,7 @@ public class DialogueManager : MonoBehaviour
         // phat hien ra de nha nen toi. Lay bang lam chu so huu thi PanelDim tu bo.
         PanelDim.Acquire(dialoguePanel);
         panelRectTransform = dialoguePanel.GetComponent<RectTransform>();
-        panelRectTransform.anchoredPosition = HiddenAnchoredPosition;
+        panelRectTransform.anchoredPosition = hiddenPosition;
 
         characterNameText.text = characterName;
         if (avatarImage != null)
@@ -164,6 +187,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         ShowCurrentLine();
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
         slideCoroutine = StartCoroutine(SlidePanel(shownAnchoredPosition, false));
     }
 
@@ -235,8 +259,9 @@ public class DialogueManager : MonoBehaviour
         if (slideCoroutine != null)
             StopCoroutine(slideCoroutine);
 
+        EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.PanelScroll);
         slideCoroutine = StartCoroutine(SlidePanel(
-            HiddenAnchoredPosition,
+            hiddenPosition,
             true,
             panelToOpenAfterDialogue
         ));
@@ -335,9 +360,17 @@ public class DialogueManager : MonoBehaviour
         {
             ShopPanelAnimator shopPanelAnimator = panelToActivate.GetComponent<ShopPanelAnimator>();
             if (shopPanelAnimator != null)
+            {
                 shopPanelAnimator.Open();
+            }
             else
-                panelToActivate.SetActive(true);
+            {
+                SmoothSlide smoothSlide = panelToActivate.GetComponent<SmoothSlide>();
+                if (smoothSlide != null)
+                    smoothSlide.OpenPanel();
+                else
+                    panelToActivate.SetActive(true);
+            }
 
             panelToActivate.transform.SetAsLastSibling();
 

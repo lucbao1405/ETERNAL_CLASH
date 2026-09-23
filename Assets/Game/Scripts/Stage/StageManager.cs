@@ -200,10 +200,14 @@ public class StageManager : MonoBehaviour
 
         if (SaveManager.Instance != null && SaveManager.Instance.Data != null)
         {
-            // Clear thanh cong -> tang len man ke tiep, gioi han o man cuoi cung
-            // (so man lay tu stageCatalog de khong hard-code).
+            // Clear thanh cong -> tang len man ke tiep. stageLevel la "so man da
+            // clear": cho phep vuot qua MaxStageLevel dung mot don vi de ghi dau
+            // da clear man cuoi (boss). Neu chi cap bang MaxStageLevel thi khong
+            // bao gio dat duoc stageLevel=6 -> Ela khong bao gio mo khoa,
+            // HasCompletedChapter1 (stageLevel > 5) khong bao gio dung, va choi
+            // lai boss se bi ha cap tien trinh tu 6 ve 5.
             int nextStage = SaveManager.Instance.Data.stageLevel + 1;
-            SaveManager.Instance.Data.stageLevel = Mathf.Min(MaxStageLevel, nextStage);
+            SaveManager.Instance.Data.stageLevel = Mathf.Min(MaxStageLevel + 1, nextStage);
             SaveCoordinator.RequestSave();
         }
     }

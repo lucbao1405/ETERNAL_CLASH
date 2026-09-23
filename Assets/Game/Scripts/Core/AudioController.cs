@@ -53,6 +53,8 @@ namespace EternalClash.Core
         private Coroutine musicFade;
         private int nextPoolIndex;
         private bool pendingClick;
+        private Vector2 pointerDownPosition;
+        private bool pointerDownTracked;
         private bool settingsDirty;
         private int lastButtonFeedbackFrame = -1;
 
@@ -316,12 +318,15 @@ namespace EternalClash.Core
                 lastPlayTime[id] = now;
         }
 
-        /// <summary>Am rieng cua mot so nut bam - khi phat thi bo tieng click thuong.</summary>
+        /// <summary>
+        /// Am nut bam tu phat trong handler (ke ca UIClick) thi bo tieng click
+        /// toan cung frame, tranh mot lan bam bi phong hai tieng click.
+        /// </summary>
         private static bool IsButtonFeedback(SoundId id)
         {
             return id == SoundId.StatSelect || id == SoundId.UpgradeAccept ||
                    id == SoundId.ItemUpgrade || id == SoundId.ChestOpen ||
-                   id == SoundId.PanelScroll;
+                   id == SoundId.PanelScroll || id == SoundId.UIClick;
         }
 
         public void PlayEnemy(GameObject enemy, EnemySound type)
@@ -455,24 +460,49 @@ namespace EternalClash.Core
             if (EventSystem.current == null)
                 return;
 
-            Vector2 position;
             if (Input.touchCount > 0)
             {
                 Touch touch = Input.GetTouch(0);
-                if (touch.phase != TouchPhase.Ended)
-                    return;
-                position = touch.position;
+                if (touch.phase == TouchPhase.Began)
+                {
+                    pointerDownPosition = touch.position;
+                    pointerDownTracked = true;
+                }
+                else if (touch.phase == TouchPhase.Ended)
+                {
+                    QueueClickIfTapped(touch.position);
+                }
+            }
+            else if (Input.GetMouseButtonDown(0))
+            {
+                pointerDownPosition = Input.mousePosition;
+                pointerDownTracked = true;
             }
             else if (Input.GetMouseButtonUp(0))
             {
-                position = Input.mousePosition;
+                QueueClickIfTapped(Input.mousePosition);
             }
-            else
-            {
-                return;
-            }
+        }
 
-            var pointer = new PointerEventData(EventSystem.current) { position = position };
+        /// <summary>
+        /// Chi tinh la click nut khi tha tay IT NGUYEN CHO (khong qua nguong drag
+        /// cua EventSystem) VA diem tha trung nut bam. Vuot world, cuon list
+        /// skill... thi im lang, khong phat tieng click o diem tha tay.
+        /// </summary>
+        private void QueueClickIfTapped(Vector2 upPosition)
+        {
+            if (!pointerDownTracked)
+                return;
+
+            pointerDownTracked = false;
+
+            float dragThreshold = EventSystem.current != null
+                ? EventSystem.current.pixelDragThreshold
+                : 10f;
+            if (Vector2.Distance(pointerDownPosition, upPosition) > dragThreshold)
+                return;
+
+            var pointer = new PointerEventData(EventSystem.current) { position = upPosition };
             var hits = new List<RaycastResult>();
             EventSystem.current.RaycastAll(pointer, hits);
             if (hits.Count == 0)

@@ -33,7 +33,21 @@ namespace EternalClash.UI
         [SerializeField] private Button healButton;
         [SerializeField] private Button closeButton;
 
-        public bool IsOpen { get; private set; }
+        // Co SmoothSlide thi Show/Close di qua no (truot ve vi tri dat trong
+        // editor + tieng PanelScroll + Nen_toi); khong thi giu lung SetActive cu.
+        public bool IsOpen => Slide != null ? Slide.IsOpen : legacyIsOpen;
+        private bool legacyIsOpen;
+        private SmoothSlide slide;
+
+        private SmoothSlide Slide
+        {
+            get
+            {
+                if (slide == null)
+                    slide = GetComponent<SmoothSlide>();
+                return slide;
+            }
+        }
 
         private void Awake()
         {
@@ -60,9 +74,9 @@ namespace EternalClash.UI
             if (cond != null)
                 cond.OnRecoveryCompleted -= OnRecoveryCompleted;
 
-            if (IsOpen)
+            if (legacyIsOpen)
             {
-                IsOpen = false;
+                legacyIsOpen = false;
                 PanelDim.Release(this);
             }
         }
@@ -73,22 +87,37 @@ namespace EternalClash.UI
 
         public void Show()
         {
-            IsOpen = true;
-            transform.SetAsLastSibling();
-            gameObject.SetActive(true);
-
             if (costText != null)
                 costText.text = gemCost.ToString();
+
+            SmoothSlide slide = Slide;
+            if (slide != null)
+            {
+                transform.SetAsLastSibling();
+                slide.OpenPanel();
+                return;
+            }
+
+            legacyIsOpen = true;
+            transform.SetAsLastSibling();
+            gameObject.SetActive(true);
 
             PanelDim.Acquire(this);
         }
 
         public void Close()
         {
-            if (!IsOpen && !gameObject.activeSelf)
+            SmoothSlide slide = Slide;
+            if (slide != null && slide.IsOpen)
+            {
+                slide.ClosePanel();
+                return;
+            }
+
+            if (!legacyIsOpen && !gameObject.activeSelf)
                 return;
 
-            IsOpen = false;
+            legacyIsOpen = false;
             PanelDim.Release(this);
             gameObject.SetActive(false);
         }
@@ -178,9 +207,16 @@ namespace EternalClash.UI
                     continue;
 
                 // Panel chua component thi them vao (chong mat khi merge).
+                // SmoothSlide them TRUOC popup: park ngoai man hinh khi vao game,
+                // Show() tro ve dung vi tri dat trong editor.
                 Transform panel = FindDeepChild(canvas, "Rest_Recover");
-                if (panel != null && panel.GetComponent<RestRecoverPopup>() == null)
-                    panel.gameObject.AddComponent<RestRecoverPopup>();
+                if (panel != null)
+                {
+                    if (panel.GetComponent<SmoothSlide>() == null)
+                        panel.gameObject.AddComponent<SmoothSlide>();
+                    if (panel.GetComponent<RestRecoverPopup>() == null)
+                        panel.gameObject.AddComponent<RestRecoverPopup>();
+                }
 
                 // Driver dieu khien nut mo + tu dong mo popup; dat tren Canvas
                 // (object luon active) vi panel an mac dinh.
