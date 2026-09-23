@@ -232,13 +232,33 @@ namespace EternalClash.Combat
 
         private Vector3 GetPlayerColliderCenter()
         {
-            if (player == null) return Vector3.zero;
-            
-            var collider = player.GetComponent<Collider2D>();
-            if (collider != null)
-                return collider.bounds.center;
-            
-            return player.position;
+            return player != null ? GetBodyColliderCenter(player) : Vector3.zero;
+        }
+
+        /// <summary>
+        /// Player co nhieu collider tren root (box chan dat + hitbox than). GetComponent
+        /// Don le tra ve box chan dat (tam y ~0) nen dan cu bay vao CHAN player. Lay
+        /// collider lon nhat con bat de dan luon bay vao giua hitbox cua player.
+        /// </summary>
+        internal static Vector3 GetBodyColliderCenter(Transform target)
+        {
+            Collider2D body = null;
+            float bestArea = 0f;
+            foreach (var col in target.GetComponents<Collider2D>())
+            {
+                if (!col.enabled)
+                    continue;
+
+                Vector2 ext = col.bounds.extents;
+                float area = ext.x * ext.y;
+                if (area > bestArea)
+                {
+                    bestArea = area;
+                    body = col;
+                }
+            }
+
+            return body != null ? body.bounds.center : target.position;
         }
     }
 }

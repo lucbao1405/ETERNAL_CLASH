@@ -194,7 +194,11 @@ namespace EternalClash.Story
         private GameObject menuPanel;
         private GameObject topicsPanel;
         private TMP_Text menuTitle;
+        private TMP_Text affinityText;
         private Transform topicButtonContainer;
+
+        // Shared with the baked scene UI: Assets/Game/Resources/UI/Ela/button.png
+        private static Sprite menuButtonSprite;
 
         // The Bag panel starts inactive; GameObject.Find/FindObjectOfType cannot
         // see it, so resolve it once through Transform.Find (inactive-safe).
@@ -371,10 +375,16 @@ namespace EternalClash.Story
         private static void FaceLeft(SkeletonGraphic skeleton)
         {
             if (skeleton == null) return;
-            if (skeleton.SkeletonDataAsset != null && skeleton.Skeleton == null)
-                skeleton.Initialize(true);
-            if (skeleton.Skeleton != null)
-                skeleton.Skeleton.ScaleX = -Mathf.Abs(skeleton.Skeleton.ScaleX);
+            // Skeleton.ScaleX does not survive SkeletonGraphic's mesh rebuild;
+            // mirror the RectTransform instead (same trick the field meeting
+            // uses on SkeletonAnimation via localScale).
+            RectTransform rect = skeleton.rectTransform != null
+                ? skeleton.rectTransform
+                : skeleton.transform as RectTransform;
+            if (rect == null) return;
+            Vector3 scale = rect.localScale;
+            scale.x = -Mathf.Abs(scale.x);
+            rect.localScale = scale;
         }
 
         private void TrySpawnConvoSkeleton(Transform page1, Transform house)
@@ -445,8 +455,9 @@ namespace EternalClash.Story
                 menuPanel = bakedMenu.gameObject;
                 topicsPanel = bakedTopics.gameObject;
 
-                menuTitle = bakedMenu.Find("Ela")?.GetComponent<TMP_Text>();
+                menuTitle = bakedMenu.Find("KhungName/Ela")?.GetComponent<TMP_Text>();
                 menuTitle ??= bakedMenu.GetComponentInChildren<TMP_Text>(true);
+                affinityText = bakedMenu.Find("Text")?.GetComponent<TMP_Text>();
 
                 BindBakedButton(bakedMenu, "Btn_Talk", OnTalkClicked);
                 BindBakedButton(bakedMenu, "Btn_Give a Gift", OnGiftClicked);
@@ -457,6 +468,12 @@ namespace EternalClash.Story
 
                 topicButtonContainer = bakedTopics.Find("TopicList");
                 topicButtonContainer ??= bakedTopics;
+
+                // Android Back closes the panels like every other popup.
+                if (menuPanel.GetComponent<BackClosePanel>() == null)
+                    menuPanel.AddComponent<BackClosePanel>();
+                if (topicsPanel.GetComponent<BackClosePanel>() == null)
+                    topicsPanel.AddComponent<BackClosePanel>();
 
                 menuPanel.SetActive(false);
                 topicsPanel.SetActive(false);
@@ -470,14 +487,15 @@ namespace EternalClash.Story
                 : null;
             if (texts != null && texts.Length > 0) fontSource = texts[texts.Length - 1];
 
-            menuPanel = BuildPanel(screens, "ElaMenu", 640f, 760f);
-            menuTitle = BuildText(menuPanel.transform, "Ela", 64f, new Vector2(0f, 250f), fontSource);
-            BuildText(menuPanel.transform, "", 34f, new Vector2(0f, 165f), fontSource);
+            menuPanel = BuildPanel(screens, "ElaMenu", 660f, 640f);
+            menuTitle = BuildText(menuPanel.transform, "Ela", 52f, new Vector2(0f, 245f), fontSource);
+            affinityText = BuildText(menuPanel.transform, "", 28f, new Vector2(0f, 172f), fontSource);
+            affinityText.color = new Color(0.42f, 0.30f, 0.18f);
 
             BuildButton(menuPanel.transform, "Talk", new Vector2(0f, 60f), fontSource, OnTalkClicked);
-            BuildButton(menuPanel.transform, "Give a Gift", new Vector2(0f, -60f), fontSource, OnGiftClicked);
-            BuildButton(menuPanel.transform, "Receive", new Vector2(0f, -180f), fontSource, OnReceiveClicked);
-            BuildButton(menuPanel.transform, "Close", new Vector2(0f, -300f), fontSource, () => menuPanel.SetActive(false));
+            BuildButton(menuPanel.transform, "Give a Gift", new Vector2(0f, -50f), fontSource, OnGiftClicked);
+            BuildButton(menuPanel.transform, "Receive", new Vector2(0f, -160f), fontSource, OnReceiveClicked);
+            BuildButton(menuPanel.transform, "Close", new Vector2(0f, -270f), fontSource, () => menuPanel.SetActive(false));
             menuPanel.AddComponent<BackClosePanel>();
             menuPanel.SetActive(false);
 
@@ -629,8 +647,10 @@ namespace EternalClash.Story
 
         private void RefreshMenuTitle()
         {
-            if (menuTitle == null) return;
-            menuTitle.text = "Ela  —  " + AffinityTitle(ElaAffinity);
+            if (menuTitle != null)
+                menuTitle.text = "Ela";
+            if (affinityText != null)
+                affinityText.text = AffinityTitle(ElaAffinity) + "  —  Affinity " + ElaAffinity;
         }
 
         private static string AffinityTitle(int a)
@@ -709,7 +729,18 @@ namespace EternalClash.Story
             rect.anchoredPosition = pos;
 
             Image image = go.GetComponent<Image>();
-            image.color = new Color(0.93f, 0.52f, 0.10f, 1f);
+            if (menuButtonSprite == null)
+                menuButtonSprite = Resources.Load<Sprite>("UI/Ela/button");
+            if (menuButtonSprite != null)
+            {
+                image.sprite = menuButtonSprite;
+                image.type = Image.Type.Sliced;
+                image.color = Color.white;
+            }
+            else
+            {
+                image.color = new Color(0.93f, 0.52f, 0.10f, 1f);
+            }
 
             Button button = go.GetComponent<Button>();
             button.targetGraphic = image;
