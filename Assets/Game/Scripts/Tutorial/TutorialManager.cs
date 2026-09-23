@@ -190,7 +190,11 @@ namespace EternalClash.Tutorial
             if (dialogueOpen)
                 return;
 
-            DialogueManager dialogueManager = FindObjectOfType<DialogueManager>(true);
+            // Chi tim DialogueManager dang hoat dong: ban sao DialogueManager tren
+            // prefab "thoai" trong scene Town nam tren object bi tat (khong hoi tu
+            // Awake, khong co tham chieu) neu lay se lam cau hoi thoai huong dan
+            // im lang that bai (ValidateReferences fail).
+            DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
             if (dialogueManager == null)
             {
                 Debug.LogWarning("[TUTORIAL] DialogueManager was not found in Town.", this);

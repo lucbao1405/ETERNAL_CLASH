@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using EternalClash.Core.Save;
+using EternalClash.Character;
 using EternalClash.Data;
 using EternalClash.Dialogue;
 using EternalClash.UI;
@@ -21,9 +22,9 @@ namespace EternalClash.Story
     {
         public static ElaNPCController Instance { get; private set; }
 
-        // stageLevel is the stage you are ABOUT to play: clearing Stage 5 (where
-        // Ela is met on the field) sets stageLevel to 6.
-        private const int UnlockStage = 6;
+        // stageLevel sau khi clear Stage 3 (tran Ela tren duong) — dung chung
+        // mot nguoi voi StoryManager.ElaUnlockStage de khong lech so man.
+        private const int UnlockStage = StoryManager.ElaUnlockStage;
         private const string ConvoSkeletonPath = "convo"; // Resources path of the convo SkeletonDataAsset
 
         [System.Serializable]
@@ -204,6 +205,8 @@ namespace EternalClash.Story
         // see it, so resolve it once through Transform.Find (inactive-safe).
         private GameObject bagPanel;
         private SmoothSlide bagSlide;
+        private SmoothSlide menuSlide;
+        private SmoothSlide topicsSlide;
         private BagController[] bagControllers;
 
         private int ElaAffinity;
@@ -333,6 +336,7 @@ namespace EternalClash.Story
                 {
                     bakedSkeleton.gameObject.SetActive(IsUnlocked);
                     FaceLeft(bakedSkeleton.GetComponent<SkeletonGraphic>());
+                    EnsureShadow(bakedSkeleton.gameObject);
                 }
 
                 Debug.Log("[ElaNPC] Dung object Ela da dat trong scene, unlocked=" + IsUnlocked);
@@ -395,6 +399,7 @@ namespace EternalClash.Story
             {
                 existing.gameObject.SetActive(IsUnlocked);
                 FaceLeft(existing.GetComponent<SkeletonGraphic>());
+                EnsureShadow(existing.gameObject);
                 return;
             }
 
@@ -419,8 +424,19 @@ namespace EternalClash.Story
                 rect.localScale = new Vector3(scale, scale, 1f);
             }
             rect.anchoredPosition = new Vector2(-409f, -480f); // in front of the house door
+            EnsureShadow(elaGo);
 
             Debug.Log("[ElaNPC] Convo skeleton spawned at the first house.");
+        }
+
+        /// <summary>Bong dem UI giong cac NPC khac trong Town (CharacterShadowUi).</summary>
+        private static void EnsureShadow(GameObject ela)
+        {
+            if (ela.GetComponent<SkeletonGraphic>() == null)
+                return;
+            if (ela.GetComponent<CharacterShadowUi>() != null)
+                return;
+            ela.AddComponent<CharacterShadowUi>();
         }
 
         // ------------------------------------------------------------------ interaction
@@ -455,6 +471,9 @@ namespace EternalClash.Story
                 menuPanel = bakedMenu.gameObject;
                 topicsPanel = bakedTopics.gameObject;
 
+                menuSlide = EnsureSlide(menuPanel);
+                topicsSlide = EnsureSlide(topicsPanel);
+
                 menuTitle = bakedMenu.Find("KhungName/Ela")?.GetComponent<TMP_Text>();
                 menuTitle ??= bakedMenu.GetComponentInChildren<TMP_Text>(true);
                 affinityText = bakedMenu.Find("Text")?.GetComponent<TMP_Text>();
@@ -462,9 +481,9 @@ namespace EternalClash.Story
                 BindBakedButton(bakedMenu, "Btn_Talk", OnTalkClicked);
                 BindBakedButton(bakedMenu, "Btn_Give a Gift", OnGiftClicked);
                 BindBakedButton(bakedMenu, "Btn_Receive", OnReceiveClicked);
-                BindBakedButton(bakedMenu, "Btn_Close", () => menuPanel.SetActive(false));
+                BindBakedButton(bakedMenu, "Btn_Close", () => menuSlide.ClosePanel());
                 BindBakedButton(bakedTopics, "Btn_Back",
-                    () => { topicsPanel.SetActive(false); menuPanel.SetActive(true); });
+                    () => { topicsSlide.ClosePanel(); menuSlide.OpenPanel(); });
 
                 topicButtonContainer = bakedTopics.Find("TopicList");
                 topicButtonContainer ??= bakedTopics;
@@ -495,7 +514,8 @@ namespace EternalClash.Story
             BuildButton(menuPanel.transform, "Talk", new Vector2(0f, 60f), fontSource, OnTalkClicked);
             BuildButton(menuPanel.transform, "Give a Gift", new Vector2(0f, -50f), fontSource, OnGiftClicked);
             BuildButton(menuPanel.transform, "Receive", new Vector2(0f, -160f), fontSource, OnReceiveClicked);
-            BuildButton(menuPanel.transform, "Close", new Vector2(0f, -270f), fontSource, () => menuPanel.SetActive(false));
+            BuildButton(menuPanel.transform, "Close", new Vector2(0f, -270f), fontSource, () => menuSlide.ClosePanel());
+            menuSlide = EnsureSlide(menuPanel);
             menuPanel.AddComponent<BackClosePanel>();
             menuPanel.SetActive(false);
 
@@ -503,7 +523,8 @@ namespace EternalClash.Story
             BuildText(topicsPanel.transform, "Talk about...", 52f, new Vector2(0f, 360f), fontSource);
             topicButtonContainer = BuildVerticalLayout(topicsPanel.transform, new Vector2(0f, 30f), new Vector2(520f, 560f));
             BuildButton(topicsPanel.transform, "Back", new Vector2(0f, -380f), fontSource,
-                () => { topicsPanel.SetActive(false); menuPanel.SetActive(true); });
+                () => { topicsSlide.ClosePanel(); menuSlide.OpenPanel(); });
+            topicsSlide = EnsureSlide(topicsPanel);
             topicsPanel.AddComponent<BackClosePanel>();
             topicsPanel.SetActive(false);
 
@@ -512,16 +533,29 @@ namespace EternalClash.Story
 
         private void OnTalkClicked()
         {
-            menuPanel.SetActive(false);
+            menuSlide.ClosePanel();
             RebuildTopicButtons();
-            topicsPanel.SetActive(true);
+            topicsSlide.OpenPanel();
         }
 
         private void RebuildTopicButtons()
         {
             TMP_Text fontSource = menuTitle;
+
+            // Nut mau dat san trong TopicList (Btn_Mau, de INACTIVE): code copy
+            // no ra cho tung topic nen sua kich thuoc/sprite/font trong editor
+            // chi can sua dung mot nut. Khong co thi dung nut build bang code.
+            Transform template = topicButtonContainer.Find("Btn_Mau");
+            if (template != null)
+                template.gameObject.SetActive(false);
+
             for (int i = topicButtonContainer.childCount - 1; i >= 0; i--)
-                Destroy(topicButtonContainer.GetChild(i).gameObject);
+            {
+                Transform child = topicButtonContainer.GetChild(i);
+                if (child == template)
+                    continue;
+                Destroy(child.gameObject);
+            }
 
             float y = 0f;
             foreach (Topic topic in Topics)
@@ -533,11 +567,34 @@ namespace EternalClash.Story
                     ? topic.title + "  (new)"
                     : topic.title;
                 string topicId = topic.id;
-                GameObject buttonObj = BuildButton(topicButtonContainer, label, new Vector2(0f, y), fontSource,
-                    () => SelectTopic(topicId));
+                GameObject buttonObj = template != null
+                    ? CloneTemplateButton(template, label, () => SelectTopic(topicId))
+                    : BuildButton(topicButtonContainer, label, new Vector2(0f, y), fontSource,
+                        () => SelectTopic(topicId));
                 ((RectTransform)buttonObj.transform).anchoredPosition = new Vector2(0f, y);
                 y -= 120f;
             }
+        }
+
+        private static GameObject CloneTemplateButton(Transform template, string label,
+            System.Action onClick)
+        {
+            GameObject buttonObj = Instantiate(template.gameObject, template.parent, false);
+            buttonObj.name = "Btn_" + label;
+            buttonObj.SetActive(true);
+
+            Button button = buttonObj.GetComponent<Button>();
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => onClick());
+            }
+
+            TMP_Text text = buttonObj.GetComponentInChildren<TMP_Text>(true);
+            if (text != null)
+                text.text = label;
+
+            return buttonObj;
         }
 
         private void SelectTopic(string topicId)
@@ -545,7 +602,7 @@ namespace EternalClash.Story
             Topic topic = System.Array.Find(Topics, t => t.id == topicId);
             if (topic == null || dialogueManager == null) return;
 
-            topicsPanel.SetActive(false);
+            topicsSlide.ClosePanel();
 
             bool firstTime = topic.oneTime && !topicsDone.Contains(topic.id);
             if (firstTime)
@@ -575,7 +632,7 @@ namespace EternalClash.Story
 
         private void OnGiftClicked()
         {
-            menuPanel.SetActive(false);
+            menuSlide.ClosePanel();
 
             if (bagPanel == null)
                 ResolveBagPanel();
@@ -664,6 +721,16 @@ namespace EternalClash.Story
         }
 
         // ------------------------------------------------------------------ ui helpers
+
+        /// <summary>
+        /// Dam bao panel co SmoothSlide (truot ve vi tri dat trong editor + am
+        /// thanh PanelScroll). Tu gan moi khi load scene de khong mat khi merge.
+        /// </summary>
+        private static SmoothSlide EnsureSlide(GameObject panel)
+        {
+            SmoothSlide slide = panel.GetComponent<SmoothSlide>();
+            return slide != null ? slide : panel.AddComponent<SmoothSlide>();
+        }
 
         private static void BindBakedButton(Transform root, string childName, System.Action onClick)
         {

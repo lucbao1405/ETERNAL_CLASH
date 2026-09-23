@@ -51,7 +51,6 @@ namespace EternalClash.Animation
         private readonly System.Collections.Generic.List<SkillBase> boundSkills =
             new System.Collections.Generic.List<SkillBase>();
         private ShieldSkill shieldSource;
-        private EternalClash.Wave.WaveManager waveManager;
         private int lastHealth = -1;
         private int animVersion;
         private VisualState state = VisualState.None;
@@ -126,21 +125,6 @@ namespace EternalClash.Animation
             }
 
             subscribed = true;
-            TrySubscribeStageComplete();
-        }
-
-        /// <summary>
-        /// Thang man -> animation "victory". WaveManager co the Awake sau Player nen
-        /// thu lai moi frame cho toi khi dang ky duoc.
-        /// </summary>
-        private void TrySubscribeStageComplete()
-        {
-            if (!subscribed || waveManager != null)
-                return;
-
-            waveManager = EternalClash.Wave.WaveManager.Instance;
-            if (waveManager != null)
-                waveManager.OnStageComplete += NotifyVictory;
         }
 
         private void Unsubscribe()
@@ -161,17 +145,11 @@ namespace EternalClash.Animation
             }
             boundSkills.Clear();
 
-            if (waveManager != null)
-                waveManager.OnStageComplete -= NotifyVictory;
-            waveManager = null;
-
             subscribed = false;
         }
 
         private void Update()
         {
-            TrySubscribeStageComplete();
-
             if (dead || state == VisualState.Victory || skeletonAnimation == null)
                 return;
 
@@ -285,6 +263,9 @@ namespace EternalClash.Animation
             PlayOnce(AnimDeath);
         }
 
+        /// <summary>Thang man: goi tu StageCompleteController.ProceedToVictoryFlow
+        /// (sau hoi thoai NPC neu co) thay vi OnStageComplete de nhan vat con
+        /// chay toi NPC voi animation run truoc khi khai cuu.</summary>
         public void NotifyVictory()
         {
             if (IsFinished)

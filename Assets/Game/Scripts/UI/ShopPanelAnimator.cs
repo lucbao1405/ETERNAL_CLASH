@@ -27,6 +27,15 @@ public sealed class ShopPanelAnimator : MonoBehaviour
 
         if (closeButton != null)
             closeButton.onClick.AddListener(Close);
+
+        // Panel dat san trong man hinh trong editor: do la vi tri mo, vi tri an
+        // = day het panel len tren canh canvas.
+        if (PanelPlacement.TryDerive(shopPanel, out Vector2 shownPos, out Vector2 hiddenPos))
+        {
+            openedY = shownPos.y;
+            closedY = hiddenPos.y;
+        }
+
         CloseImmediate();
     }
 

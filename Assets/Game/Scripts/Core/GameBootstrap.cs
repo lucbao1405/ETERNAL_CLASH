@@ -146,6 +146,11 @@ namespace EternalClash.Core
             if(alchemistUpgradeSystem == null)
                 alchemistUpgradeSystem = gameObject.AddComponent<AlchemistUpgradeSystem>();
 
+            // AffinityManager (thu/hao cam tu ruong + milestone thu) truoc day khong
+            // duoc tao o day nen ChestRewardSystem.AddAffinityPoints luon la no-op.
+            if(GetComponent<AffinityManager>() == null)
+                gameObject.AddComponent<AffinityManager>();
+
             if(PlayerConditionSystem.Instance == null && GetComponent<PlayerConditionSystem>() == null)
                 gameObject.AddComponent<PlayerConditionSystem>();
 
@@ -208,6 +213,8 @@ namespace EternalClash.Core
 
             if(alchemistUpgradeSystem != null)
                 alchemistUpgradeSystem.LoadFromSave(data);
+
+            AffinityManager.Instance?.LoadFromSave(data);
 
 
             PlayerConditionSystem.Instance?.LoadFromSave(data);

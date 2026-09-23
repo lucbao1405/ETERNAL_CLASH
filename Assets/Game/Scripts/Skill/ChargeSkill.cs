@@ -43,14 +43,29 @@ namespace EternalClash.Skill
 
             // Locate the dedicated forward charge hitbox (a trigger BoxCollider2D
             // with a large X size, added via the prefab). Keep it off by default.
-            // Search from root transform to find ChargeHitbox sibling
+            // Search from root transform to find ChargeHitbox sibling.
+            // Uu tien collider co component PlayerChargeHitbox (hitbox chuyen dung).
+            // Neu khong, chi nhan collider o object CON: collider that lon tren
+            // ROOT chinh la hitbox than cua player - tat no di thi dan quai se
+            // ngam vao chan player (GetBodyColliderCenter bo qua collider disabled).
             var root = transform.root;
             foreach (var c in root.GetComponentsInChildren<BoxCollider2D>())
             {
-                if (c.isTrigger && c.size.x > 2f)
+                if (c.isTrigger && c.size.x > 2f && c.GetComponent<PlayerChargeHitbox>() != null)
                 {
                     chargeHitbox = c;
                     break;
+                }
+            }
+            if (chargeHitbox == null)
+            {
+                foreach (var c in root.GetComponentsInChildren<BoxCollider2D>())
+                {
+                    if (c.isTrigger && c.size.x > 2f && c.transform != root)
+                    {
+                        chargeHitbox = c;
+                        break;
+                    }
                 }
             }
             if (chargeHitbox != null)
