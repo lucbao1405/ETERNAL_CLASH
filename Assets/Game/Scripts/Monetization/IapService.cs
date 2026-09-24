@@ -55,10 +55,10 @@ namespace EternalClash.Monetization
         {
             new IapProductDef { productId = StarterPackId, displayName = "Starter Pack", priceLabel = "$2.99",
                 gold = 1000, gem = 100, nonConsumable = true },
-            new IapProductDef { productId = GemSmallId, displayName = "Kim cương", priceLabel = "$0.99", gem = 20 },
-            new IapProductDef { productId = GemMediumId, displayName = "Kim cương", priceLabel = "$4.99", gem = 120 },
-            new IapProductDef { productId = GemLargeId, displayName = "Kim cương", priceLabel = "$9.99", gem = 300 },
-            new IapProductDef { productId = GemHugeId, displayName = "Kim cương", priceLabel = "$49.99", gem = 7200 },
+            new IapProductDef { productId = GemSmallId, displayName = "Kim cương", priceLabel = "$0.99", gem = 100 },
+            new IapProductDef { productId = GemMediumId, displayName = "Kim cương", priceLabel = "$4.99", gem = 800 },
+            new IapProductDef { productId = GemLargeId, displayName = "Kim cương", priceLabel = "$9.99", gem = 2600 },
+            new IapProductDef { productId = GemHugeId, displayName = "Kim cương", priceLabel = "$49.99", gem = 20000 },
         };
 
         public static IapService Instance { get; private set; }
