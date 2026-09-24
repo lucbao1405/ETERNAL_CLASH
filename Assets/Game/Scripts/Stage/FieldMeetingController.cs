@@ -135,11 +135,19 @@ namespace EternalClash.Stage
 
             GameObject npc = ActivateMeetingNpc(hero);
 
+            // Ruong (ChestSpawn) truot CUNG NPC khi co gap cuoi duong: ruong truoc
+            // (gan player hon), NPC sau, hai ben di buoc nhu nhau. Khong co NPC
+            // thi ruong troi rieng trong ProceedToVictoryFlow nhu cac man thuong.
+            GameObject chest = npc != null && owner != null
+                ? owner.SpawnWorldChest()
+                : null;
+
             if (npc != null)
             {
                 // The hero is screen-locked (AutoRunner snaps X back home), the
                 // world scrolls past. So the waiting NPC walks in with the
                 // ground speed until the hero "reaches" them.
+                float stopGap = owner != null ? owner.ChestStopDistance : 1f;
                 float elapsed = 0f;
                 while (elapsed < MaxRunSeconds)
                 {
@@ -148,7 +156,16 @@ namespace EternalClash.Stage
                     if (gap <= MeetDistance)
                         break;
 
-                    npc.transform.position += Vector3.left * NpcGroundSpeed * Time.deltaTime;
+                    float step = NpcGroundSpeed * Time.deltaTime;
+                    npc.transform.position += Vector3.left * step;
+                    if (chest != null)
+                    {
+                        Vector3 chestPos = chest.transform.position;
+                        // Ruong dung lai truoc mat hero som hon NPC (gap nho hon).
+                        chestPos.x = Mathf.Max(chestPos.x - step,
+                            hero.transform.position.x + stopGap);
+                        chest.transform.position = chestPos;
+                    }
                     yield return null;
                 }
             }
@@ -158,6 +175,11 @@ namespace EternalClash.Stage
                 // empty road, then the dialogue carries the moment.
                 yield return new WaitForSeconds(NoNpcRunSeconds);
             }
+
+            // Ruong da troi toi ben canh hero cung NPC - ProceedToVictoryFlow
+            // sau hoi thoai khong troi ruong lan nua.
+            if (chest != null)
+                owner?.MarkChestArrived();
 
             // Hero dung lai (stand) truoc NPC, bat dau hoi thoai. Chi sau khi
             // hoi thoai dong, ProceedToVictoryFlow moi mo animation victory.
@@ -219,6 +241,8 @@ namespace EternalClash.Stage
 
             // All field NPC spines (thoren, phuthuylonton, con vo) have a
             // "stand" idle — play it so they don't freeze in the bind pose.
+            // Ca deu duoc ve quay mat ve phia trai (ve phia nhan vat chay den)
+            // san trong atlas, ke ca Ela — khong lat skeleton nao ca.
             SkeletonAnimation skeleton = npc.GetComponent<SkeletonAnimation>();
             if (skeleton != null && skeleton.skeleton != null &&
                 skeleton.skeleton.Data.FindAnimation("stand") != null)
@@ -226,12 +250,10 @@ namespace EternalClash.Stage
                 skeleton.AnimationState.SetAnimation(0, "stand", true);
             }
 
-            // Spine "con vo" (Ela) duoc ve quay PHAI (mat nam phia ben phai
-            // khoi toc trong atlas) - khac Garen/Elara quay trai. Lat bang
-            // ScaleX cua chinh skeleton Spine, khong dung localScale am vi no
-            // lat quanh pivot cua Transform va de lam lech vi tri hien thi.
-            if (skeleton != null && skeleton.skeleton != null && stageIndex == 3)
-                skeleton.skeleton.ScaleX = -1f;
+            // Trai tim cua Ela chi thuoc phan nhay "lieu nhan gain" —
+            // trang thai stand phai sach, khong co trai tim nao.
+            if (stageIndex == 3 && skeleton != null && skeleton.skeleton != null)
+                ElaNPCController.SetHeartsVisible(skeleton.skeleton, false);
 
             // Field NPC khong co tag Player/Enemy nen CharacterShadowBootstrapper
             // bo qua; them bong giong nhan vat de NPC khong troi khoi mat dat.
@@ -266,8 +288,7 @@ namespace EternalClash.Stage
             }
 
             float scale = (heroWorldHeight * 1.05f) / npcData.Height;
-            // Scale duong cho moi NPC; rieng huong mat xu ly rieng o
-            // ActivateMeetingNpc (Ela bi lat bang skeleton.ScaleX = -1).
+            // Scale duong cho moi NPC — huong mat da quay ve trai san trong atlas.
             npc.localScale = new Vector3(Mathf.Abs(scale), Mathf.Abs(scale), 1f);
         }
 

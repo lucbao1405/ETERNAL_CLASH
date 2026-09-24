@@ -5,7 +5,6 @@ using EternalClash.Stage;
 using EternalClash.UI;
 using EternalClash.Village;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -43,6 +42,7 @@ namespace EternalClash.Tutorial
 
         private bool dialogueOpen;
         private bool namePromptOpen;
+        private PlayerNamePromptUI namePrompt;
         private Button swordButton;
         private Button upgradeButton;
         private Button bagButton;
@@ -218,42 +218,42 @@ namespace EternalClash.Tutorial
             if (namePromptOpen)
                 return;
 
-            Canvas canvas = FindObjectOfType<Canvas>(true);
-            if (canvas == null)
+            PlayerNamePromptUI prompt = FindObjectOfType<PlayerNamePromptUI>(true);
+            if (prompt == null)
             {
-                Debug.LogWarning("[TUTORIAL] Cannot ask for a player name without a Canvas.", this);
+                Debug.LogWarning("[TUTORIAL] PlayerNamePromptUI was not found in Town.", this);
                 return;
             }
 
-            if (FindObjectOfType<EventSystem>() == null)
-                new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-
             namePromptOpen = true;
-            GameObject panel = CreatePanel(canvas.transform, "PlayerNamePrompt", new Vector2(620f, 260f));
-            CreateText(panel.transform, "Title", "What should we call you?", 26, new Vector2(0f, 82f), new Vector2(540f, 45f));
-
-            InputField input = CreateInput(panel.transform);
-            input.text = PlayerName;
-            Button confirm = CreateButton(panel.transform, "Confirm", new Vector2(0f, -82f));
-            CreateText(confirm.transform, "Label", "Confirm", 20, Vector2.zero, new Vector2(180f, 45f));
-            confirm.onClick.AddListener(() => SubmitPlayerName(input, panel));
-            input.ActivateInputField();
+            namePrompt = prompt;
+            prompt.NameSubmitted += SubmitPlayerName;
+            prompt.Show(PlayerName);
         }
 
-        private void SubmitPlayerName(InputField input, GameObject panel)
+        private void SubmitPlayerName(string nameValue)
         {
-            string nameValue = input != null ? input.text.Trim() : string.Empty;
             if (string.IsNullOrWhiteSpace(nameValue))
                 return;
 
+            PlayerNamePromptUI prompt = namePrompt;
+            if (prompt != null)
+                prompt.NameSubmitted -= SubmitPlayerName;
+            namePrompt = null;
+
             SaveData data = SaveManager.Instance?.Data;
             if (data == null)
+            {
+                namePromptOpen = false;
                 return;
+            }
 
-            data.playerName = nameValue;
-            SetStep(TutorialStep.FirstBattlePrompt);
+            data.playerName = nameValue.Trim();
             namePromptOpen = false;
-            Destroy(panel);
+            if (prompt != null)
+                prompt.Hide();
+
+            SetStep(TutorialStep.FirstBattlePrompt);
         }
 
         private void OpenBlacksmith()
@@ -464,6 +464,11 @@ namespace EternalClash.Tutorial
             bagButton = null;
             battleButton = null;
             dialogueOpen = false;
+            if (namePrompt != null)
+            {
+                namePrompt.NameSubmitted -= SubmitPlayerName;
+                namePrompt = null;
+            }
             namePromptOpen = false;
             upgradeCompletedAt = -1f;
             afterUpgradeRoutineActive = false;
@@ -511,65 +516,6 @@ namespace EternalClash.Tutorial
         private static bool IsScene(string sceneName)
         {
             return string.Equals(SceneManager.GetActiveScene().name, sceneName, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static GameObject CreatePanel(Transform parent, string objectName, Vector2 size)
-        {
-            GameObject panel = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            panel.transform.SetParent(parent, false);
-            RectTransform rect = panel.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = size;
-            panel.GetComponent<Image>().color = new Color(0.05f, 0.07f, 0.12f, 0.96f);
-            panel.transform.SetAsLastSibling();
-            return panel;
-        }
-
-        private static InputField CreateInput(Transform parent)
-        {
-            GameObject inputObject = new GameObject("NameInput", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(InputField));
-            inputObject.transform.SetParent(parent, false);
-            RectTransform rect = inputObject.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, 5f);
-            rect.sizeDelta = new Vector2(460f, 52f);
-            inputObject.GetComponent<Image>().color = Color.white;
-
-            InputField input = inputObject.GetComponent<InputField>();
-            Text text = CreateText(inputObject.transform, "Text", string.Empty, 20, Vector2.zero, new Vector2(430f, 46f));
-            text.alignment = TextAnchor.MiddleLeft;
-            text.color = Color.black;
-            input.textComponent = text;
-            return input;
-        }
-
-        private static Button CreateButton(Transform parent, string objectName, Vector2 position)
-        {
-            GameObject buttonObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-            RectTransform rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = new Vector2(180f, 45f);
-            buttonObject.GetComponent<Image>().color = new Color(0.25f, 0.48f, 0.72f, 1f);
-            return buttonObject.GetComponent<Button>();
-        }
-
-        private static Text CreateText(Transform parent, string objectName, string value, int fontSize, Vector2 position, Vector2 size)
-        {
-            GameObject textObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-            textObject.transform.SetParent(parent, false);
-            RectTransform rect = textObject.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            Text text = textObject.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = fontSize;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
-            text.text = value;
-            return text;
         }
 
         public void Notify(TutorialTriggerEvent tutorialEvent)

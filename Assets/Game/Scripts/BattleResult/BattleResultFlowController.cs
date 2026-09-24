@@ -149,6 +149,10 @@ namespace EternalClash.BattleResult
             if (victoryDelay > 0f)
                 yield return new WaitForSecondsRealtime(victoryDelay);
 
+            // Panel "Open Chest" sap hien: ruong the gioi (ChestSpawn da troi toi
+            // ben player) bien mat de popup ruong tiep quan man mo ruong.
+            StageCompleteController.DespawnWorldChest();
+
             ResolveChestRewardController();
             bool rewardCompleted = false;
             if (chestRewardController != null)

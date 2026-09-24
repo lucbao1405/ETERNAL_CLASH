@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using EternalClash.Character;
+using EternalClash.Data;
 
 namespace EternalClash.Monetization
 {
@@ -26,6 +27,7 @@ namespace EternalClash.Monetization
                 CheckIapCatalog();
                 CheckSaveFields();
                 CheckX2DisplayRefresh();
+                CheckChestGemChance();
             }
             catch (System.Exception exception)
             {
@@ -112,6 +114,32 @@ namespace EternalClash.Monetization
                 string.Equals(entry.item.itemId, "Ore", System.StringComparison.OrdinalIgnoreCase));
             Check(shown != null && shown.quantity == 10,
                 $"X2: entry ruong sau khi nhan doi phai hien thi 10 (thay {(shown != null ? shown.quantity.ToString() : "khong co")})");
+        }
+
+        /// <summary>
+        /// Rong phai rot kim cuong voi ti le vua (GemChance ~12%) va luong
+        /// 3-5 gem. Co dinh seed de chay lap lai duoc.
+        /// </summary>
+        private static void CheckChestGemChance()
+        {
+            Random.InitState(20260924);
+            const int trials = 20000;
+            int gems = 0;
+
+            for (int i = 0; i < trials; i++)
+            {
+                RewardData reward = Stage.RewardGenerator.GenerateStageReward(1);
+                if (reward == null || reward.type != RewardType.Gem)
+                    continue;
+
+                gems++;
+                Check(reward.amount >= 3 && reward.amount <= 5,
+                    $"Luong gem trong rong phai nam trong [3,5] (thay {reward.amount})");
+            }
+
+            float ratio = (float)gems / trials;
+            Check(ratio > 0.09f && ratio < 0.15f,
+                $"Ti le gem rot trong rong phai ~12% (thay {ratio:P1})");
         }
 
         private static void Check(bool condition, string label)
