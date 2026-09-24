@@ -32,6 +32,10 @@ namespace EternalClash.Combat
         [SerializeField] private float inputBufferTime = 0.3f;
         [Tooltip("Quai bi day lui bao xa moi don (nho de giu nhap nhay combo)")]
         [SerializeField] private float hitPushback = 0.35f;
+        [Tooltip("Noi them bao nhieu khi kiem tra tam luc dam CHAM vao quai. Dat xap xi " +
+                 "hitPushback de quai vua bi day lui van an don tiep, nhung quai dung " +
+                 "han ngoai tam (Goblin Mage dang di vao) thi khong dinh dam.")]
+        [SerializeField] private float hitRangeTolerance = 0.35f;
 
         private float cooldownTimer;
         private GameObject target;
@@ -135,6 +139,11 @@ namespace EternalClash.Combat
             // ngay trong luc dang chay ham nay.
             GameObject currentTarget = target;
             if (currentTarget == null || !IsValidTarget(currentTarget)) return;
+
+            // Dam den CHAM ~0.3s sau khi bat dau vung (khop animation). Trong khoang
+            // do muc tieu co the da di ra xa (bi day lui, hoac quai xa nhu Goblin Mage
+            // van dang di vao). Khong kiem tra lai thi no an dam tu ngoai tam danh.
+            if (!IsTargetInHitRange(currentTarget)) return;
             if (CombatDamageResolver.Instance == null) return;
             int finalDamage = Village.PlayerStatSystem.Instance != null ? Village.PlayerStatSystem.Instance.BasicAttackDamage : damage;
             CombatDamageResolver.Instance.DealDamage(currentTarget, finalDamage, DamageSource.BasicAttack);
@@ -175,6 +184,17 @@ namespace EternalClash.Combat
         }
 
         private bool IsTargetInRange(GameObject enemy) => enemy != null && Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
+
+        /// <summary>
+        /// Tam tinh luc dam CHAM vao quai. Nới hon tam chon muc tieu mot chut
+        /// (<see cref="hitRangeTolerance"/>): quai bi day lui ngay sau don truoc van
+        /// an don nay, nhung quai dung han ngoai tam thi khong.
+        /// </summary>
+        private bool IsTargetInHitRange(GameObject enemy)
+        {
+            return enemy != null &&
+                Vector2.Distance(transform.position, enemy.transform.position) <= attackRange + hitRangeTolerance;
+        }
 
         private static bool IsValidTarget(GameObject enemy) => enemy != null && enemy.CompareTag("Enemy") && enemy.activeInHierarchy && !IsDead(enemy);
 
