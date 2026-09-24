@@ -239,7 +239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46db5555c657d7d408575a94705f3902, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  archerStopDistance: 0.75
+  archerStopDistance: 0.8
   isArcher: 1
   playerStopDistance: 0.75
   queueSpacing: 0.8
