@@ -57,6 +57,20 @@ public class DialogueManager : MonoBehaviour
 
     private void Awake()
     {
+        // Chi cho phep mot DialogueManager duy nhat: ban sao tren prefab "thoai"
+        // nam tren object bi tat nen Awake chay TRE - dung luc OpenDialogue goi
+        // SetActive(true) - va SetActive(false) cuoi Awake lam panel tu tat chinh
+        // no ngay sau khi mo (thoai mo roi bien mat). Manager nao Awake sau thi
+        // tu huy de manager con lai la nguoi so hui duy nhat cua panel.
+        foreach (DialogueManager other in FindObjectsOfType<DialogueManager>())
+        {
+            if (other != this && other.IsInitialized)
+            {
+                Destroy(this);
+                return;
+            }
+        }
+
         EnsureTouchInput();
         AutoAssignReferences();
 

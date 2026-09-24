@@ -127,10 +127,10 @@ namespace EternalClash.UI
                 if (expText != null) expText.text = $"EXP: {stats.CurrentExp} / {stats.RequiredExp}";
                 if (statPointsText != null) statPointsText.text = $"Điểm tiềm năng: {stats.StatPoints}";
 
-                if (strText != null) strText.text = $"STR: {stats.Strength} (+{stats.Strength * 2} DMG)";
-                if (intText != null) intText.text = $"INT: {stats.Intelligence} (+{stats.Intelligence * 5}% EXP)";
-                if (vitText != null) vitText.text = $"VIT: {stats.Vitality} (+{stats.Vitality * 15} HP)";
-                if (luckText != null) luckText.text = $"LUCK: {stats.Luck} (+{(stats.Luck * 0.5f):F1}% Crit)";
+                if (strText != null) strText.text = $"STR: {stats.BaseStrength} (+{stats.BaseStrength * 2} DMG)";
+                if (intText != null) intText.text = $"INT: {stats.BaseIntelligence} (+{stats.BaseIntelligence * 5}% EXP)";
+                if (vitText != null) vitText.text = $"VIT: {stats.BaseVitality} (+{stats.BaseVitality * 15} HP)";
+                if (luckText != null) luckText.text = $"LUCK: {stats.BaseLuck} (+{(stats.BaseLuck * 0.5f):F1}% Crit)";
 
                 if (resetCostText != null)
                 {

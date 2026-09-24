@@ -84,6 +84,10 @@ namespace EternalClash.Combat
         /// </summary>
         public void ApplyKnockback(Vector2 direction, float force, float distance = -1f)
         {
+            // Receiver bi disable (vd trong luc Charge de player miem knockback)
+            // thi khong nhan don: dan quai van cham player (0 dmg qua multiplier)
+            // nhung khong duoc kich ban recoil/HIT state giua luc charge.
+            if (!enabled) return;
             if (healthSystem != null && healthSystem.IsDead) return;
             // HealthSystem (cua Player) tren dich khong bao gio bi tru mau nen
             // guard tren khong chay: blow ket liem van day xac truot vao ke dung sau.

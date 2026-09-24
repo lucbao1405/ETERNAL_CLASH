@@ -35,6 +35,9 @@ namespace EternalClash.Combat
         /// <summary>Dang trong pha ngam (telegraph) - don chua bay, co the bi pha.</summary>
         public bool IsWindingUp { get; private set; }
 
+        /// <summary>Quai bang dan (co projectilePrefab: Goblin Mage, Boss...).</summary>
+        public bool IsRanged => projectilePrefab != null;
+
         private void Awake()
         {
             GameObject obj = GameObject.FindGameObjectWithTag("Player");

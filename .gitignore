@@ -115,3 +115,7 @@ InitTestScene*.unity*
 
 # Burst build artifacts (DoNotShip)
 *_BurstDebugInformation_DoNotShip/
+
+# IL2CPP build backup output (DoNotShip)
+*BackUpThisFolder_ButDontShipItWithYourGame/
+*.symbols.zip

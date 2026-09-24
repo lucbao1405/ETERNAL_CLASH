@@ -646,10 +646,10 @@ namespace EternalClash.UI
             if (stats == null)
                 return;
 
-            Apply(strTexts, stats.Strength);
-            Apply(intTexts, stats.Intelligence);
-            Apply(vitTexts, stats.Vitality);
-            Apply(luckTexts, stats.Luck);
+            Apply(strTexts, stats.BaseStrength);
+            Apply(intTexts, stats.BaseIntelligence);
+            Apply(vitTexts, stats.BaseVitality);
+            Apply(luckTexts, stats.BaseLuck);
             Apply(levelTexts, stats.Level);
 
             ApplyLevelGroup(stats);

@@ -20,6 +20,16 @@ namespace EternalClash.Village
         public int Intelligence => baseIntelligence + equipmentIntelligence;
         public int Vitality => baseVitality + equipmentVitality;
         public int Luck => baseLuck + equipmentLuck;
+
+        /// <summary>
+        /// Chi so rieng cua nhan vat, khong gom bonus trang bi. Panel cong diem
+        /// hien thi cac gia tri nay: nhan vat moi luon o BASE_STAT_VALUE (1).
+        /// Sat thuong/HP van dung Strength/Vitality (da cong trang bi).
+        /// </summary>
+        public int BaseStrength => baseStrength;
+        public int BaseIntelligence => baseIntelligence;
+        public int BaseVitality => baseVitality;
+        public int BaseLuck => baseLuck;
         public float RareDropRate { get; private set; }
 
         /// <summary>Ti le chi mang hien tai, 0..1. Tang theo LUCK.</summary>
@@ -32,7 +42,7 @@ namespace EternalClash.Village
 
         private const int BASE_ATTACK = 5;
         private const int BASE_CHARGE = 30;
-        private const int BASE_POTION_HEAL = 30;
+        private const int BASE_POTION_HEAL = 50;
         private const int EXP_BASE = 20;
 
         /// <summary>
@@ -366,7 +376,9 @@ namespace EternalClash.Village
         {
             BasicAttackDamage = BASE_ATTACK + Strength * 2;
             ChargeDamage = BASE_CHARGE + Strength * 2;
-            PotionHealAmount = BASE_POTION_HEAL + Vitality * 2;
+            // VIT chi tang Max HP (BonusMaxHealth); luong hoi cua binh mau khong
+            // phu thuoc chi so nao - hieu qua hoi chi len qua nang cap Phu thuy.
+            PotionHealAmount = BASE_POTION_HEAL;
             RareDropRate = Luck * 0.01f;
 
             // LUCK tang ti le chi mang (GDD 3.5). Chan tran o 50% de khong bien

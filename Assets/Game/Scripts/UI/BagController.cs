@@ -169,21 +169,10 @@ namespace EternalClash.UI
 
         private static bool IsGiftable(ItemData item)
         {
-            if (item == null) return false;
-            if (string.Equals(item.itemType, "Gift", StringComparison.OrdinalIgnoreCase))
-                return true;
-            // Flowers-and-leaves romance: leaves and wolf hide are "Material" type
-            // but are theme-correct Courier gifts (letters reference them directly).
-            switch (item.itemId)
-            {
-                case "leaf_green":
-                case "leaf_red":
-                case "leaf_yellow":
-                case "wolf_hide":
-                    return true;
-                default:
-                    return false;
-            }
+            // Chi hoa la vat pham tang Ela (yellow_wildflower, blue_flower) —
+            // la ca hai asset co itemType "Gift"; con lai la nguyen lieu craft.
+            return item != null &&
+                   string.Equals(item.itemType, "Gift", StringComparison.OrdinalIgnoreCase);
         }
 
         private InventorySaveData GetInventory()

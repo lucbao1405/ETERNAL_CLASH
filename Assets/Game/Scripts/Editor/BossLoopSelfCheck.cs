@@ -18,6 +18,7 @@ namespace EternalClash.EditorTools
             CheckRetreatGating();
             CheckEdgeReach();
             CheckAimCenter();
+            CheckBossRangedGuard();
 
             Debug.Log("[BossLoopSelfCheck] Boss loop + aim OK");
         }
@@ -116,6 +117,29 @@ namespace EternalClash.EditorTools
             {
                 Object.DestroyImmediate(go);
             }
+        }
+
+        private static void CheckBossRangedGuard()
+        {
+            // Boss la quai bang dan (EnemyAttack co projectilePrefab) nhung
+            // EnemyMover.isArcher = 0. Guard khong-keo-sat-nguoi cua Charge phai
+            // nhan ra boss la ranged qua attack that, khong thi bấm charge keo
+            // boss vao sat player va pha vong vong lap ban tu xa.
+            const string bossPrefab = "Assets/Game/Prefabs/Enemy V1/Boss.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(bossPrefab);
+            if (prefab == null)
+                throw new System.InvalidOperationException("Missing prefab: " + bossPrefab);
+
+            var attack = prefab.GetComponent<EternalClash.Combat.EnemyAttack>();
+            Check(attack != null && attack.IsRanged,
+                "boss is recognized as ranged (projectilePrefab) for the charge pull guard");
+
+            // Hitbox vien dan lech truoc ~0.31 + body hitbox Player lech 0.66: dan
+            // spawn trong khoang cach <= ~1.0 thi chet ngay frame dau ("dan bien mat").
+            // BossController.ClampBeforePlayer giu boss o dung attackRange nen
+            // attackRange phai nam ngoai nguong do.
+            Check(attack != null && attack.attackRange >= 1f,
+                "boss attackRange keeps spawned bullets clear of the player hitbox");
         }
 
         private static void Check(bool condition, string label)
