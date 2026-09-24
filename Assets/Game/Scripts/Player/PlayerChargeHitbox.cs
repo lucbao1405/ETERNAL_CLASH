@@ -42,6 +42,13 @@ namespace EternalClash.Player
             if (!IsCharging())
                 return;
 
+            // Phai kiem tra khoang cach that y HET nhu SweepFrontEnemies: quai co
+            // collider phu rat rong (vung AttackRange cua Goblin Mage ban kinh 4.55
+            // lech ve phia player) cham vao hitbox luot tu ~8 don vi, trong khi than
+            // quai van dung rat xa. Khong chan thi no dinh dam tu ngoai man hinh.
+            if (!IsWithinChargeReach(enemyObject))
+                return;
+
             HandleChargeHit(enemyObject);
         }
 
@@ -64,7 +71,6 @@ namespace EternalClash.Player
 
         private void SweepFrontEnemies()
         {
-            Vector3 origin = transform.root.position;
             GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
             for (int i = 0; i < enemies.Length; i++)
             {
@@ -79,14 +85,28 @@ namespace EternalClash.Player
                 if (enemyObject.TryGetComponent<EnemyHealthSystem>(out var health) && health.IsDead)
                     continue;
 
-                Vector3 toEnemy = enemyObject.transform.position - origin;
-                if (toEnemy.x < FrontMinOffsetX || toEnemy.x > chargeReach)
-                    continue;
-                if (Mathf.Abs(toEnemy.y) > verticalTolerance)
+                if (!IsWithinChargeReach(enemyObject))
                     continue;
 
                 HandleChargeHit(enemyObject);
             }
+        }
+
+        /// <summary>
+        /// Quai co nam trong tam quet cua don luot khong: tinh theo VI TRI THAT cua
+        /// quai, khong tin vao va cham collider (quai co the mang collider phu rong
+        /// hon than minh rat nhieu).
+        /// </summary>
+        private bool IsWithinChargeReach(GameObject enemyObject)
+        {
+            if (enemyObject == null)
+                return false;
+
+            Vector3 toEnemy = enemyObject.transform.position - transform.root.position;
+            if (toEnemy.x < FrontMinOffsetX || toEnemy.x > chargeReach)
+                return false;
+
+            return Mathf.Abs(toEnemy.y) <= verticalTolerance;
         }
 
         private void HandleChargeHit(GameObject enemyObject)
@@ -155,6 +175,12 @@ namespace EternalClash.Player
             enemyStatus?.ApplyStun(1.5f);
             if (enemyMover != null)
                 enemyMover.PauseMovement(1.5f);
+
+            // Quai danh xa (Goblin Mage) chi an dam + choang, KHONG bi keo vao
+            // sat nguoi. Keo vao trong luc Charge nhin nhu no "tu bay" vao player,
+            // va cung pha luon vai tro dung xa ban cua no.
+            if (enemyMover != null && enemyMover.IsArcher)
+                yield break;
 
             Vector3 playerPos = transform.root.position;
             Vector3 enemyStart = enemy.transform.position;
