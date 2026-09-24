@@ -1,0 +1,104 @@
+
+spine.png
+size: 5761,3184
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BODY
+  rotate: true
+  xy: 2520, 373
+  size: 240, 420
+  orig: 240, 420
+  offset: 0, 0
+  index: -1
+CHOANG
+  rotate: false
+  xy: 1906, 207
+  size: 511, 178
+  orig: 511, 179
+  offset: 0, 0
+  index: -1
+KHIEN
+  rotate: false
+  xy: 1906, 34
+  size: 123, 171
+  orig: 123, 171
+  offset: 0, 0
+  index: -1
+KIEM
+  rotate: false
+  xy: 5289, 849
+  size: 284, 226
+  orig: 284, 226
+  offset: 0, 0
+  index: -1
+Layer 10 copy
+  rotate: false
+  xy: 3597, 62
+  size: 1488, 718
+  orig: 1488, 718
+  offset: 0, 0
+  index: -1
+Layer 10 copy 2
+  rotate: false
+  xy: 3597, 62
+  size: 1488, 718
+  orig: 1488, 718
+  offset: 0, 0
+  index: -1
+Layer 11
+  rotate: false
+  xy: 2, 2
+  size: 1902, 611
+  orig: 1902, 611
+  offset: 0, 0
+  index: -1
+Layer 12
+  rotate: false
+  xy: 1906, 387
+  size: 612, 226
+  orig: 612, 226
+  offset: 0, 0
+  index: -1
+Layer 12 copy
+  rotate: false
+  xy: 4679, 849
+  size: 608, 226
+  orig: 609, 226
+  offset: 1, 0
+  index: -1
+Layer 8
+  rotate: false
+  xy: 4679, 1732
+  size: 1080, 1450
+  orig: 1080, 1450
+  offset: 0, 0
+  index: -1
+Layer 9
+  rotate: false
+  xy: 4679, 1077
+  size: 1080, 653
+  orig: 1080, 653
+  offset: 0, 0
+  index: -1
+NAME
+  rotate: false
+  xy: 2, 615
+  size: 3593, 2567
+  orig: 3593, 2567
+  offset: 0, 0
+  index: -1
+SKY
+  rotate: false
+  xy: 3597, 782
+  size: 1080, 2400
+  orig: 1080, 2400
+  offset: 0, 0
+  index: -1
+chum do
+  rotate: false
+  xy: 4679, 810
+  size: 111, 37
+  orig: 111, 37
+  offset: 0, 0
+  index: -1
