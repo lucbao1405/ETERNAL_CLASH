@@ -3050,6 +3050,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 106419159}
   m_CullTransparentMesh: 1
+--- !u!1 &111443925 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 351017994}
+  m_PrefabAsset: {fileID: 0}
 --- !u!115 &120280892
 MonoScript:
   m_ObjectHideFlags: 0
@@ -4819,7 +4824,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 480.000
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -4851,11 +4856,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 3.200
+      value: 29.000
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "V\xE0ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -4864,7 +4873,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2076988354}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &166683583 stripped
 RectTransform:
@@ -5416,6 +5428,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 185347901}
   m_CullTransparentMesh: 1
+--- !u!1 &189156350 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 1416786146}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &196814079
 GameObject:
   m_ObjectHideFlags: 0
@@ -9205,6 +9222,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298072958}
   m_CullTransparentMesh: 1
+--- !u!1 &300085065
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 300085067}
+  - component: {fileID: 300085066}
+  m_Layer: 0
+  m_Name: SelfCheckPlayer
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &300085066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300085065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+--- !u!4 &300085067
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300085065}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &303441041
 GameObject:
   m_ObjectHideFlags: 0
@@ -10634,7 +10696,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_Name
-      value: Card_Gem_7200
+      value: Card_Gem_20000
       objectReference: {fileID: 0}
     - target: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_Pivot.x
@@ -10722,7 +10784,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 7.200
+      value: 20.000
       objectReference: {fileID: 0}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -10754,11 +10816,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 498.000
+      value: $49.99
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "Kim c\u01B0\u01A1ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -10767,13 +10833,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 351017999}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &351017995 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 351017994}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &351017999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111443925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: diamon
+  amount: 100
+  currencyId: coin
+  price: 29000
+  iapProductId: com.eternalclash.gem.huge
 --- !u!1 &353656272
 GameObject:
   m_ObjectHideFlags: 0
@@ -14022,6 +14108,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 468750404}
   m_CullTransparentMesh: 1
+--- !u!1 &470043998 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 1830319857}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &471047292
 GameObject:
   m_ObjectHideFlags: 0
@@ -14369,6 +14460,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 473390734}
   m_CullTransparentMesh: 1
+--- !u!1 &486224491
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 486224493}
+  - component: {fileID: 486224492}
+  m_Layer: 0
+  m_Name: SelfCheckPlayer
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &486224492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 486224491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+--- !u!4 &486224493
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 486224491}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &492627332
 GameObject:
   m_ObjectHideFlags: 0
@@ -15294,7 +15430,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 54.000
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -15326,11 +15462,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 480
+      value: 29.000
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "V\xE0ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -15339,7 +15479,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1453666125}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &524171775 stripped
 RectTransform:
@@ -20544,7 +20687,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &731406043
 RectTransform:
   m_ObjectHideFlags: 0
@@ -20566,7 +20709,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1049, y: 228}
+  m_AnchoredPosition: {x: 0, y: 228}
   m_SizeDelta: {x: 950, y: 1300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &731406044
@@ -25847,6 +25990,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 915366128}
   m_CullTransparentMesh: 1
+--- !u!1 &917823145 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 1718383082}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &922641483
 GameObject:
   m_ObjectHideFlags: 0
@@ -27400,11 +27548,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 249.000
+      value: $9.99
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "Kim c\u01B0\u01A1ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -27413,7 +27565,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1101012086}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &980242329 stripped
 RectTransform:
@@ -28345,7 +28500,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -0.000061035156}
-  m_SizeDelta: {x: 0, y: 1776}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &998544211
 MonoBehaviour:
@@ -31251,6 +31406,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1096257157}
   m_CullTransparentMesh: 1
+--- !u!1 &1101012082 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 980242328}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1101012086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101012082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: diamon
+  amount: 100
+  currencyId: coin
+  price: 29000
+  iapProductId: com.eternalclash.gem.large
 --- !u!1 &1109641328
 GameObject:
   m_ObjectHideFlags: 0
@@ -35462,6 +35639,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1264121774}
   m_CullTransparentMesh: 1
+--- !u!1 &1265166293
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1265166295}
+  - component: {fileID: 1265166294}
+  m_Layer: 0
+  m_Name: SelfCheckPlayer
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1265166294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265166293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8968b5f6c263b9e4abc2c9c5bddd3186, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+--- !u!4 &1265166295
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265166293}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1270226363
 GameObject:
   m_ObjectHideFlags: 0
@@ -38148,7 +38370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1367580941
 RectTransform:
   m_ObjectHideFlags: 0
@@ -38322,6 +38544,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
       objectReference: {fileID: 0}
@@ -38349,9 +38575,21 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
+    - target: {fileID: 952, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: $0.99
+      objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "Kim c\u01B0\u01A1ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -38360,13 +38598,38 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1385939506}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1368697000 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1368696999}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1385939502 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 1368696999}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1385939506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1385939502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: diamon
+  amount: 100
+  currencyId: coin
+  price: 29000
+  iapProductId: com.eternalclash.gem.small
 --- !u!1 &1386025075
 GameObject:
   m_ObjectHideFlags: 0
@@ -39340,11 +39603,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 129.000
+      value: $4.99
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "Kim c\u01B0\u01A1ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -39353,13 +39620,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1416786151}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1416786147 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1416786146}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1416786151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189156350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: diamon
+  amount: 100
+  currencyId: coin
+  price: 29000
+  iapProductId: com.eternalclash.gem.medium
 --- !u!1 &1417140660
 GameObject:
   m_ObjectHideFlags: 0
@@ -40582,6 +40869,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1451085233}
   m_CullTransparentMesh: 1
+--- !u!1 &1453666121 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 524171774}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1453666125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453666121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: coin
+  amount: 100
+  currencyId: diamon
+  price: 29000
+  iapProductId: 
 --- !u!1 &1461823785
 GameObject:
   m_ObjectHideFlags: 0
@@ -48009,7 +48318,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 10.000
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -48041,11 +48350,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 100
+      value: 29.000
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "V\xE0ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -48054,13 +48367,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1718383087}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1718383083 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1718383082}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1718383087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917823145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: coin
+  amount: 100
+  currencyId: diamon
+  price: 29000
+  iapProductId: 
 --- !u!1 &1724097943
 GameObject:
   m_ObjectHideFlags: 0
@@ -50964,7 +51297,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: be44c88ab1a8ed14f8615b0722660ee4, type: 3}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 118.000
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 932, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -50996,11 +51329,15 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: b44dc338d76f3e54e92f6d43d915b623, type: 3}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_text
-      value: 960
+      value: 29.000
       objectReference: {fileID: 0}
     - target: {fileID: 962, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
       value: 97690656
+      objectReference: {fileID: 0}
+    - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      propertyPath: m_text
+      value: "V\xE0ng"
       objectReference: {fileID: 0}
     - target: {fileID: 982, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -51009,13 +51346,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1830319862}
   m_SourcePrefab: {fileID: 100100000, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
 --- !u!224 &1830319858 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 900, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
   m_PrefabInstance: {fileID: 1830319857}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1830319862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470043998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: coin
+  amount: 100
+  currencyId: diamon
+  price: 29000
+  iapProductId: 
 --- !u!1 &1836137688
 GameObject:
   m_ObjectHideFlags: 0
@@ -57792,6 +58149,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2073837957}
   m_CullTransparentMesh: 1
+--- !u!1 &2076988350 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100, guid: f938c6d4c5bd0ab48a58502dbe75b80c, type: 3}
+  m_PrefabInstance: {fileID: 166683582}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2076988354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2076988350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e0f67cfc85eb34b9f41f6ac55a20d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemId: coin
+  amount: 100
+  currencyId: diamon
+  price: 29000
+  iapProductId: 
 --- !u!1 &2082694877
 GameObject:
   m_ObjectHideFlags: 0
@@ -60948,3 +61327,6 @@ SceneRoots:
   - {fileID: 2109426680}
   - {fileID: 1855945120}
   - {fileID: 159781845}
+  - {fileID: 300085067}
+  - {fileID: 1265166295}
+  - {fileID: 486224493}

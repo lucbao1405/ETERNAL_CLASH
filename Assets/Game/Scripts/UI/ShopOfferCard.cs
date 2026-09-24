@@ -6,11 +6,12 @@ using EternalClash.Village;
 namespace EternalClash.UI
 {
     /// <summary>
-    /// Du lieu goi hang gan truc tiep len card trong scene ("ban cung").
-    /// Nút MUA goi Buy(); sua gia/so luong ngay tren Inspector cua card.
-    /// Dien iapProductId (mot productId trong IapService.Catalog) de card
-    /// chuyen sang MUA BANG TIEN THAT qua IAP - luc do so luong va gia USD
-    /// tu dong dong bo tu catalog, khong dung den amount/price ben duoi.
+    /// Du lieu goi hang "ban cung": component duoc dat san tren tung card trong
+    /// scene Town, sua gia/so luong/productId ngay tren Inspector cua card.
+    /// Card IAP: dien iapProductId (mot productId trong IapService.Catalog) de
+    /// mua bang tien that (FakeStore grant truc tiep khi test). Card thong
+    /// thuong: itemId = vat nhan duoc, currencyId = tien phai tra ("coin" tra
+    /// bang vang, "diamon" tra bang kim cuong).
     /// </summary>
     public class ShopOfferCard : MonoBehaviour
     {
@@ -21,47 +22,11 @@ namespace EternalClash.UI
         [SerializeField, Tooltip("productId trong IapService.Catalog. De trong neu mua bang vang/gem trong game.")]
         private string iapProductId = "";
 
-        public string IapProductId => iapProductId;
-
-        public void ConfigureIap(string productId)
-        {
-            iapProductId = productId;
-            SyncIapLabels();
-        }
-
-        /// <summary>
-        /// Noi lai card mua bang VANG (tra bang kim cuong) sau khi component
-        /// ShopOfferCard da bi thao khoi scene (sua crash Android). Gia va so
-        /// luong chi con tren label cua card nen doc lai tu label.
-        /// ponytail: parse label thay vi tai data asset; khi shop co data asset
-        /// rieng thi thay cho nay.
-        /// </summary>
-        public void ConfigureGemPurchase()
-        {
-            ShopItemSlotUI slot = GetComponent<ShopItemSlotUI>();
-            if (slot == null || !slot.TryReadOffer(out int amount, out int price))
-            {
-                Debug.LogWarning($"[ShopOfferCard] {name} khong doc du gia/so luong tu label - bo qua.");
-                return;
-            }
-
-            itemId = "coin";
-            currencyId = "diamon";
-            this.amount = amount;
-            this.price = price;
-            iapProductId = "";
-        }
-
-        private void OnEnable()
-        {
-            SyncIapLabels();
-        }
-
         public void Buy()
         {
             GameAudio.Play(SoundId.UIClick);
 
-            // Card IAP: mua bang tien that (FakeStore trong Editor), khong tieu vang/gem.
+            // Card IAP: mua bang tien that (FakeStore trong Editor/test), khong tieu vang/gem.
             if (!string.IsNullOrWhiteSpace(iapProductId))
             {
                 IapService.Buy(iapProductId);
@@ -86,28 +51,6 @@ namespace EternalClash.UI
             if (itemId == "coin") gold.AddGold(amount);
             else if (itemId == "diamon") gold.AddGem(amount);
             else Debug.Log($"[ShopOfferCard] Da mua {amount} {itemId}.");
-        }
-
-        private void SyncIapLabels()
-        {
-            if (string.IsNullOrWhiteSpace(iapProductId))
-                return;
-
-            IapProductDef product = IapService.Find(iapProductId);
-            if (product == null)
-            {
-                Debug.LogWarning($"[ShopOfferCard] Khong tim thay IAP product '{iapProductId}' cho {name}.");
-                return;
-            }
-
-            ShopItemSlotUI slot = GetComponent<ShopItemSlotUI>();
-            if (slot == null)
-            {
-                Debug.LogWarning($"[ShopOfferCard] {name} thieu ShopItemSlotUI - khong sync duoc label IAP.");
-                return;
-            }
-
-            slot.SetIapOffer(product.displayName, product.PrimaryAmount, product.priceLabel);
         }
     }
 }

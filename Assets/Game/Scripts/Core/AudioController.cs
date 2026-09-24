@@ -97,13 +97,14 @@ namespace EternalClash.Core
             ItemPickup.OnItemCollected += OnItemCollected;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (Instance != this)
                 return;
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
             ItemPickup.OnItemCollected -= OnItemCollected;
+            base.OnDestroy();
         }
 
         private void Start()

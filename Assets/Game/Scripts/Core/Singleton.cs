@@ -17,5 +17,14 @@ namespace EternalClash.Core
             Instance = this as T;
             DontDestroyOnLoad(gameObject);
         }
+
+        // Clear static khi object chet: editor giu static qua cac lan play mode,
+        // de Instance stale (fake-null) thi moi lenh Instance?. van chay vao
+        // object da destroy (MissingReferenceException trong tool edit mode).
+        protected virtual void OnDestroy()
+        {
+            if (Instance == this as T)
+                Instance = null;
+        }
     }
 }
