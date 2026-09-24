@@ -47,10 +47,10 @@ namespace EternalClash.UI
             if (stats == null) return;
 
             if (pointsText != null) pointsText.text = $"Points: {stats.StatPoints}";
-            if (strText != null) strText.text = $"STR: {stats.Strength}";
-            if (intText != null) intText.text = $"INT: {stats.Intelligence}";
-            if (vitText != null) vitText.text = $"VIT: {stats.Vitality}";
-            if (luckText != null) luckText.text = $"LUCK: {stats.Luck}";
+            if (strText != null) strText.text = $"STR: {stats.BaseStrength}";
+            if (intText != null) intText.text = $"INT: {stats.BaseIntelligence}";
+            if (vitText != null) vitText.text = $"VIT: {stats.BaseVitality}";
+            if (luckText != null) luckText.text = $"LUCK: {stats.BaseLuck}";
 
             bool hasPoints = stats.StatPoints > 0;
             if (strButton != null) strButton.interactable = hasPoints;

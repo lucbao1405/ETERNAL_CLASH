@@ -8879,6 +8879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89c18654efdf5944a9b7a70a0685d827, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  runSpeed: 0.25
 --- !u!225 &813375339
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -10380,6 +10381,46 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1643967791}
     m_Modifications:
+    - target: {fileID: 1415178006733060747, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1097
+      objectReference: {fileID: 0}
+    - target: {fileID: 1415178006733060747, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 97.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1415178006733060747, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -6.0979
+      objectReference: {fileID: 0}
+    - target: {fileID: 1415178006733060747, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -191.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 3729449180394397204, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_fontSize
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 3729449180394397204, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_margin.z
+      value: 3.8338318
+      objectReference: {fileID: 0}
+    - target: {fileID: 3729449180394397204, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 3729449180394397204, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4772860476006809007, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -13.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 4772860476006809007, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -201.64
+      objectReference: {fileID: 0}
     - target: {fileID: 8879625008416956557, guid: 63dc683a51007614594fd4f4490e3ed1, type: 3}
       propertyPath: m_Name
       value: thoai

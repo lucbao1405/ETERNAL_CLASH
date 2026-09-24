@@ -136,30 +136,14 @@ namespace EternalClash.Story
                 "Blue flowers... these only grow near water sources, don't they?",
                 "You went out of your way to find this. For me.",
                 "It's beautiful. Almost as beautiful as the day we first met—",
-                "...Forget I said that last part."),
-            new GiftReaction("leaf_green", 8,
-                "A green leaf? Fresh from the plains?",
-                "Simple. But coming from you, even a leaf means something.",
-                "I'll add it to my collection. Keep them coming."),
-            new GiftReaction("leaf_red", 8,
-                "Red leaf. Autumn colors already?",
-                "The seasons pass so fast when you're not here...",
-                "Thank you. It reminds me to be patient."),
-            new GiftReaction("leaf_yellow", 5,
-                "Yellow leaf. Bright and warm, like sunlight.",
-                "It's lovely. Thank you for thinking of me."),
-            new GiftReaction("wolf_hide", 12,
-                "Wolf hide?! It's so soft!",
-                "...Did you have to fight a whole pack for this?",
-                "Please tell me you didn't almost die for a piece of fur.",
-                "...You did, didn't you? *sigh* Just... stay alive, okay?")
+                "...Forget I said that last part.")
         };
 
         private static readonly string[] DefaultReaction =
         {
             "...This? For me?",
             "It's... not really my thing, but thank you for thinking of me.",
-            "(Maybe try one of the flowers or leaves next time.)"
+            "(Maybe try one of the flowers next time.)"
         };
 
         private static readonly HerGift[] HerGifts =

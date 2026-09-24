@@ -176,10 +176,13 @@ namespace EternalClash.Player
             if (enemyMover != null)
                 enemyMover.PauseMovement(1.5f);
 
-            // Quai danh xa (Goblin Mage) chi an dam + choang, KHONG bi keo vao
-            // sat nguoi. Keo vao trong luc Charge nhin nhu no "tu bay" vao player,
-            // va cung pha luon vai tro dung xa ban cua no.
-            if (enemyMover != null && enemyMover.IsArcher)
+            // Quai danh xa (Goblin Mage, Boss...) chi an dam + choang, KHONG bi keo
+            // vao sat nguoi. Keo vao trong luc Charge nhin nhu no "tu bay" vao
+            // player, va cung pha luon vai tro dung xa ban cua no.
+            // Nhan dien ranged qua attack that (co projectilePrefab), khong phai co
+            // isArcher cua mover: Boss bang dan nhung isArcher = 0.
+            if ((enemyMover != null && enemyMover.IsArcher) ||
+                (enemy.TryGetComponent<EnemyAttack>(out var enemyAttack) && enemyAttack.IsRanged))
                 yield break;
 
             Vector3 playerPos = transform.root.position;

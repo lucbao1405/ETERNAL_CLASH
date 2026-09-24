@@ -43,34 +43,41 @@ namespace EternalClash.Monetization
         private static void CheckHealthSystem()
         {
             GameObject player = new GameObject("SelfCheckPlayer");
-            player.tag = "Player";
-            HealthSystem health = player.AddComponent<HealthSystem>();
+            try
+            {
+                player.tag = "Player";
+                HealthSystem health = player.AddComponent<HealthSystem>();
 
-            Check(!health.RevivePending, "Mac dinh khong co offer hoi sinh nao mo");
+                Check(!health.RevivePending, "Mac dinh khong co offer hoi sinh nao mo");
 
-            // Trong luc offer hoi sinh mo: HP = 0 nhung IsDead phai false de
-            // PlayerDeathHandler chua kip chay flow thua.
-            health.MarkRevivePending();
-            health.TakeDamage(1000);
-            Check(!health.IsDead, "RevivePending: IsDead phai false ke ca khi HP = 0");
-            Check(health.CurrentHealth == 0, "HP = 0 trong luc offer mo");
-            Check(health.RevivePending, "RevivePending dang bat");
+                // Trong luc offer hoi sinh mo: HP = 0 nhung IsDead phai false de
+                // PlayerDeathHandler chua kip chay flow thua.
+                health.MarkRevivePending();
+                health.TakeDamage(1000);
+                Check(!health.IsDead, "RevivePending: IsDead phai false ke ca khi HP = 0");
+                Check(health.CurrentHealth == 0, "HP = 0 trong luc offer mo");
+                Check(health.RevivePending, "RevivePending dang bat");
 
-            health.ReviveAtHalfHealth();
-            Check(!health.IsDead && !health.RevivePending, "Hoi sinh xong phai song");
-            Check(health.CurrentHealth == Mathf.Max(1, health.MaxHealth / 2),
-                $"Hoi sinh dung 50% HP (nhan {health.CurrentHealth}/{health.MaxHealth})");
+                health.ReviveAtHalfHealth();
+                Check(!health.IsDead && !health.RevivePending, "Hoi sinh xong phai song");
+                Check(health.CurrentHealth == Mathf.Max(1, health.MaxHealth / 2),
+                    $"Hoi sinh dung 50% HP (nhan {health.CurrentHealth}/{health.MaxHealth})");
 
-            // Chet lan thu hai (da het luot hoi sinh): TakeDamage khong duoc mo
-            // offer lan nua, ConfirmDeath chot cai chet nhu flow cu.
-            health.MarkRevivePending();
-            health.TakeDamage(1000);
-            health.ConfirmDeath();
-            Check(health.IsDead, "ConfirmDeath: IsDead true");
-            Check(HealthSystem.PlayerDead, "ConfirmDeath: PlayerDead true");
-            Check(!health.RevivePending, "ConfirmDeath: RevivePending phai tat");
-
-            Object.DestroyImmediate(player);
+                // Chet lan thu hai (da het luot hoi sinh): TakeDamage khong duoc mo
+                // offer lan nua, ConfirmDeath chot cai chet nhu flow cu.
+                health.MarkRevivePending();
+                health.TakeDamage(1000);
+                health.ConfirmDeath();
+                Check(health.IsDead, "ConfirmDeath: IsDead true");
+                Check(HealthSystem.PlayerDead, "ConfirmDeath: PlayerDead true");
+                Check(!health.RevivePending, "ConfirmDeath: RevivePending phai tat");
+            }
+            finally
+            {
+                // Check giua chung nem exception cung phai don dep, neu khong
+                // object sot lai trong scene dang mo.
+                Object.DestroyImmediate(player);
+            }
         }
 
         private static void CheckIapCatalog()
