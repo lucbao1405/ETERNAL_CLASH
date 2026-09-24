@@ -3,22 +3,35 @@ using EternalClash.Data;
 
 namespace EternalClash.Stage
 {
-    // Phan thuong ruong: 85% la la cay nguyen lieu nang cap phu thuy
-    // (xanh = heal, do = hoi chieu, vang = khien). Phan con lai: hoa bond
-    // (hoa cuc vang, hoa xanh) voi ti le thap va thuong cu (vang, gem).
+    // Phan thuong ruong uu tien vat pham Gift. Bang cu: 85% la la cay nguyen lieu
+    // nang cap phu thuy (xanh = heal, do = hoi chieu, vang = khien), phan con lai
+    // la hoa bond (hoa cuc vang, hoa xanh) va thuong cu (vang). Kim cuong khong
+    // nam trong bang nay nua - rot rieng theo GemChance o moi ruong.
     public static class RewardGenerator
     {
         private static readonly string[] WitchLeafItemIds = { "leaf_green", "leaf_red", "leaf_yellow" };
 
+        // Ti le uu tien Gift khi stage khai bao ca tag tien te ("Gold"/"EXP"):
+        // 90% lan mo rong chi rot trong so vat pham gift, phan con lai moi dung pool goc.
+        private const float GiftBiasChance = 0.9f;
+
+        // Kim cuong: ti le vua (12%) rot o moi ruong, du stage co drop story hay khong.
+        internal const float GemChance = 0.12f;
+
         public static RewardData GenerateStageReward(int stageLevel)
         {
+            if (Random.value < GemChance)
+                return new RewardData { type = RewardType.Gem, amount = Random.Range(3, 6) };
+
             // Story-first: each stage declares its own drops (Wood, Wolf Hide,
             // Copper Ore, Rare Material...). Falls back to the legacy leaf table
             // when the stage has no configured drops.
             string[] drops = EternalClash.Story.StoryManager.GetStageDrops(stageLevel);
             if (drops != null && drops.Length > 0)
             {
-                RewardData storyReward = GenerateStoryDrop(drops[Random.Range(0, drops.Length)], stageLevel);
+                string[] giftDrops = System.Array.FindAll(drops, d => d != "Gold" && d != "EXP");
+                string[] pool = giftDrops.Length > 0 && Random.value < GiftBiasChance ? giftDrops : drops;
+                RewardData storyReward = GenerateStoryDrop(pool[Random.Range(0, pool.Length)], stageLevel);
                 if (storyReward != null)
                     return storyReward;
             }
@@ -38,21 +51,16 @@ namespace EternalClash.Stage
                 reward.item = ItemCatalog.Find("yellow_wildflower");
                 reward.amount = 1;
             }
-            else if (roll < 0.95f)
+            else if (roll < 0.96f)
             {
                 reward.type = RewardType.Gift;
                 reward.item = ItemCatalog.Find("blue_flower");
                 reward.amount = 1;
             }
-            else if (roll < 0.975f)
+            else
             {
                 reward.type = RewardType.Gold;
                 reward.amount = Random.Range(20, 60) + stageLevel * 10;
-            }
-            else
-            {
-                reward.type = RewardType.Gem;
-                reward.amount = Random.Range(1, 3);
             }
 
             return reward;

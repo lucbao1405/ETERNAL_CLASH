@@ -266,6 +266,9 @@ namespace EternalClash.Story
             LoadProgress();
             ResolveBagPanel();
             BuildNpcInTown();
+            // Setup pose cua "con vo" attach san trai tim — Ela dung idle
+            // (stand) phai khong co trai tim, chi nhay qua tang moi co.
+            SetHeartsVisible(elaSkeleton != null ? elaSkeleton.Skeleton : null, false);
             BuildMenuUI();
         }
 
@@ -679,6 +682,24 @@ namespace EternalClash.Story
             dialogueManager?.OpenDialogue("Ela", null, lines);
         }
 
+        // Trai tim ("tym") duoc attach san trong setup pose cua skeleton
+        // "con vo" va khong animation nao key attachment — nen phai bat/tat
+        // bang code: chi hien khi nhay "lieu nhan gain", con "stand" phai
+        // sach. Ten attachment trung ten slot (xem spine.atlas.txt).
+        private static readonly string[] HeartSlots =
+            { "tym", "tym - Copy", "tym - Copy (2)", "tym - Copy (3)", "tym - Copy (4)" };
+
+        /// <summary>
+        /// Bat/tat trai tim tren skeleton Ela — dung duoc cho ca SkeletonGraphic
+        /// (Town) lan SkeletonAnimation (Battle). Slot khong ton tai thi bo qua.
+        /// </summary>
+        public static void SetHeartsVisible(Spine.Skeleton skeleton, bool visible)
+        {
+            if (skeleton == null) return;
+            foreach (string heartSlot in HeartSlots)
+                skeleton.SetAttachment(heartSlot, visible ? heartSlot : null);
+        }
+
         /// <summary>
         /// Nhay "lieu nhan gain" loop ~6 giay khi duoc tang qua roi ve stand.
         /// Tang tiep trong luc dang nhay thi reset dem 6 giay. Bo qua neu convo
@@ -696,6 +717,7 @@ namespace EternalClash.Story
                 StopCoroutine(giftReactionRoutine);
 
             elaSkeleton.AnimationState.SetAnimation(0, GiftReactionAnim, true);
+            SetHeartsVisible(elaSkeleton.Skeleton, true);
             giftReactionRoutine = StartCoroutine(GiftReactionLoop());
         }
 
@@ -703,7 +725,10 @@ namespace EternalClash.Story
         {
             yield return new WaitForSeconds(6f);
             if (elaSkeleton != null && elaSkeleton.AnimationState != null)
+            {
                 elaSkeleton.AnimationState.SetAnimation(0, "stand", true);
+                SetHeartsVisible(elaSkeleton.Skeleton, false);
+            }
             giftReactionRoutine = null;
         }
 

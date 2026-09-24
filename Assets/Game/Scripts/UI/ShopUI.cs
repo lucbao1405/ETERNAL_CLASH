@@ -1,14 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using EternalClash.Audio;
-using EternalClash.Monetization;
 
 namespace EternalClash.UI
 {
     /// <summary>
     /// Panel shop kieu PostKnight. Card la doi tuong cung dat san trong scene
-    /// (Content), moi card mang ShopOfferCard de nut MUA tu lo. Script nay chi
-    /// quan ly mo/dong va cam xac khi keo danh sach.
+    /// (Content), moi card mang ShopOfferCard da cau hinh san (productId, gia,
+    /// so luong) ngay tren Inspector - khong sinh hay ghi de gi luc chay de
+    /// khong phu thuoc wiring runtime khi len dien thoai. Script nay chi mo/dong,
+    /// cam xac khi keo danh sach va noi nut MUA voi card.Buy().
     /// </summary>
     public class ShopUI : MonoBehaviour
     {
@@ -21,39 +22,26 @@ namespace EternalClash.UI
             AutoWireReferences();
             if (closeButton != null) closeButton.onClick.AddListener(Close);
             if (bottomCloseButton != null) bottomCloseButton.onClick.AddListener(Close);
-            WireRuntimeIapCards();
+            WireBuyButtons();
         }
 
-        private void WireRuntimeIapCards()
+        /// <summary>Chi noi nut MUA cua tung card (da cau hinh san trong scene)
+        /// voi ShopOfferCard.Buy. Card thieu component se bi bo qua.</summary>
+        private void WireBuyButtons()
         {
             ShopItemSlotUI[] slots = GetComponentsInChildren<ShopItemSlotUI>(true);
-            string[] productIds = {
-                IapService.GemSmallId,
-                IapService.GemMediumId,
-                IapService.GemLargeId,
-                IapService.GemHugeId
-            };
-
-            int productIndex = 0;
             foreach (ShopItemSlotUI slot in slots)
             {
                 Button buyButton = slot.GetComponentInChildren<Button>(true);
-                if (buyButton == null)
-                    continue;
-
                 ShopOfferCard card = slot.GetComponent<ShopOfferCard>();
-                if (card == null)
-                    card = slot.gameObject.AddComponent<ShopOfferCard>();
+                if (buyButton == null || card == null)
+                {
+                    if (buyButton != null)
+                        Debug.LogWarning($"[ShopUI] {slot.name} thieu ShopOfferCard - nut MUA khong hoat dong.");
+                    continue;
+                }
 
                 buyButton.onClick.RemoveAllListeners();
-
-                // 4 card kim cuong dau tien mua bang tien that (fake khi test);
-                // cac card con lai (vang) mua bang kim cuong trong game.
-                if (productIndex < productIds.Length)
-                    card.ConfigureIap(productIds[productIndex++]);
-                else
-                    card.ConfigureGemPurchase();
-
                 buyButton.onClick.AddListener(card.Buy);
             }
         }
