@@ -26,6 +26,7 @@ namespace EternalClash.Story
         // mot nguoi voi StoryManager.ElaUnlockStage de khong lech so man.
         private const int UnlockStage = StoryManager.ElaUnlockStage;
         private const string ConvoSkeletonPath = "convo"; // Resources path of the convo SkeletonDataAsset
+        private const string GiftReactionAnim = "lieu nhan gain"; // dance clip in the convo skeleton
 
         [System.Serializable]
         private class Topic
@@ -208,6 +209,8 @@ namespace EternalClash.Story
         private SmoothSlide menuSlide;
         private SmoothSlide topicsSlide;
         private BagController[] bagControllers;
+        private SkeletonGraphic elaSkeleton;
+        private Coroutine giftReactionRoutine;
 
         private int ElaAffinity;
         private readonly HashSet<string> topicsDone = new HashSet<string>();
@@ -335,7 +338,8 @@ namespace EternalClash.Story
                 if (bakedSkeleton != null)
                 {
                     bakedSkeleton.gameObject.SetActive(IsUnlocked);
-                    FaceLeft(bakedSkeleton.GetComponent<SkeletonGraphic>());
+                    elaSkeleton = bakedSkeleton.GetComponent<SkeletonGraphic>();
+                    FaceLeft(elaSkeleton);
                     EnsureShadow(bakedSkeleton.gameObject);
                 }
 
@@ -398,7 +402,8 @@ namespace EternalClash.Story
             if (existing != null)
             {
                 existing.gameObject.SetActive(IsUnlocked);
-                FaceLeft(existing.GetComponent<SkeletonGraphic>());
+                elaSkeleton = existing.GetComponent<SkeletonGraphic>();
+                FaceLeft(elaSkeleton);
                 EnsureShadow(existing.gameObject);
                 return;
             }
@@ -424,6 +429,7 @@ namespace EternalClash.Story
                 rect.localScale = new Vector3(scale, scale, 1f);
             }
             rect.anchoredPosition = new Vector2(-409f, -480f); // in front of the house door
+            elaSkeleton = skeleton;
             EnsureShadow(elaGo);
 
             Debug.Log("[ElaNPC] Convo skeleton spawned at the first house.");
@@ -669,7 +675,36 @@ namespace EternalClash.Story
             GiftReaction reaction = System.Array.Find(Reactions, r => r.itemId == item.itemId);
             string[] lines = reaction != null ? reaction.lines : DefaultReaction;
             AddAffinity(reaction?.affinity ?? 3);
+            PlayGiftReaction();
             dialogueManager?.OpenDialogue("Ela", null, lines);
+        }
+
+        /// <summary>
+        /// Nhay "lieu nhan gain" loop ~6 giay khi duoc tang qua roi ve stand.
+        /// Tang tiep trong luc dang nhay thi reset dem 6 giay. Bo qua neu convo
+        /// spine khong co clip nay.
+        /// </summary>
+        private void PlayGiftReaction()
+        {
+            if (elaSkeleton == null || elaSkeleton.AnimationState == null) return;
+
+            // SetAnimation theo ten se throw neu clip khong ton tai — kiem tra truoc.
+            Spine.SkeletonData data = elaSkeleton.SkeletonData;
+            if (data != null && data.FindAnimation(GiftReactionAnim) == null) return;
+
+            if (giftReactionRoutine != null)
+                StopCoroutine(giftReactionRoutine);
+
+            elaSkeleton.AnimationState.SetAnimation(0, GiftReactionAnim, true);
+            giftReactionRoutine = StartCoroutine(GiftReactionLoop());
+        }
+
+        private System.Collections.IEnumerator GiftReactionLoop()
+        {
+            yield return new WaitForSeconds(6f);
+            if (elaSkeleton != null && elaSkeleton.AnimationState != null)
+                elaSkeleton.AnimationState.SetAnimation(0, "stand", true);
+            giftReactionRoutine = null;
         }
 
         private void OnReceiveClicked()

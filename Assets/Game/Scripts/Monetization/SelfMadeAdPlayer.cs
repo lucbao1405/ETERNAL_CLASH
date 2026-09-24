@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -29,6 +30,12 @@ namespace EternalClash.Monetization
         private const int ImageCountdownSeconds = 5;
         private const int PlaceholderCountdownSeconds = 3;
 
+        /// <summary>Quang cao "quang cao 1" la vong cuoi cua chu ky: chi chay
+        /// sau khi da xem du cac quang cao con lai. So lan xem luu qua
+        /// PlayerPrefs nen chu ky giu len cho ca nhung lan choi sau.</summary>
+        private const string FinaleAdName = "quang cao 1";
+        private const string CycleWatchedKey = "SelfMadeAds.CycleWatched";
+
         /// <summary>So giay toi thieu phai xem video truoc khi nut skip mo.
         /// Skip sau moc nay van duoc huong thuong.</summary>
         private const int MinWatchSecondsForSkip = 7;
@@ -38,7 +45,57 @@ namespace EternalClash.Monetization
         internal static void Play(string placement, Action<bool> onResult)
         {
             EnsureHost();
-            host.Play(placement, onResult);
+
+            VideoClip[] clips = Resources.LoadAll<VideoClip>(AdResourcesFolder);
+            VideoClip clip = clips != null && clips.Length > 0 ? PickNextClip(clips) : null;
+            host.Play(placement, clip, success =>
+            {
+                if (success)
+                    CountWatched(clip);
+                onResult?.Invoke(success);
+            });
+        }
+
+        /// <summary>Chon clip cho lan phat nay: random trong cac quang cao
+        /// thuong; rieng "quang cao 1" (finale) chi den luot khi da xem du
+        /// cac quang cao con lai cua chu ky.</summary>
+        private static VideoClip PickNextClip(VideoClip[] clips)
+        {
+            VideoClip finale = null;
+            List<VideoClip> regular = new List<VideoClip>();
+            foreach (VideoClip clip in clips)
+            {
+                if (clip == null)
+                    continue;
+                if (IsFinale(clip))
+                    finale = clip;
+                else
+                    regular.Add(clip);
+            }
+
+            if (finale != null && regular.Count > 0 &&
+                PlayerPrefs.GetInt(CycleWatchedKey, 0) >= regular.Count)
+                return finale;
+
+            if (regular.Count > 0)
+                return regular[UnityEngine.Random.Range(0, regular.Count)];
+
+            return finale != null ? finale : clips[0];
+        }
+
+        private static bool IsFinale(VideoClip clip)
+        {
+            return clip.name.Equals(FinaleAdName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void CountWatched(VideoClip clip)
+        {
+            if (clip == null)
+                return;
+            // Chi lan xem duoc thuong moi tinh vao chu ky; finale xem xong
+            // thi chu ky quay lai tu dau.
+            PlayerPrefs.SetInt(CycleWatchedKey,
+                IsFinale(clip) ? 0 : PlayerPrefs.GetInt(CycleWatchedKey, 0) + 1);
         }
 
         private static void EnsureHost()
@@ -62,7 +119,7 @@ namespace EternalClash.Monetization
             private Action<bool> onResult;
             private bool completed;
 
-            public void Play(string placement, Action<bool> result)
+            public void Play(string placement, VideoClip clip, Action<bool> result)
             {
                 // Chong mo hai ad cung luc - dong ban cu va bao khong thuong.
                 CloseWithoutReward(true);
@@ -87,10 +144,9 @@ namespace EternalClash.Monetization
                 // khoa phai la "skip van nhan thuong". Gan truoc thi listener nay
                 // chay truoc SkipWithReward -> bam X sau 7s bi tinh la tu choi va
                 // player khong duoc hoi sinh.
-                VideoClip[] clips = Resources.LoadAll<VideoClip>(AdResourcesFolder);
-                if (clips != null && clips.Length > 0)
+                if (clip != null)
                 {
-                    PlayClip(clips[UnityEngine.Random.Range(0, clips.Length)]);
+                    PlayClip(clip);
                     return;
                 }
 
@@ -261,8 +317,9 @@ namespace EternalClash.Monetization
                 if (panel.VideoPlayerComp != null)
                 {
                     videoPlayer = panel.VideoPlayerComp;
-                    if (videoPlayer.clip == null)
-                        videoPlayer.clip = clip;
+                    // Luon gan clip da chon: VideoPlayer dat san trong scene co
+                    // the bi dinh clip cu trong Inspector, se che mat lua chon random.
+                    videoPlayer.clip = clip;
                 }
                 else
                 {
