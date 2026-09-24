@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -28,6 +29,21 @@ namespace EternalClash.Stage
         [Header("World")]
         [SerializeField] private World.WorldScroller worldScroller;
 
+        [Header("Chest Spawn Drift")]
+        [Tooltip("Ruong xuat hien phia truoc nhan vat bao nhieu (world units) sau khi clear het quai.")]
+        [SerializeField, Min(1f)] private float chestSpawnAheadDistance = 8f;
+        [Tooltip("Toc do ruong troi ve phia nhan vat (world units/giay). Ham duoi bang toc do ground scroll nen giong cach quai troi vao.")]
+        [SerializeField, Min(0.5f)] private float chestDriftSpeed = 2.5f;
+        [Tooltip("Ruong dung lai cach nhan vat bao nhieu (world units, gan bang khoang cach quai dung lai truoc mat player).")]
+        [SerializeField, Min(0.1f)] private float chestStopDistance = 1f;
+        [Tooltip("Chieu cao ruong tren duong (world units).")]
+        [SerializeField, Min(0.1f)] private float chestWorldHeight = 1.1f;
+
+        private Coroutine chestDriftRoutine;
+        private bool chestDriftDone;
+        private static GameObject worldChest;
+        private const float MaxChestDriftSeconds = 12f;
+
         public RewardData CurrentReward => currentReward;
         public StageResultData StageResult => stageResult;
         public UI.StageResultUI StageResultUI => stageResultUI;
@@ -47,6 +63,7 @@ namespace EternalClash.Stage
         private int lastClearedStage = 1;
 
         private const string BattleSceneName = "Battle";
+        private const string ChestSpawnPointName = "ChestSpawnPoint";
 
         /// <summary>
         /// Tu tao controller trong scene Battle neu scene chua co san, theo dung mau
@@ -177,6 +194,26 @@ namespace EternalClash.Stage
         /// </summary>
         public void ProceedToVictoryFlow()
         {
+            // Ruong (ChestSpawn) "troi ra" giong quai: sau khi clear het quai, ruong
+            // xuat hien phia truoc duong roi truot ve phia player theo toc do dat.
+            // Hero van chay, world van cuon cho den khi ruong dung lai ben canh;
+            // luc do hero moi dung (StopCombat trong flow thang) va popup thang mo.
+            if (!chestDriftDone && ResolveChestSprite() != null)
+            {
+                if (chestDriftRoutine == null)
+                    chestDriftRoutine = StartCoroutine(ChestDriftRoutine());
+                return;
+            }
+
+            OpenVictoryFlow();
+        }
+
+        /// <summary>
+        /// Flow thang that su: victory anim + ruong -> reward -> win popup. Duoc goi
+        /// khi khong co ruong, hoac ngay sau khi ChestSpawn troi toi ben canh hero.
+        /// </summary>
+        private void OpenVictoryFlow()
+        {
             // Animation "victory" chi mo khi flow thang that su chay: khong co
             // NPC thi ngay tai day, co NPC thi FieldMeetingController goi lai
             // SAU khi hoi thoai ket thuc (nhan vat chay toi NPC truoc do).
@@ -255,6 +292,155 @@ namespace EternalClash.Stage
                 if (combatController != null)
                     combatController.enabled = false;
             }
+        }
+
+        // ------------------------------------------------------------------
+        // ChestSpawn troi ra sau khi clear het quai
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Tao ruong the gioi tai ChestSpawnPoint (dung chinh art cua marker
+        /// "Dichden" tren thanh Progress). Duoc dung o hai noi: buoi gap NPC
+        /// (FieldMeetingController truot no cung NPC) va buoc troi rieng khi
+        /// khong co NPC. Tra ve null neu khong co sprite/hero.
+        /// </summary>
+        public GameObject SpawnWorldChest()
+        {
+            Sprite sprite = ResolveChestSprite();
+            GameObject hero = GameObject.FindGameObjectWithTag("Player");
+            if (sprite == null || hero == null)
+                return null;
+
+            Transform spawnPoint = GameObject.Find(ChestSpawnPointName)?.transform;
+            Vector3 start = spawnPoint != null
+                ? spawnPoint.position
+                : hero.transform.position + Vector3.right * chestSpawnAheadDistance;
+
+            worldChest = new GameObject("ChestSpawnWorld", typeof(SpriteRenderer));
+            SpriteRenderer chestRenderer = worldChest.GetComponent<SpriteRenderer>();
+            chestRenderer.sprite = sprite;
+            chestRenderer.sortingOrder = 10;
+
+            Vector3 spriteSize = chestRenderer.bounds.size;
+            if (spriteSize.y > 0.0001f)
+                worldChest.transform.localScale =
+                    Vector3.one * (chestWorldHeight / spriteSize.y);
+
+            worldChest.transform.position = start;
+            // Chan ruong cham duong mat dat chung + bong dem giong nhan vat/NPC.
+            worldChest.AddComponent<CombatLaneAligner>();
+            worldChest.AddComponent<EternalClash.Character.CharacterShadow>();
+            return worldChest;
+        }
+
+        /// <summary>Ruong da dung canh hero (buoi gap NPC) - bo qua buoc troi rieng.</summary>
+        public void MarkChestArrived() => chestDriftDone = true;
+
+        /// <summary>Khoang cach ruong dung lai truoc mat hero, FieldMeetingController dung chung.</summary>
+        public float ChestStopDistance => chestStopDistance;
+
+        /// <summary>
+        /// Ruong troi tren duong ve phia player giong cach quai troi vao (khong
+        /// co NPC gap cuoi duong): hero van chay, world van cuon trong luc ruong
+        /// truot lai; ruong dung thi hero dung + flow thang mo. Bien mat khi
+        /// panel "Open Chest" sap hien (DespawnWorldChest goi tu
+        /// BattleResultFlowController).
+        /// </summary>
+        private IEnumerator ChestDriftRoutine()
+        {
+            if (SpawnWorldChest() == null)
+            {
+                chestDriftDone = true;
+                OpenVictoryFlow();
+                yield break;
+            }
+
+            GameObject hero = GameObject.FindGameObjectWithTag("Player");
+            var scroller = FindObjectOfType<WorldScroller>();
+            float stopX = hero.transform.position.x + chestStopDistance;
+            float elapsed = 0f;
+            while (elapsed < MaxChestDriftSeconds)
+            {
+                if (worldChest == null)
+                    yield break;
+
+                Vector3 pos = worldChest.transform.position;
+                // Truot voi toc do dat (giong EnemyMover), nhung khong cham hon
+                // chestDriftSpeed: stage gap NPC da dung scroll thi ruong van tu toi.
+                float groundSpeed = scroller != null ? scroller.GetGroundVelocity() : 0f;
+                pos.x -= Mathf.Max(groundSpeed, chestDriftSpeed) * Time.deltaTime;
+                pos.x = Mathf.Max(pos.x, stopX);
+                worldChest.transform.position = pos;
+                elapsed += Time.deltaTime;
+                if (pos.x <= stopX + 0.001f)
+                    break;
+                yield return null;
+            }
+
+            chestDriftRoutine = null;
+            chestDriftDone = true;
+            Debug.Log("[StageComplete] ChestSpawn da troi toi ben player - hero dung va mo flow thang.");
+            OpenVictoryFlow();
+        }
+
+        /// <summary>
+        /// Bien mat ruong the gioi dung truoc khi panel "Open Chest" hien. Goi tu
+        /// BattleResultFlowController ngay truoc khi mo popup ruong thuong.
+        /// </summary>
+        public static void DespawnWorldChest()
+        {
+            if (worldChest != null)
+                Destroy(worldChest);
+            worldChest = null;
+        }
+
+        /// <summary>
+        /// Sprite ruong lay tu instance ChestSpawn prefabs trong scene (co the bi
+        /// doi ten thanh "Dichden"). Khong co thi flow thang chay ngay nhu cu,
+        /// khong them buoc troi. Public cho EditMode test.
+        /// </summary>
+        public static Sprite ResolveChestSprite()
+        {
+            RectTransform marker = FindChestSpawnRect();
+            Image image = marker != null ? marker.GetComponent<Image>() : null;
+            return image != null ? image.sprite : null;
+        }
+
+        /// <summary>
+        /// Tim ChestSpawn trong scene: instance co the bi doi ten thanh "Dichden"
+        /// nen kiem tra ca hai ten. Khong co thi flow thang chay ngay nhu cu,
+        /// khong them buoc troi. Public cho EditMode test.
+        /// </summary>
+        public static RectTransform FindChestSpawnRect()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (!scene.IsValid())
+                return null;
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                Transform found = FindDescendantByName(root.transform, "Dichden") ??
+                                  FindDescendantByName(root.transform, "ChestSpawn");
+                if (found != null)
+                    return found.GetComponent<RectTransform>();
+            }
+
+            return null;
+        }
+
+        private static Transform FindDescendantByName(Transform parent, string name)
+        {
+            foreach (Transform child in parent)
+            {
+                if (string.Equals(child.name, name, System.StringComparison.OrdinalIgnoreCase))
+                    return child;
+
+                Transform match = FindDescendantByName(child, name);
+                if (match != null)
+                    return match;
+            }
+
+            return null;
         }
 
         private void SpawnChest()

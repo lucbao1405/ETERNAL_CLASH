@@ -20,6 +20,7 @@ namespace EternalClash.UI
 
         private TMP_Text nameText;
         private TMP_Text levelText;
+        private TMP_Text profileNameText;
         private SaveManager subscribedSaveManager;
         private PlayerStatSystem subscribedPlayerStats;
 
@@ -111,28 +112,46 @@ namespace EternalClash.UI
             int level = Mathf.Max(1, data != null ? data.level : 1);
 
             if (nameText != null)
-                nameText.text = playerName;
+                ApplyName(nameText, playerName);
             if (levelText != null)
                 levelText.text = level.ToString();
+            if (profileNameText != null)
+                ApplyName(profileNameText, playerName);
+        }
+
+        private static void ApplyName(TMP_Text label, string playerName)
+        {
+            // Ten co the da luu tu truoc khi co kit tu dac biet; tat rich text de TMP khong parse the.
+            // Text Style khac Normal (vi du "Title") bi TMP chen the <size=125%><b><align=center> vao text
+            // va hien nhu chu thuong khi richText = false, nen phai reset ve Normal.
+            label.richText = false;
+            label.textStyle = TMP_Style.NormalStyle;
+            label.text = playerName;
         }
 
         private void ResolveTargets()
         {
             string sceneName = SceneManager.GetActiveScene().name;
-            Transform root = string.Equals(sceneName, TownSceneName, StringComparison.OrdinalIgnoreCase)
-                ? FindSceneTransform("Down_Panel")
-                : FindSceneTransform("BottomPanel");
-            if (root == null)
-                return;
+            bool isTown = string.Equals(sceneName, TownSceneName, StringComparison.OrdinalIgnoreCase);
+            Transform root = isTown ? FindSceneTransform("Down_Panel") : FindSceneTransform("BottomPanel");
+            if (root != null)
+            {
+                Transform infoRoot = isTown ? FindDescendant(root, "Stat") : FindDescendant(root, "PlayerInfo");
+                if (infoRoot != null)
+                {
+                    nameText = FindText(infoRoot, "Name");
+                    levelText = FindText(infoRoot, "Level");
+                }
+            }
 
-            Transform infoRoot = string.Equals(sceneName, TownSceneName, StringComparison.OrdinalIgnoreCase)
-                ? FindDescendant(root, "Stat")
-                : FindDescendant(root, "PlayerInfo");
-            if (infoRoot == null)
-                return;
-
-            nameText = FindText(infoRoot, "Name");
-            levelText = FindText(infoRoot, "Level");
+            // Nhan ten trong ho so Town: Canvas/Man_Hinh_Khac/Avt/Khung nho/Name.
+            // Di tu "Man_Hinh_Khac" truoc vi Down_Panel cung co nut ten "Avt".
+            if (isTown)
+            {
+                Transform khungNho = FindDescendant(FindDescendant(FindSceneTransform("Man_Hinh_Khac"), "Avt"), "Khung nho");
+                if (khungNho != null)
+                    profileNameText = FindText(khungNho, "Name");
+            }
         }
 
         private static Transform FindSceneTransform(string name)

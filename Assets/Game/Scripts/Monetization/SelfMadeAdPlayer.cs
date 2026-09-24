@@ -429,17 +429,46 @@ namespace EternalClash.Monetization
                 player.Play();
             }
 
-            /// <summary>Giu dung ti le video, nam gon trong AdScreen (du vien den).</summary>
+            /// <summary>Giu dung ti le video, nam gon trong AdScreen (du vien den).
+            /// Video quay bang dien thoai: mp4 luu frame ngang + metadata xoay ma
+            /// VideoPlayer khong doc (hinh bi nam ngang, dau quay sang trai) -
+            /// frame ngang (width &gt; height) phai xoay -90 do cho dung huong doc.
+            /// ponytail: khong co API doc rotation metadata nen doan theo kich thuoc
+            /// frame; neu sau nay them video ngang that thi can danh dau rieng tung clip.</summary>
             private void FitVideoToScreen(int width, int height)
             {
                 if (panel == null || panel.VideoImage == null)
                     return;
+
+                RectTransform videoRect = panel.VideoImage.rectTransform;
+                bool rotate = width > height;
+                videoRect.localEulerAngles = rotate ? new Vector3(0f, 0f, -90f) : Vector3.zero;
 
                 var fitter = panel.VideoImage.GetComponent<AspectRatioFitter>();
                 if (fitter == null)
                     fitter = panel.VideoImage.gameObject.AddComponent<AspectRatioFitter>();
                 fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
                 fitter.aspectRatio = (float)width / height;
+
+                if (!rotate)
+                {
+                    // Bat lai fitter cho video dung huong (lan truoc co the da tat
+                    // vi phat video bi xoay).
+                    fitter.enabled = true;
+                    return;
+                }
+
+                // Fitter chi do kich thuoc theo rect chua xoay - sau khi xoay -90 do
+                // vung hien thi doi cho (H x W) nen tu tinh lai: be rong toi da cua
+                // vung hien thi lay theo chieu dai khung, dai = be rong * ti le goc.
+                RectTransform parent = videoRect.parent as RectTransform;
+                if (parent == null)
+                    return;
+
+                fitter.enabled = false;
+                videoRect.anchorMin = videoRect.anchorMax = videoRect.pivot = Vector2.one * 0.5f;
+                float displayWidth = Mathf.Min(parent.rect.height, parent.rect.width * width / (float)height);
+                videoRect.sizeDelta = new Vector2(displayWidth, displayWidth * height / (float)width);
             }
 
             /// <summary>Video loi khong chay duoc (codec, file hong...): khong
