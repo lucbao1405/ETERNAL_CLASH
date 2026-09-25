@@ -179,6 +179,7 @@ namespace EternalClash.Story
         private DialogueManager dialogueManager;
         private GameObject menuPanel;
         private GameObject topicsPanel;
+        private Transform elaClickArea;
         private TMP_Text menuTitle;
         private TMP_Text affinityText;
         private Transform topicButtonContainer;
@@ -322,6 +323,7 @@ namespace EternalClash.Story
             Transform bakedArea = page1.Find("Ela_ClickArea");
             if (bakedArea != null)
             {
+                elaClickArea = bakedArea;
                 Button bakedButton = bakedArea.GetComponent<Button>();
                 if (bakedButton == null)
                 {
@@ -360,6 +362,7 @@ namespace EternalClash.Story
             GameObject area = new GameObject("Ela_ClickArea",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
             area.transform.SetParent(page1, false);
+            elaClickArea = area.transform;
             RectTransform rect = area.GetComponent<RectTransform>();
             rect.localScale = Vector3.one;
             rect.anchorMin = houseRect.anchorMin;
@@ -451,6 +454,11 @@ namespace EternalClash.Story
         public void OnElaClicked()
         {
             if (dialogueManager == null || dialogueManager.IsOpen)
+                return;
+
+            // Ela chi tuong tac khi nguoi choi dung tren dung Page chua nha
+            // cua Ela (Page_1) — chay di noi khac thi phai quay lai nha.
+            if (elaClickArea != null && !TownNpcPageGate.CanOpenNpcPanel(elaClickArea))
                 return;
 
             RefreshMenuTitle();

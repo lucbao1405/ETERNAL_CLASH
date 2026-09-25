@@ -74,6 +74,11 @@ public sealed class NPCShopDialogueController : MonoBehaviour
             (dialogueManager != null && dialogueManager.IsOpen))
             return;
 
+        // NPC chi mo hoi thoai/panel khi nhan vat da chay den dung Page chua
+        // NPC do (tho ren o Page_2, phu thuy o Page_3).
+        if (!TownNpcPageGate.CanOpenNpcPanel(this))
+            return;
+
         if (dialogueManager == null || dialogueLines == null || dialogueLines.Length == 0)
         {
             Debug.LogError($"Shop dialogue '{dialogueId}' is not configured on '{name}'.", this);

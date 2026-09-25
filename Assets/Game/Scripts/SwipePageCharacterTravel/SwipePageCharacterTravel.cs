@@ -43,6 +43,15 @@ public class SwipePageCharacterTravel : MonoBehaviour,
     private Coroutine pageCoroutine;
     private Coroutine characterCoroutine;
 
+    // Trang hien tai nhan vat dang dung (0-based, ung voi Page_1, Page_2...).
+    public int CurrentPage => currentPage;
+
+    // Skeleton nhan vat dang dieu khien (doc cho cac he thong ben ngoai).
+    public SkeletonGraphic Character => character;
+
+    // True khi van dang anim di chuyen sang trang khac (swipe chua hoan tat).
+    public bool IsTraveling => pageCoroutine != null || characterCoroutine != null;
+
     private void Start()
     {
         characterRect = character.rectTransform;

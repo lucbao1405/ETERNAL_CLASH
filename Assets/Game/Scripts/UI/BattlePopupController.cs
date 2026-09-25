@@ -56,6 +56,7 @@ namespace EternalClash.UI
     private readonly object resultDimKey = new object();
         private Button closeSettingsButton;
         private Button settingReturnButton;
+        private Button settingBackToTownButton;
         private Button winReturnButton;
         private Button loseReturnButton;
 
@@ -330,7 +331,8 @@ namespace EternalClash.UI
             }
             else
             {
-                SceneManager.LoadScene(TownSceneName);
+                // Qua SceneLoader de nhan hieu ung fade khi chuyen scene.
+                EternalClash.Core.SceneLoader.LoadTown();
             }
         }
 
@@ -556,22 +558,87 @@ namespace EternalClash.UI
                 Debug.LogWarning("[BattlePopup] SettingsButton was not found in Battle scene.");
             if (settingPanel == null)
                 Debug.LogWarning("[BattlePopup] Setting panel was not found in Battle scene.");
-            if (closeSettingsButton == null)
+            if (closeSettingsButton == null && settingBackToTownButton == null && settingReturnButton == null)
                 Debug.LogWarning("[BattlePopup] Setting/X button was not found in Battle scene.");
         }
 
         /// <summary>
-        /// Resolves the pause (Setting) panel widgets: its Return button exits to
-        /// town, while X resumes the game.
+        /// Resolves the pause (Setting) panel widgets: its Return / "Back to town!"
+        /// buttons exit to town, while the X button resumes the game.
+        /// Scene Battle dat nut ve lang ten "Close" (chu TMP "Back to town!"),
+        /// nen nut do phai duoc nhan dien qua text chu khong phai ten object.
         /// </summary>
         private void BindSettingsPanel()
         {
             if (settingMotion == null || settingMotion.Rect == null)
                 return;
 
-            Transform returnTransform = FindDescendant(settingMotion.Rect, "Return", "ReturnButton", "Exit");
+            Transform returnTransform = FindDescendant(settingMotion.Rect, "Return", "ReturnButton", "Exit", "BackToTown");
             if (returnTransform != null)
                 settingReturnButton = returnTransform.GetComponent<Button>() ?? EnsureButton(returnTransform);
+
+            // Moi nut co nhan chu "back to town" deu phai ve lang.
+            settingBackToTownButton = FindButtonWithTownText(settingMotion.Rect);
+            if (settingBackToTownButton != null && settingBackToTownButton == settingReturnButton)
+                settingBackToTownButton = null;
+
+            // Nut resume chi la "X"/"CloseButton"; chi fallback sang ten "Close"
+            // khi nut do chua bi dung lam nut ve lang.
+            Transform closeTransform = FindDescendant(settingMotion.Rect, "X", "CloseButton");
+            if (closeTransform == null && settingBackToTownButton == null)
+            {
+                Transform closeNamed = FindDescendant(settingMotion.Rect, "Close");
+                if (closeNamed != null && closeNamed != (settingReturnButton != null ? settingReturnButton.transform : null))
+                    closeTransform = closeNamed;
+            }
+
+            if (closeTransform != null)
+                closeSettingsButton = closeTransform.GetComponent<Button>() ?? EnsureButton(closeTransform);
+        }
+
+        /// <summary>
+        /// Tim nut dau tien trong panel co text (TMP hoac legacy UI.Text) chua
+        /// chu "town", vi du nut "Back to town!" trong panel Setting cua scene Battle.
+        /// </summary>
+        private static Button FindButtonWithTownText(Transform panelRoot)
+        {
+            foreach (Transform candidate in panelRoot.GetComponentsInChildren<Transform>(true))
+            {
+                if (candidate == panelRoot)
+                    continue;
+
+                if (!candidate.GetComponent<Button>())
+                    continue;
+
+                bool mentionsTown = false;
+                foreach (TMP_Text text in candidate.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text != null && !string.IsNullOrEmpty(text.text) &&
+                        NormalizeName(text.text).Contains("town"))
+                    {
+                        mentionsTown = true;
+                        break;
+                    }
+                }
+
+                if (!mentionsTown)
+                {
+                    foreach (UnityEngine.UI.Text text in candidate.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+                    {
+                        if (text != null && !string.IsNullOrEmpty(text.text) &&
+                            NormalizeName(text.text).Contains("town"))
+                        {
+                            mentionsTown = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (mentionsTown)
+                    return candidate.GetComponent<Button>();
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -836,6 +903,8 @@ namespace EternalClash.UI
                 closeSettingsButton.onClick.AddListener(CloseSettings);
             if (settingReturnButton != null)
                 settingReturnButton.onClick.AddListener(OnSettingsReturnClicked);
+            if (settingBackToTownButton != null && settingBackToTownButton != settingReturnButton)
+                settingBackToTownButton.onClick.AddListener(OnSettingsReturnClicked);
 
             if (winMotion != null && winMotion.ReturnButton != null)
             {
@@ -858,6 +927,8 @@ namespace EternalClash.UI
                 closeSettingsButton.onClick.RemoveListener(CloseSettings);
             if (settingReturnButton != null)
                 settingReturnButton.onClick.RemoveListener(OnSettingsReturnClicked);
+            if (settingBackToTownButton != null && settingBackToTownButton != settingReturnButton)
+                settingBackToTownButton.onClick.RemoveListener(OnSettingsReturnClicked);
             if (winReturnButton != null)
                 winReturnButton.onClick.RemoveListener(OnWinReturnClicked);
             if (loseReturnButton != null)
