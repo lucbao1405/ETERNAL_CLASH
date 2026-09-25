@@ -1,4 +1,5 @@
 using System.Collections;
+using EternalClash.Enemy;
 using EternalClash.Item;
 using EternalClash.Loot;
 using EternalClash.Village;
@@ -78,9 +79,16 @@ public class EnemyLootDropController : MonoBehaviour
         GrantExpReward();
     }
 
-    private static int RollAmount(LootData entry)
+    private int RollAmount(LootData entry)
     {
-        return Random.Range(entry.minAmount, Mathf.Max(entry.minAmount + 1, entry.maxAmount + 1));
+        int amount = Random.Range(entry.minAmount, Mathf.Max(entry.minAmount + 1, entry.maxAmount + 1));
+
+        // Tran thu thach boss: quai nhieu mau hon binh thuong (xHpMultiplier) nen
+        // tien/vat pham rot ra cung nhan theo de giu ti le cong/suc can bang.
+        if (BossChallenge.Active)
+            amount = Mathf.RoundToInt(amount * BossChallenge.HpMultiplier);
+
+        return amount;
     }
 
     private void GrantExpReward()
@@ -88,7 +96,10 @@ public class EnemyLootDropController : MonoBehaviour
         if (expReward <= 0)
             return;
 
-        EternalClash.Village.PlayerStatSystem.Instance?.AddExp(expReward);
+        int exp = BossChallenge.Active
+            ? Mathf.RoundToInt(expReward * BossChallenge.HpMultiplier)
+            : expReward;
+        EternalClash.Village.PlayerStatSystem.Instance?.AddExp(exp);
     }
 
     private void SpawnDrop(LootData entry, int amount)

@@ -12,6 +12,10 @@ public class SceneLoader : MonoBehaviour
     /// </summary>
     public void LoadGameplay()
     {
+        // Nut GO thuong (khong phai boss): huy thu thach boss con ton tai tu lan
+        // choi boss truoc do, neu khong man thuong se bi thay bang man boss.
+        EternalClash.Enemy.BossChallenge.Cancel();
+
         PlayerConditionSystem condition = PlayerConditionSystem.Instance;
         if (condition != null && !condition.CanStartBattle())
         {

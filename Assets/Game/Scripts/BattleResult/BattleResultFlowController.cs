@@ -464,6 +464,14 @@ namespace EternalClash.BattleResult
             }
 
             pendingChestReward = null;
+
+            // Qua dam bao theo stage (man 3: 2 hoa de tang Ela), trao ke ca khi
+            // ruong ra Gold/Gem/Equipment.
+            foreach (RewardData guaranteed in RewardGenerator.GetGuaranteedGifts(ResolveStageLevel()))
+            {
+                if (guaranteed != null && guaranteed.amount > 0)
+                    AddNormalItemReward(guaranteed.item, guaranteed.amount);
+            }
         }
 
         private void EquipIfUpgrade(ItemData item)

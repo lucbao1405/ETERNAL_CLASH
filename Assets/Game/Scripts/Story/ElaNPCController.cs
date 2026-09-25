@@ -253,6 +253,7 @@ namespace EternalClash.Story
             // Setup pose cua "con vo" attach san trai tim — Ela dung idle
             // (stand) phai khong co trai tim, chi nhay qua tang moi co.
             SetHeartsVisible(elaSkeleton != null ? elaSkeleton.Skeleton : null, false);
+            EnsureIdle();
             BuildMenuUI();
         }
 
@@ -260,6 +261,19 @@ namespace EternalClash.Story
         {
             if (Instance == this)
                 Instance = null;
+        }
+
+        // SkeletonGraphic dat trong scene co startingAnimation de trong thi khong
+        // animation nao chay (Ela dung im o setup pose) — dam bao idle "stand"
+        // luon loop du moi skeleton den tu scene hay duoc spawn bang code.
+        private void EnsureIdle()
+        {
+            if (elaSkeleton == null || elaSkeleton.AnimationState == null) return;
+
+            Spine.SkeletonData data = elaSkeleton.SkeletonData;
+            if (data == null || data.FindAnimation("stand") == null) return;
+
+            elaSkeleton.AnimationState.SetAnimation(0, "stand", true);
         }
 
         private void LoadProgress()

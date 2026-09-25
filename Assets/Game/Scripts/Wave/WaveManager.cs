@@ -115,6 +115,24 @@ namespace EternalClash.Wave
 
             yield return new WaitForSeconds(firstWaveDelay);
 
+            // Man thu thach boss chon tu panel "select boss" o Town: thay toan bo
+            // man bang 1 wave duy nhat spawn dung con quai duoc chon. Doi luon
+            // stageData de thanh tien trinh (TotalWaves) bao "1/1" thay vi cua man thuong.
+            if (BossChallenge.Active)
+            {
+                WaveData bossWave = BuildBossChallengeWave();
+                if (bossWave != null)
+                {
+                    StageData bossStage = ScriptableObject.CreateInstance<StageData>();
+                    bossStage.waves = new[] { bossWave };
+                    stageData = bossStage; // chi trong tran nay, khong luu vao asset
+                }
+                else
+                {
+                    BossChallenge.Cancel(); // khong tim thay prefab -> danh man thuong
+                }
+            }
+
             for (currentWaveIndex = 0; currentWaveIndex < stageData.waves.Length; currentWaveIndex++)
             {
                 WaveData wave = stageData.waves[currentWaveIndex];
@@ -131,6 +149,73 @@ namespace EternalClash.Wave
             Debug.Log("[WAVE] Stage cleared - Win Stage");
             OnStageComplete?.Invoke();
             StageManager.Instance?.CompleteStage();
+        }
+
+        /// <summary>
+        /// Wave duy nhat cho man thu thach boss: 1 con quai duoc chon. Mau duoc
+        /// nhan trong ApplyStageScaling (x BossChallenge.HpMultiplier).
+        /// </summary>
+        private WaveData BuildBossChallengeWave()
+        {
+            GameObject prefab = FindBossPrefab();
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[WAVE] Khong tim thay quai '{BossChallenge.EnemyId}' trong StageData -> huy thu thach boss.");
+                return null;
+            }
+
+            WaveData wave = ScriptableObject.CreateInstance<WaveData>();
+            wave.waveNumber = 1;
+            wave.groups = new List<EnemySpawnGroup>
+            {
+                new EnemySpawnGroup { enemyPrefab = prefab, count = 1, spawnInterval = 0.5f, initialDelay = 0f }
+            };
+            return wave;
+        }
+
+        /// <summary>Tim prefab quai duoc chon: xem man hien tai truoc, khong co thi quet toan bo catalog.</summary>
+        private GameObject FindBossPrefab()
+        {
+            string wanted = BossChallenge.EnemyId;
+            if (string.IsNullOrEmpty(wanted))
+                return null;
+
+            GameObject match = FindBossPrefabInStage(stageData, wanted);
+            if (match != null || StageManager.Instance == null)
+                return match;
+
+            // Quai khong nam trong man hien tai (vd chon Goblin Mage nhung dang o man 1 chi co Slime).
+            for (int level = 1; level <= StageManager.Instance.MaxStageLevel; level++)
+            {
+                match = FindBossPrefabInStage(StageManager.Instance.GetStageData(level), wanted);
+                if (match != null)
+                    return match;
+            }
+
+            return null;
+        }
+
+        private static GameObject FindBossPrefabInStage(StageData data, string wanted)
+        {
+            if (data == null || data.waves == null)
+                return null;
+
+            foreach (WaveData wave in data.waves)
+            {
+                if (wave == null || wave.groups == null)
+                    continue;
+
+                foreach (EnemySpawnGroup group in wave.groups)
+                {
+                    if (group?.enemyPrefab == null)
+                        continue;
+
+                    if (BossChallenge.MatchesPrefab(group.enemyPrefab.name, wanted))
+                        return group.enemyPrefab;
+                }
+            }
+
+            return null;
         }
 
         private IEnumerator RunWave(WaveData wave)
@@ -214,12 +299,24 @@ namespace EternalClash.Wave
         private void ApplyStageScaling(GameObject enemy)
         {
             int level = StageManager.Instance != null ? StageManager.Instance.CurrentStageLevel : 1;
-            float multiplier = 1f + 0.15f * (level - 1);
-            if (multiplier <= 1f)
-                return;
+            float damageMultiplier = 1f + 0.15f * (level - 1);
 
-            enemy.GetComponent<EnemyHealthSystem>()?.ScaleHealth(multiplier);
-            enemy.GetComponent<EnemyAttack>()?.ScaleDamage(multiplier);
+            // Man thu thach boss (panel "select boss" o Town): nhieu mau hon binh
+            // thuong nhung giu nguyen sat thuong, khong thi quai yeu thanh onet-shot.
+            float healthMultiplier = ComputeHealthMultiplier(level, BossChallenge.Active);
+
+            if (healthMultiplier > 1f)
+                enemy.GetComponent<EnemyHealthSystem>()?.ScaleHealth(healthMultiplier);
+
+            if (damageMultiplier > 1f)
+                enemy.GetComponent<EnemyAttack>()?.ScaleDamage(damageMultiplier);
+        }
+
+        /// <summary>He so mau sau cung cho quai theo man (pure de tu kiem tra).</summary>
+        internal static float ComputeHealthMultiplier(int stageLevel, bool bossChallenge)
+        {
+            float multiplier = 1f + 0.15f * (stageLevel - 1);
+            return bossChallenge ? multiplier * BossChallenge.HpMultiplier : multiplier;
         }
 
         // Nhan bao chet tu EnemyDeathEvent (xem huong dan phan 2 ben duoi).

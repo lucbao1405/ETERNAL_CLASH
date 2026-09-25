@@ -638,8 +638,8 @@ namespace EternalClash.UI
             SaveData save = SaveManager.Instance?.Data;
             if (save?.currency != null)
             {
-                Apply(goldTexts, save.currency.gold);
-                Apply(gemTexts, save.currency.gem);
+                Apply(goldTexts, save.currency.gold, FormatCurrency);
+                Apply(gemTexts, save.currency.gem, FormatCurrency);
             }
 
             PlayerStatSystem stats = PlayerStatSystem.Instance;
@@ -771,14 +771,37 @@ namespace EternalClash.UI
             }
         }
 
-        private static void Apply(List<TMP_Text> texts, int value)
+        private static void Apply(List<TMP_Text> texts, int value, Func<int, string> format = null)
         {
-            string s = value.ToString();
+            string s = format != null ? format(value) : value.ToString();
             for (int i = 0; i < texts.Count; i++)
             {
                 if (texts[i] != null)
                     texts[i].text = s;
             }
+        }
+
+        /// <summary>
+        /// Rut gon so tien: tu 1000 tro len hien dang "1,01k" (dau phay la dau
+        /// thap phan kieu Viet Nam), 1.000.000 tro len la "1,23m". Duoi 1000 giu
+        /// nguyen con so. Bo so 0 thua: 1500 -> "1,5k", 15000 -> "15k".
+        /// </summary>
+        private static string FormatCurrency(int value)
+        {
+            if (value < 1000)
+                return value.ToString();
+
+            double v = value / 1000.0;
+            if (v >= 1000.0)
+                return Shorten(v / 1000.0) + "m";
+
+            return Shorten(v) + "k";
+        }
+
+        private static string Shorten(double v)
+        {
+            return v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+                    .Replace('.', ',');
         }
 
         // ------------------------------------------------------------------

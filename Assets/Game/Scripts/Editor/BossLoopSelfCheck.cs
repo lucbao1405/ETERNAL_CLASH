@@ -1,7 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 using EternalClash.Combat;
+using EternalClash.Data;
 using EternalClash.Enemy;
+using EternalClash.Stage;
+using EternalClash.Wave;
 
 namespace EternalClash.EditorTools
 {
@@ -19,6 +22,8 @@ namespace EternalClash.EditorTools
             CheckEdgeReach();
             CheckAimCenter();
             CheckBossRangedGuard();
+            CheckBossChallenge();
+            CheckBossRewards();
 
             Debug.Log("[BossLoopSelfCheck] Boss loop + aim OK");
         }
@@ -134,12 +139,100 @@ namespace EternalClash.EditorTools
             Check(attack != null && attack.IsRanged,
                 "boss is recognized as ranged (projectilePrefab) for the charge pull guard");
 
-            // Hitbox vien dan lech truoc ~0.31 + body hitbox Player lech 0.66: dan
-            // spawn trong khoang cach <= ~1.0 thi chet ngay frame dau ("dan bien mat").
-            // BossController.ClampBeforePlayer giu boss o dung attackRange nen
-            // attackRange phai nam ngoai nguong do.
-            Check(attack != null && attack.attackRange >= 1f,
-                "boss attackRange keeps spawned bullets clear of the player hitbox");
+            // Boss phai do duoc trong tam kiem cua Player: ClampBeforePlayer giu boss
+            // o attackRange * 0.5, khoang cach do phai <= BasicAttackSystem.attackRange
+            // (0.85) khong thi player khong bao gio cham duoc boss de tra don.
+            var attackRange = attack != null ? attack.attackRange : 0f;
+            Check(attackRange * 0.5f > 0f, "boss has an attack range to clamp at");
+
+            const string playerPrefabPath = "Assets/Game/Prefabs/Player/Player.prefab";
+            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(playerPrefabPath);
+            if (playerPrefab == null)
+                throw new System.InvalidOperationException("Missing prefab: " + playerPrefabPath);
+
+            var basicAttack = playerPrefab.GetComponent<EternalClash.Combat.BasicAttackSystem>();
+            if (basicAttack == null)
+                throw new System.InvalidOperationException("Player prefab lacks BasicAttackSystem");
+
+            var so = new SerializedObject(basicAttack);
+            float swordRange = so.FindProperty("attackRange").floatValue;
+            Check(attackRange * 0.5f <= swordRange,
+                $"boss park distance ({attackRange * 0.5f:0.00}) stays inside the player sword range ({swordRange:0.00})");
+        }
+
+        private static void CheckBossChallenge()
+        {
+            // He so mau: thuong theo man (+15%/man), thu thach boss nhan them x5.
+            Check(WaveManager.ComputeHealthMultiplier(1, false) - 1f == 0f, "stage 1 normal HP unscaled");
+            Check(Mathf.Abs(WaveManager.ComputeHealthMultiplier(5, false) - 1.6f) < 0.001f, "stage 5 normal HP x1.6");
+            Check(WaveManager.ComputeHealthMultiplier(1, true) - BossChallenge.HpMultiplier == 0f,
+                "boss challenge stage 1 HP x5");
+            Check(Mathf.Abs(WaveManager.ComputeHealthMultiplier(5, true) - 1.6f * BossChallenge.HpMultiplier) < 0.001f,
+                "boss challenge stage 5 HP x8");
+
+            // Match ten nut o panel "select boss" voi ten prefab quai that.
+            Check(BossChallenge.MatchesPrefab("Slime", "slime"), "panel slime matches Slime prefab");
+            Check(BossChallenge.MatchesPrefab("Wolf", "wolf"), "panel wolf matches Wolf prefab");
+            Check(BossChallenge.MatchesPrefab("Goblin Mage", "goblin mage"), "panel goblin mage matches Goblin Mage prefab");
+            Check(BossChallenge.MatchesPrefab("Boss", "goblin boss"), "panel goblin boss matches Boss prefab");
+            Check(BossChallenge.MatchesPrefab("Boss", "boss"), "boss id also matches Boss prefab");
+            Check(!BossChallenge.MatchesPrefab("Wolf", "goblin mage"), "wolf does not match goblin mage");
+            Check(!BossChallenge.MatchesPrefab("Slime", "goblin boss"), "slime does not match goblin boss");
+
+            // 4 prefab that phai ton tai voi dung ten de man thu thach spawn duoc.
+            foreach (string prefabName in new[] { "Slime", "Wolf", "Goblin Mage", "Boss" })
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Game/Prefabs/Enemy V1/{prefabName}.prefab");
+                if (prefab == null)
+                    throw new System.InvalidOperationException($"Missing enemy prefab: {prefabName}");
+
+                Check(BossChallenge.MatchesPrefab(prefab.name, prefabName.ToLowerInvariant()),
+                    $"{prefabName} prefab name matches its panel id");
+            }
+
+            // Trang thai: bat khi chon boss, tat khi huy.
+            BossChallenge.Start("Goblin Boss");
+            Check(BossChallenge.Active && BossChallenge.EnemyId == "goblin boss", "start activates challenge");
+            BossChallenge.Cancel();
+            Check(!BossChallenge.Active && BossChallenge.EnemyId == null, "cancel deactivates challenge");
+            BossChallenge.Start(null);
+            Check(!BossChallenge.Active, "null id does not activate challenge");
+        }
+
+        private static void CheckBossRewards()
+        {
+            // Ruong thu thach boss: uu tien kim cuong, luong tang theo man (tu can bang).
+            int runs = 500, gems = 0, normalGems = 0;
+            try
+            {
+                BossChallenge.Start("goblin boss");
+                for (int i = 0; i < runs; i++)
+                {
+                    RewardData reward = RewardGenerator.GenerateStageReward(2);
+                    if (reward.type != RewardType.Gem)
+                        continue;
+
+                    gems++;
+                    // Boss stage 2: luong gem = 3..5 + stage = 5..7, luon cao hon thuong (3..5).
+                    Check(reward.amount >= 5 && reward.amount <= 7, "boss gem amount scales with stage (3..5 + stage)");
+                }
+
+                BossChallenge.Cancel();
+                for (int i = 0; i < runs; i++)
+                {
+                    if (RewardGenerator.GenerateStageReward(2).type == RewardType.Gem)
+                        normalGems++;
+                }
+            }
+            finally
+            {
+                BossChallenge.Cancel();
+            }
+
+            // 55% boss so voi 12% man thuong: o 500 lan quay, ty le boss phai cao ro rang.
+            Check(gems > runs * 0.3f, $"boss chest favors gems ({(float)gems / runs:P0} of {runs}, expected ~55%)");
+            Check(normalGems < runs * 0.25f, $"normal chest keeps 12% gem rate ({(float)normalGems / runs:P0} of {runs})");
+            Check(gems > normalGems * 2, "boss gem rate clearly beats normal stage rate");
         }
 
         private static void Check(bool condition, string label)

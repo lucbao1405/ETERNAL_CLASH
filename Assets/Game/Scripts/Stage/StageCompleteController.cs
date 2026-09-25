@@ -151,6 +151,20 @@ namespace EternalClash.Stage
             }
         }
 
+        /// <summary>
+        /// Thang man thu thach boss (chon boss o panel "select boss" o Town): bo qua
+        /// hoi thoai/NPC story, di thang flow ruong -> thuong -> popup thang. Thuong
+        /// sinh theo man hien tai trong save. StageManager khong tang stageLevel.
+        /// </summary>
+        public void BeginBossChallengeVictoryFlow()
+        {
+            if (isProcessing) return;
+
+            lastClearedStage = SaveManager.Instance != null && SaveManager.Instance.Data != null
+                ? Mathf.Max(1, SaveManager.Instance.Data.stageLevel) : 1;
+            ProceedToVictoryFlow();
+        }
+
         public void BeginPostStageFlow()
         {
             if (isProcessing) return;
@@ -241,12 +255,15 @@ namespace EternalClash.Stage
 
             currentReward = RewardGenerator.GenerateStageReward(lastClearedStage);
 
+            var rewards = new System.Collections.Generic.List<RewardData> { currentReward };
+            rewards.AddRange(RewardGenerator.GetGuaranteedGifts(lastClearedStage));
+
             stageResult = new StageResultData
             {
                 stageTime = stageTime,
                 earnedExp = earnedExp,
                 earnedGold = earnedGold,
-                rewards = new System.Collections.Generic.List<RewardData> { currentReward }
+                rewards = rewards
             };
 
             SpawnChest();
@@ -543,6 +560,14 @@ namespace EternalClash.Stage
                     // Equipment duoc trao rieng qua EquipmentSystem.EquipItem()
                     // trong OnEquipAccepted(), khong xu ly o day.
                 }
+            }
+
+            // Qua dam bao theo stage (man 3: 2 hoa de tang Ela) trao ke ca khi
+            // ruong ra Gold/Gem/Equipment.
+            foreach (RewardData guaranteed in RewardGenerator.GetGuaranteedGifts(lastClearedStage))
+            {
+                if (guaranteed != null && guaranteed.amount > 0)
+                    AddGiftReward(guaranteed.item, guaranteed.amount);
             }
         }
 
