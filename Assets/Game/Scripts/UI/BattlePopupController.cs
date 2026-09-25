@@ -330,7 +330,8 @@ namespace EternalClash.UI
             }
             else
             {
-                SceneManager.LoadScene(TownSceneName);
+                // Qua SceneLoader de nhan hieu ung fade khi chuyen scene.
+                EternalClash.Core.SceneLoader.LoadTown();
             }
         }
 
