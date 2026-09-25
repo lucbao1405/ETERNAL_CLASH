@@ -113,8 +113,11 @@ namespace EternalClash.Stage
             var encounterSpawner = FindObjectOfType<EncounterSpawner>();
             if (encounterSpawner != null) encounterSpawner.enabled = false;
 
-            var loopSpawner = FindObjectOfType<WorldLoopSpawner>();
-            if (loopSpawner != null) loopSpawner.enabled = false;
+            // KHONG tat WorldLoopSpawner: trong scene Battle no la bo di chuyen
+            // map duy nhat (khong co WorldLoopController). Tat no o day lam map
+            // dung yen ngay khi buoi gap bat dau — hero chay tai cho, NPC truot
+            // tren nen dong. Map phai tiep tuc troi cho toi khi NPC dung lai
+            // (MeetingRoutine se StopScroll sau do).
 
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
@@ -145,8 +148,11 @@ namespace EternalClash.Stage
             if (npc != null)
             {
                 // The hero is screen-locked (AutoRunner snaps X back home), the
-                // world scrolls past. So the waiting NPC walks in with the
-                // ground speed until the hero "reaches" them.
+                // world scrolls past. So the waiting NPC rides the road in with
+                // the CURRENT world velocity (van toc truot thuc te — khong bi
+                // lac chan khi player vua charge/shield lam doi speed) until
+                // the hero "reaches" them.
+                var world = FindObjectOfType<WorldScroller>();
                 float stopGap = owner != null ? owner.ChestStopDistance : 1f;
                 float elapsed = 0f;
                 while (elapsed < MaxRunSeconds)
@@ -156,13 +162,15 @@ namespace EternalClash.Stage
                     if (gap <= MeetDistance)
                         break;
 
-                    float step = NpcGroundSpeed * Time.deltaTime;
-                    npc.transform.position += Vector3.left * step;
+                    float stepX = world != null
+                        ? world.GetWorldVelocity().x * Time.deltaTime
+                        : -NpcGroundSpeed * Time.deltaTime;
+                    npc.transform.position += new Vector3(stepX, 0f, 0f);
                     if (chest != null)
                     {
                         Vector3 chestPos = chest.transform.position;
                         // Ruong dung lai truoc mat hero som hon NPC (gap nho hon).
-                        chestPos.x = Mathf.Max(chestPos.x - step,
+                        chestPos.x = Mathf.Max(chestPos.x + stepX,
                             hero.transform.position.x + stopGap);
                         chest.transform.position = chestPos;
                     }

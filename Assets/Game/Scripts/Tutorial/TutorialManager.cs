@@ -18,6 +18,7 @@ namespace EternalClash.Tutorial
         BattleUnlocked,
         BattleCompleted,
         BlacksmithIntroduction,
+        GoToBlacksmith,
         SelectIronSword,
         UpgradeIronSword,
         AfterUpgrade,
@@ -52,6 +53,12 @@ namespace EternalClash.Tutorial
         private int upgradeLevelBeforeTutorial;
         private float upgradeCompletedAt = -1f;
         private bool afterUpgradeRoutineActive;
+        private NPCShopDialogueController goBlacksmithNpc;
+        private DialogueManager goBlacksmithDialogue;
+        private TownNavigationController townNavigation;
+        private SwipePageCharacterTravel swipeTravel;
+        private bool goBlacksmithSubscribed;
+        private bool goBlacksmithTriggered;
 
         private void Awake()
         {
@@ -100,6 +107,9 @@ namespace EternalClash.Tutorial
                 upgradeCompletedAt = Time.unscaledTime;
                 SetStep(TutorialStep.AfterUpgrade);
             }
+
+            if (IsScene(TownSceneName) && CurrentStep == TutorialStep.GoToBlacksmith)
+                PollBlacksmithArrival();
 
         }
 
@@ -155,18 +165,24 @@ namespace EternalClash.Tutorial
                     break;
 
                 case TutorialStep.BlacksmithIntroduction:
-                    ShowDialogue(new[] { "Your weapon can be improved." }, () =>
+                    ShowDialogue(new[]
                     {
-                        SetStep(TutorialStep.SelectIronSword);
-                        OpenBlacksmith();
-                    });
+                        "Your weapon can be improved.",
+                        "Run along the road and find the blacksmith!"
+                    }, () => SetStep(TutorialStep.GoToBlacksmith));
+                    break;
+
+                case TutorialStep.GoToBlacksmith:
+                    // Panel tho ren KHONG tu mo nua: nguoi choi phai tu chay
+                    // (vuot) sang Page_2 cua tho ren, hoi thoai NPC se tu bat
+                    // khi den noi, xong moi mo shop.
+                    StartGoToBlacksmithFlow();
                     break;
 
                 case TutorialStep.SelectIronSword:
                     // Resuming mid-step must not force the shop open on every
-                    // Town load; the player opens it via the blacksmith NPC.
-                    // The one-time open after BlacksmithIntroduction still calls
-                    // OpenBlacksmith directly.
+                    // Town load; the shop opens through the blacksmith NPC on
+                    // his road (GoToBlacksmith) or by clicking him again.
                     WireIronSwordButton();
                     break;
 
@@ -275,6 +291,96 @@ namespace EternalClash.Tutorial
             BlacksmithShopUI blacksmithUi = FindObjectOfType<BlacksmithShopUI>(true);
             if (blacksmithUi != null)
                 blacksmithUi.Open();
+        }
+
+        private void StartGoToBlacksmithFlow()
+        {
+            if (goBlacksmithNpc == null)
+                goBlacksmithNpc = FindNpcShopController("blacksmith_shop");
+
+            if (goBlacksmithNpc == null)
+            {
+                // Khong tim thay NPC tho ren trong scene — mo shop truc tiep
+                // nhu flow cu de huong dan khong bi treo vinh vien.
+                SetStep(TutorialStep.SelectIronSword);
+                WireIronSwordButton();
+                OpenBlacksmith();
+                return;
+            }
+
+            townNavigation ??= FindObjectOfType<TownNavigationController>();
+            swipeTravel ??= FindObjectOfType<SwipePageCharacterTravel>();
+            SubscribeGoBlacksmithDialogueCompleted();
+        }
+
+        private void PollBlacksmithArrival()
+        {
+            if (goBlacksmithNpc == null)
+            {
+                StartGoToBlacksmithFlow();
+                if (goBlacksmithNpc == null)
+                    return;
+            }
+
+            if (!goBlacksmithSubscribed)
+                SubscribeGoBlacksmithDialogueCompleted();
+
+            if (goBlacksmithTriggered || dialogueOpen)
+                return;
+
+            // Cho nhan vat dung yen tai Page cua tho ren truoc khi bat hoi thoai.
+            if (swipeTravel != null && swipeTravel.IsTraveling)
+                return;
+            if (townNavigation != null && townNavigation.IsMoving)
+                return;
+
+            if (!TownNpcPageGate.CanOpenNpcPanel(goBlacksmithNpc))
+                return;
+
+            goBlacksmithTriggered = true;
+            goBlacksmithNpc.StartConversation();
+        }
+
+        private static NPCShopDialogueController FindNpcShopController(string dialogueId)
+        {
+            foreach (NPCShopDialogueController controller in FindObjectsOfType<NPCShopDialogueController>(true))
+            {
+                if (string.Equals(controller.DialogueId, dialogueId, StringComparison.OrdinalIgnoreCase))
+                    return controller;
+            }
+            return null;
+        }
+
+        private void SubscribeGoBlacksmithDialogueCompleted()
+        {
+            if (goBlacksmithSubscribed)
+                return;
+
+            goBlacksmithDialogue = FindObjectOfType<DialogueManager>();
+            if (goBlacksmithDialogue == null)
+                return;
+
+            goBlacksmithDialogue.DialogueCompleted += OnGoBlacksmithDialogueCompleted;
+            goBlacksmithSubscribed = true;
+        }
+
+        private void UnsubscribeGoBlacksmithDialogueCompleted()
+        {
+            if (goBlacksmithDialogue != null)
+                goBlacksmithDialogue.DialogueCompleted -= OnGoBlacksmithDialogueCompleted;
+            goBlacksmithDialogue = null;
+            goBlacksmithSubscribed = false;
+        }
+
+        private void OnGoBlacksmithDialogueCompleted()
+        {
+            if (CurrentStep != TutorialStep.GoToBlacksmith)
+                return;
+
+            // Hoi thoai cua tho ren ket thuc -> shop da mo, chuyen sang buoc
+            // chon kiem sat.
+            UnsubscribeGoBlacksmithDialogueCompleted();
+            SetStep(TutorialStep.SelectIronSword);
         }
 
         private void WireIronSwordButton()
@@ -472,6 +578,11 @@ namespace EternalClash.Tutorial
             namePromptOpen = false;
             upgradeCompletedAt = -1f;
             afterUpgradeRoutineActive = false;
+            UnsubscribeGoBlacksmithDialogueCompleted();
+            goBlacksmithNpc = null;
+            goBlacksmithTriggered = false;
+            townNavigation = null;
+            swipeTravel = null;
         }
 
         private void ConfigureBattleAccess()

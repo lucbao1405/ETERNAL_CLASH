@@ -16,7 +16,8 @@ namespace EternalClash.Core
             // Doi scene co the ton vai giay tren may yeu: ghi het save dang cho truoc.
             EternalClash.Core.Save.SaveCoordinator.Flush();
 
-            SceneManager.LoadScene(sceneName);
+            // Mo dan den -> tai scene -> mo dan lo man hinh moi.
+            SceneFader.Transition(sceneName);
         }
 
         public static void LoadBattle()
