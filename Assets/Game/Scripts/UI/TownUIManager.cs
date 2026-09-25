@@ -213,6 +213,10 @@ namespace EternalClash.UI
         public void OnClick_StartBattle()
         {
             EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+
+            // Nut danh man thuong: huy thu thach boss neu con ton tai tu tran boss truoc.
+            EternalClash.Enemy.BossChallenge.Cancel();
+
             var condition = PlayerConditionSystem.Instance;
             if (condition != null && !condition.CanStartBattle())
             {

@@ -240,11 +240,11 @@ namespace EternalClash.Enemy
         }
 
         /// <summary>
-        /// Khong bao gio lao xuyen qua player. Giu cach toi thieu = attackRange:
-        /// hitbox vien dan lech truoc ~0.3 don vi nen neu boss dung sat hon (~1.0)
-        /// thi dan spawn da chong len body hitbox cua Player, chet ngay frame dau -
-        /// nguoi choi thay dan "bien mat" thay vi bay ra (bug khi boss bi keo/dua
-        /// lai qua sat). Ranged ma dung xa ban thi phai giu dam bay duoc.
+        /// Khong bao gio lao xuyen qua player, va PHAI do duoc trong tam kiem cua
+        /// Player (BasicAttackSystem.attackRange 0.85): Postknight la quai tu di
+        /// vao tam danh, nen boss phai dung trong tam kiem player co the tra don.
+        /// Don ban o tam gan noi ngay (van gay dmg) - do la ap luc ep player danh
+        /// de boss lui ra, khong phai dan "bien mat" vi boss bi keo/dua qua sat.
         /// </summary>
         private float ClampBeforePlayer(float nextX)
         {
@@ -253,7 +253,7 @@ namespace EternalClash.Enemy
                 return nextX;
 
             float side = SideToPlayer();
-            float minSeparation = attack != null ? attack.attackRange : 0.4f;
+            float minSeparation = attack != null ? attack.attackRange * 0.5f : 0.4f;
             float limitX = target.position.x + side * minSeparation;
             return side > 0f ? Mathf.Max(nextX, limitX) : Mathf.Min(nextX, limitX);
         }

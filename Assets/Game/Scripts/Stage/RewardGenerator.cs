@@ -18,10 +18,43 @@ namespace EternalClash.Stage
         // Kim cuong: ti le vua (12%) rot o moi ruong, du stage co drop story hay khong.
         internal const float GemChance = 0.12f;
 
-        public static RewardData GenerateStageReward(int stageLevel)
+        // Man 3 tang dam bao ca 2 loai hoa de test qua tang Ela, khong phai thu
+        // ngau nhien cua ruong. Stage khac khong co qua dam bao.
+        internal static RewardData[] GetGuaranteedGifts(int stageLevel)
         {
-            if (Random.value < GemChance)
-                return new RewardData { type = RewardType.Gem, amount = Random.Range(3, 6) };
+            return stageLevel != 3
+                ? System.Array.Empty<RewardData>()
+                : new[] { MakeGift("yellow_wildflower", 2), MakeGift("blue_flower", 2) };
+        }
+
+    public static RewardData GenerateStageReward(int stageLevel)
+    {
+        // Man thu thach boss (panel "select boss" o Town): nguon farm kim cuong/vang
+        // on dinh hon man thuong, can xung voi mau boss cao hon (BossChallenge).
+        if (EternalClash.Enemy.BossChallenge.Active)
+            return GenerateBossChallengeReward(stageLevel);
+
+        return RollChestReward(stageLevel, GemChance);
+    }
+
+    /// <summary>
+    /// Thuong ruong cua tran thu thach boss: uu tien kim cuong de farm "vang, kim
+    /// cuong cac thu". So luong tang theo man de tu can bang theo do kho (mau boss
+    /// cung tang theo man). Phan con rot vao bang thuong thuong (vat pham/vang).
+    /// </summary>
+    private static RewardData GenerateBossChallengeReward(int stageLevel)
+    {
+        // 55% ruong kim cuong (man thuong chi 12%), luong 3-5 + so man.
+        if (Random.value < 0.55f)
+            return new RewardData { type = RewardType.Gem, amount = Random.Range(3, 6) + stageLevel };
+
+        return RollChestReward(stageLevel, 0f);
+    }
+
+    private static RewardData RollChestReward(int stageLevel, float gemChance)
+    {
+        if (Random.value < gemChance)
+            return new RewardData { type = RewardType.Gem, amount = Random.Range(3, 6) };
 
             // Story-first: each stage declares its own drops (Wood, Wolf Hide,
             // Copper Ore, Rare Material...). Falls back to the legacy leaf table

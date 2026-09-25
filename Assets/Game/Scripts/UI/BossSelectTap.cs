@@ -1,13 +1,16 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using EternalClash.Core;
+using EternalClash.Enemy;
 
 namespace EternalClash.UI
 {
     /// <summary>
     /// Bam vao coc (Page_4/coc) o Town thi keo panel "select boss" tu tren man hinh xuong,
     /// dung SmoothSlide nen co dung hieu ung va am thanh PanelScroll giong cac panel khac.
-    /// Chuc nang chon boss chua lam; dong bang bang nut Back Android nhu cac panel khac.
+    /// Bam 1 trong cac boss (slime/wolf/goblin mage/goblin boss) thi vao tran thu thach
+    /// danh dung con do voi nhieu mau hon binh thuong (BossChallenge).
     /// Tu gan moi khi load scene de khong mat khi merge scene.
     /// </summary>
     [RequireComponent(typeof(Button))]
@@ -16,6 +19,9 @@ namespace EternalClash.UI
         private const string PagePath = "Page_4";
         private const string CupName = "coc";
         private const string PanelName = "select boss";
+
+        // Ten cac nut boss ben trong panel "select boss" cua scene Town.
+        private static readonly string[] BossIds = { "slime", "wolf", "goblin mage", "goblin boss" };
 
         private Button button;
         private SmoothSlide bossPanel;
@@ -113,11 +119,48 @@ namespace EternalClash.UI
                         closeButton.onClick.AddListener(slide.ClosePanel);
                     }
 
+                    WireBossButtons(candidate);
+
                     return slide;
                 }
             }
 
             return null;
+        }
+
+        /// <summary>Gan hanh dong vao tran cho tung nut boss ben trong panel (chi lan dau tu gan).</summary>
+        private void WireBossButtons(Transform panel)
+        {
+            foreach (string id in BossIds)
+            {
+                Button bossButton = panel.Find(id)?.GetComponent<Button>();
+                if (bossButton == null)
+                    continue;
+
+                string captured = id;
+                bossButton.onClick.AddListener(() => StartBossFight(captured));
+            }
+        }
+
+        private void StartBossFight(string enemyId)
+        {
+            // Chan nhu nut GO o Town: khong du mau thi nhap nhay HP va o lai.
+            PlayerConditionSystem condition = PlayerConditionSystem.Instance;
+            if (condition != null && !condition.CanStartBattle())
+            {
+                HpLowBlink.BlinkAll();
+                Debug.Log("[TOWN] Chan vao tran boss: " + condition.GetInjuredBlockReason(), this);
+                return;
+            }
+
+            BossChallenge.Start(enemyId);
+
+            if (bossPanel != null)
+                bossPanel.ClosePanel();
+
+            // Phai ghi du: SceneLoader khong ghi du se trung voi SceneLoader
+            // namespace toan cuc o "switch scene" thay vi EternalClash.Core.SceneLoader.
+            EternalClash.Core.SceneLoader.LoadBattle();
         }
     }
 }

@@ -186,6 +186,21 @@ public class StageManager : MonoBehaviour
         CurrentState = StageState.Victory;
         Debug.Log("Stage Victory");
 
+        // Man thu thach boss tu panel "select boss" o Town: khong phai man story
+        // nen khong chay hoi thoai/NPC, va khong tang stageLevel de choi lai duoc.
+        // Giu BossChallenge.Active den khi ruong thuong duoc roll (flow chay bat
+        // dong bo) - flag duoc huy khi tro ve Town va vao tran moi.
+        if (EternalClash.Enemy.BossChallenge.Active)
+        {
+            Debug.Log($"[STAGE] Boss challenge '{EternalClash.Enemy.BossChallenge.EnemyId}' cleared - khong tang tien trinh.");
+            if (EternalClash.Stage.StageCompleteController.Instance != null)
+                EternalClash.Stage.StageCompleteController.Instance.BeginBossChallengeVictoryFlow();
+            else
+                Debug.LogError("[STAGE] Thang thu thach boss nhung StageCompleteController.Instance dang null.");
+
+            return;
+        }
+
         if (EternalClash.Stage.StageCompleteController.Instance != null)
         {
             EternalClash.Stage.StageCompleteController.Instance.BeginPostStageFlow();
