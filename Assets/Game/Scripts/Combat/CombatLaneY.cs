@@ -88,6 +88,11 @@ public static class CombatLaneY
                 continue;
             if (renderer.GetComponent<TMPro.TMP_Text>() != null)
                 continue;
+            // Bo qua bong dem (CharacterShadow/LootShadow tao con ten "Shadow" nam
+            // DUOI chan nhan vat): neu tinh vao thi "chan" bi do thap hon that,
+            // dan den keo nhan vat/quai DUNG CAO HON mat dat chung.
+            if (renderer.transform.name == "Shadow")
+                continue;
 
             Bounds bounds = renderer.bounds;
             if (bounds.size.y <= 0.0001f)
