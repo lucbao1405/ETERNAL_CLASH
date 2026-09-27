@@ -93,13 +93,15 @@ namespace EternalClash.UI
             SmoothSlide slide = Slide;
             if (slide != null)
             {
-                transform.SetAsLastSibling();
+                // Nam DUOI cac panel khac (sibling dau tien) de trong luc cho hoi
+                // mau nguoi choi van thao tac duoc cac UI khac tren man hinh.
+                transform.SetAsFirstSibling();
                 slide.OpenPanel();
                 return;
             }
 
             legacyIsOpen = true;
-            transform.SetAsLastSibling();
+            transform.SetAsFirstSibling();
             gameObject.SetActive(true);
 
             PanelDim.Acquire(this);

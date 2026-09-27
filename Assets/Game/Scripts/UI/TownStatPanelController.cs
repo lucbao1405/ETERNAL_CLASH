@@ -857,6 +857,15 @@ namespace EternalClash.UI
             int cost = PlayerStatSystem.Instance != null ? PlayerStatSystem.Instance.GetResetCost() : 0;
 
             if (confirmDialog == null)
+            {
+                // Uu tien hop xac nhan da dat san trong scene (bản cứng, sua
+                // truc tiep trong Hierarchy); chi tu tao runtime khi chua co.
+                Transform trangBi = FindTrangBiPanel();
+                Transform builtIn = trangBi != null ? trangBi.Find("ResetConfirmDialog") : null;
+                confirmDialog = builtIn != null ? builtIn.gameObject : null;
+            }
+
+            if (confirmDialog == null)
                 confirmDialog = CreateConfirmDialog();
 
             if (confirmDialog == null)
@@ -868,8 +877,12 @@ namespace EternalClash.UI
                 text.text = cost > 0 ? string.Format(confirmMessageFormat, cost) : confirmMessageFree;
 
             var buttons = confirmDialog.GetComponentsInChildren<Button>(true);
+            Button rootButton = confirmDialog.GetComponent<Button>();
             foreach (var b in buttons)
             {
+                if (b == rootButton)
+                    continue; // giu nut bam ra ngoai (nen mo) dong hop.
+
                 b.onClick.RemoveAllListeners();
                 if (b.name == "ConfirmButton")
                     b.onClick.AddListener(ConfirmResetStats);

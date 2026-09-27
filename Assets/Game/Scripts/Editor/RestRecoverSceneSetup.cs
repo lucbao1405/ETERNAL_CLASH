@@ -91,7 +91,8 @@ namespace EternalClash.EditorTools
             RectTransform rootRect = (RectTransform)root.transform;
             rootRect.SetParent(canvas, false);
             StretchFull(rootRect);
-            rootRect.SetAsLastSibling();
+            // Dat DUOI cac panel khac de khi hoi mau van thao tac duoc UI khac.
+            rootRect.SetAsFirstSibling();
             root.SetActive(false);
 
             GameObject panel = new GameObject("Panel", typeof(RectTransform), typeof(Image));
