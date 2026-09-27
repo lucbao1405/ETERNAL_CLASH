@@ -142,6 +142,10 @@ namespace EternalClash.Player
                 DamageSource.Charge
             );
 
+            // Boss (ranged, tu dieu khien vi tri) khong an knockback/pull nhu quai
+            // thuong: bao no lui ra ria NGAY voi toc do day manh.
+            enemyObject.GetComponent<BossController>()?.OnHitByCharge();
+
             // Push enemy toward the player: shove it just inside attack range
             // instead of leaving it parked where the charge caught it.
             StartCoroutine(PullIntoRange(enemyObject));

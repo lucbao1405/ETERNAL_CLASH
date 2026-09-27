@@ -37,11 +37,10 @@ namespace EternalClash.Monetization
         public const string GemHugeId = "com.eternalclash.gem.huge";
 
         /// <summary>
-        /// Test mode: mo ta thanh toan gia tren moi platform (grant truc tiep,
-        /// khong qua store). Biet false khi dang ky san pham that tren
-        /// Google Play / App Store de quay lai luong Unity Purchasing.
+        /// Test mode: chi BAT trong Editor de mua thu. Tren build that luon
+        /// di qua store (Unity Purchasing) de tranh cheat mua mien phi.
         /// </summary>
-        internal const bool FakePayments = true;
+        internal static readonly bool FakePayments = Application.isEditor;
 
         /// <summary>
         /// QUY UOC SHOP: kim cuong mua bang TIEN THAT (IAP ben duoi), con VANG
@@ -74,11 +73,9 @@ namespace EternalClash.Monetization
 
             EnsureInstance();
 
-            // ponytail: Editor chay FakeStore de test mua khong can store that.
-            // Khi len Google Play / App Store thi bo dong duoi di.
-            // Test mode: keep purchases fake on device until a real store is
-            // configured. This must not depend on Application.isEditor.
-            StandardPurchasingModule.Instance().useFakeStoreAlways = true;
+            // Editor chay FakeStore de test mua khong can store that.
+            // Build that di qua store that (Google Play / App Store).
+            StandardPurchasingModule.Instance().useFakeStoreAlways = Application.isEditor;
 
             ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (IapProductDef product in Catalog)

@@ -354,7 +354,7 @@ namespace EternalClash.Story
         // LETTER FROM HER (Received during/after Chapter 1)
         public const string LETTER_TITLE = "Letter from Ela";
         
-        public const string LETTER_BODY = 
+        public const string LETTER_BODY =
             "Dear idiot,\n\n" +
             "If you're reading this, it means you're still alive. Good. Stay that way.\n\n" +
             "I hate that you're out there. I hate that every day I wonder if today's the day " +
@@ -364,6 +364,26 @@ namespace EternalClash.Story
             "The wild daisy you sent last month. I pressed it between the pages of my book. " +
             "It's stupid, but sometimes I touch it just to remind myself you're real.\n\n" +
             "Come back to me. Whole. Preferably in fewer pieces than when you left.\n\n" +
+            "I'm counting the days. Don't make me lose count.\n\n" +
+            "- E\n\n" +
+            "P.S. If you die out there, I'll never forgive you. So don't.";
+
+        public const string LETTER_PAGE_1 =
+            "Dear idiot,\n\n" +
+            "If you're reading this, it means you're still alive. Good. Stay that way.";
+
+        public const string LETTER_PAGE_2 =
+            "I hate that you're out there. I hate that every day I wonder if today's the day " +
+            "a Courier knocks with news I don't want to hear.\n\n" +
+            "But I also know you're the most stubborn person I've ever met. " +
+            "If anyone can carve a path through that hellscape, it's you.";
+
+        public const string LETTER_PAGE_3 =
+            "The wild daisy you sent last month. I pressed it between the pages of my book. " +
+            "It's stupid, but sometimes I touch it just to remind myself you're real.\n\n" +
+            "Come back to me. Whole. Preferably in fewer pieces than when you left.";
+
+        public const string LETTER_PAGE_4 =
             "I'm counting the days. Don't make me lose count.\n\n" +
             "- E\n\n" +
             "P.S. If you die out there, I'll never forgive you. So don't.";

@@ -37,9 +37,10 @@ namespace EternalClash.Enemy
         [Tooltip("Toc do troi ve phia player TRUC LUC dan (state Shoot).")]
         [SerializeField] private float attackDriftSpeed = 0.8f;
 
-        [Tooltip("Toc do NET khi chay lui. Da tu bu lai world scroll nen ke ca khi player " +
-                 "charge (scroll x4) boss van thoat ra duoc.")]
-        [SerializeField] private float retreatSpeed = 6f;
+        [Header("Phan hoi don Charge")]
+        [Tooltip("Player charge de duoi boss dang chay lui: luc nay boss KHONG bu " +
+                 "phan scroll boost nen bi cuon ve gan player, charge cham duoc no.")]
+        [SerializeField] private bool chargeChaseEnabled = true;
 
         [Header("Khung man hinh")]
         [Tooltip("Vi tri viewport X (0..1) cua 'ria man hinh': boss di vao den day de bat " +
@@ -187,7 +188,13 @@ namespace EternalClash.Enemy
         {
             state = State.Taunt;
             float duration = anim != null ? anim.PlayTaunt() : 0f;
-            yield return new WaitForSeconds(duration > 0f ? duration : 1.2f);
+            float elapsed = 0f;
+            // An don Charge khi dang khieu khich: cat ngun khieu khich de lui ngay.
+            while (elapsed < (duration > 0f ? duration : 1.2f) && !dead && !pendingRetreat)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
         }
 
         // ----- Di chuyen -----------------------------------------------------
@@ -206,13 +213,50 @@ namespace EternalClash.Enemy
 
         private float OwnVelocityX(float scroll)
         {
-            return ComputeOwnVelocityX(state, SideToPlayer(), scroll, IsPlayerKnockedBack(),
-                approachSpeed, retreatSpeed, attackDriftSpeed);
+            bool chargeBoosted = chargeChaseEnabled && IsPlayerCharging();
+            return ComputeOwnVelocityX(state, SideToPlayer(), scroll, GetScrollCompensation(),
+                IsPlayerKnockedBack(), chargeBoosted, approachSpeed, GetPlayerPace(), attackDriftSpeed);
+        }
+
+        /// <summary>Toc do chay cua player = toc do scroll nen cua the gioi.</summary>
+        private float GetPlayerPace()
+        {
+            if (scroller == null)
+                scroller = FindObjectOfType<WorldScroller>();
+            return scroller != null ? Mathf.Abs(scroller.GetBaseWorldVelocity().x) : 2.5f;
+        }
+
+        private bool IsPlayerCharging()
+        {
+            if (scroller == null)
+                scroller = FindObjectOfType<WorldScroller>();
+            return scroller != null && scroller.IsChargeBoosted;
+        }
+
+        /// <summary>
+        /// Luong bù scroll cua boss. Bình thuong bu day du (-scroll) de boss dung
+        /// yen tren man hinh. Luc player CHARGE (scroll xN): chi bu toc do scroll
+        /// thuong, de phan tang toc xN day boss troi ve gan player - charge moi
+        /// ap sat duoc boss thay vi boss "truot" cung man hinh.
+        /// </summary>
+        private float GetScrollCompensation()
+        {
+            if (scroller == null)
+                scroller = FindObjectOfType<WorldScroller>();
+            if (scroller == null)
+                return 0f;
+
+            float scroll = scroller.GetWorldVelocity().x;
+            if (scroller.IsChargeBoosted)
+                return scroller.GetBaseWorldVelocity().x - scroll;
+
+            return -scroll;
         }
 
         /// <summary>Toc do rieng cua boss theo state (pure de tu kiem tra).</summary>
         internal static float ComputeOwnVelocityX(State state, float side, float scroll,
-            bool playerKnockedBack, float approachSpeed, float retreatSpeed, float driftSpeed)
+            float scrollCompensation, bool playerKnockedBack, bool chargeBoosted,
+            float approachSpeed, float playerPace, float driftSpeed)
         {
             switch (state)
             {
@@ -222,20 +266,28 @@ namespace EternalClash.Enemy
                     return -approachSpeed * side;
 
                 case State.Retreat:
-                    // Chay lui voi toc do NET: bu lai ca scroll, khong thi luc player
-                    // charge (scroll x4) boss bi keo tro lai thay vi chay ra ria.
-                    return retreatSpeed * side - scroll;
+                    // Chay lui cung toc do voi player (playerPace):
+                    // - Binh thuong: bu lai scroll de luon lui dung playerPace.
+                    // - Player CHARGE (scroll xN): KHONG bu phan boost -> boss bi
+                    //   cuon ve gan player, charge duoi kip va danh trung de lap
+                    //   lai vong knockback + chay.
+                    return chargeBoosted
+                        ? playerPace * side
+                        : playerPace * side - scroll;
 
                 case State.Shoot:
-                    // Vua ban vua troi ve phia player. Player vua bi knockback (dang
-                    // bi day lui) thi DUNG nhip troi: chi bu scroll, giu nguyen vi tri
-                    // tren man hinh de player kip phuc hoi.
+                    // Vua ban vua troi ve phia player. scrollCompensation bù du
+                    // scroll binh thuong; khi player charge thi boss bi phan xN
+                    // day ve gan player. Player vua bi knockback (dang bi day lui)
+                    // thi DUNG nhip troi: chi bu scroll, giu nguyen vi tri tren man
+                    // hinh de player kip phuc hoi.
                     float drift = playerKnockedBack ? 0f : driftSpeed;
-                    return -scroll - drift * side;
+                    return scrollCompensation - drift * side;
 
                 default:
-                    // Khieu khich: dung cho, chi bu scroll de khong truot tren dat.
-                    return -scroll;
+                    // Khieu khich: bu scroll de khong truot tren dat (charge van
+                    // day boss ve gan player).
+                    return scrollCompensation;
             }
         }
 
@@ -260,18 +312,31 @@ namespace EternalClash.Enemy
 
         // ----- Phan hoi mau ---------------------------------------------------
 
+        /// <summary>An dmg tu player (dang di vao / ban / troi): chay lui ra ria man hinh.
+        /// Dang lui/khieu khich thi cuong chi - khong nguot kich ban giua chung.</summary>
         private void OnHealthChanged(int current, int max)
         {
             bool damaged = lastHealth >= 0 && current < lastHealth;
             if (damaged)
                 damagedOnce = true;
 
-            // An dmg tu player (dang di vao / ban / troi): chay lui ra ria man hinh.
-            // Dang lui/khieu khich thi cuong chi - khong nguot kich ban giua chung.
             if (damaged && !dead && ShouldRetreat(damaged, state))
                 pendingRetreat = true;
 
             lastHealth = current;
+        }
+
+        /// <summary>
+        /// Boss vua an don Charge cua player: lui ra ria NGAY. Trong luc chay lui,
+        /// neu player charge tiep thi boss bi cuon ve gan (IsChargeBoosted o
+        /// Retreat) nen charge danh trung tiep duoc -> lap lai vong knockback + chay.
+        /// </summary>
+        public void OnHitByCharge()
+        {
+            if (dead)
+                return;
+
+            pendingRetreat = true;
         }
 
         /// <summary>An dmg o state nao thi duoc phep lui? (pure de tu kiem tra)</summary>

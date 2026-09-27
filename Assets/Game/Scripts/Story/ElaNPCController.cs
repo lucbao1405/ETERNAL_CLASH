@@ -679,6 +679,12 @@ namespace EternalClash.Story
             if (bagSlide != null)
                 bagSlide.ClosePanel();
 
+            // Tat gift-mode tren TAT CA cac controller, ke khi remove that bai,
+            // de khong bi keo tinh trang "bag van dang gift mode".
+            if (bagControllers != null)
+                foreach (BagController bag in bagControllers)
+                    bag.SetGiftMode(null);
+
             if (!removed) return;
 
             GiftReaction reaction = System.Array.Find(Reactions, r => r.itemId == item.itemId);
@@ -749,12 +755,22 @@ namespace EternalClash.Story
                 return;
             }
 
-            giftsReceived.Add(gift.itemId + "_" + gift.label);
-
             if (bagControllers == null || bagControllers.Length == 0 || bagControllers[0] == null)
                 ResolveBagPanel();
+
+            bool added = false;
             if (bagControllers != null && bagControllers.Length > 0 && bagControllers[0] != null)
-                bagControllers[0].AddItem(gift.itemId, 1);
+                added = bagControllers[0].AddItem(gift.itemId, 1);
+
+            // Chi danh dau da nhan khi item thuc su vao tui, tranh mat qua vinh
+            // vien neu bag full / AddItem that bai.
+            if (!added)
+            {
+                dialogueManager?.OpenDialogue("Ela", null, NothingToReceive);
+                return;
+            }
+
+            giftsReceived.Add(gift.itemId + "_" + gift.label);
 
             AddAffinity(5);
             dialogueManager?.OpenDialogue("Ela", null, gift.lines);

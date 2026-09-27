@@ -98,10 +98,14 @@ namespace EternalClash.Skill
             return shieldSkill != null ? shieldSkill.CooldownRemaining : 0;
         }
 
+        public float GetShieldCooldownMax() => shieldSkill != null ? Mathf.Max(0f, shieldSkill.cooldown) : 0f;
+
         public float GetPotionCooldown()
         {
             return potionSkill != null ? potionSkill.CooldownRemaining : 0;
         }
+
+        public float GetPotionCooldownMax() => potionSkill != null ? Mathf.Max(0f, potionSkill.cooldown) : 0f;
 
         private EternalClash.Combat.PlayerCombatStateMachine combatState;
 
@@ -123,6 +127,8 @@ namespace EternalClash.Skill
         {
             return chargeSkill != null ? chargeSkill.CooldownRemaining : 0;
         }
+
+        public float GetChargeCooldownMax() => chargeSkill != null ? Mathf.Max(0f, chargeSkill.cooldown) : 0f;
 
         public void UseShield()
         {

@@ -78,6 +78,27 @@ namespace EternalClash.UI
         private bool subscribed;
         private SaveManager subscribedSaveManager;
 
+        [Header("Reset Stats (de trong de tu tao runtime)")]
+        [SerializeField] private Button resetStatsButton;
+        [SerializeField] private TMP_Text resetCostText;
+        [SerializeField] private string resetButtonText = "Reset Points";
+        [SerializeField] private Color resetButtonColor = new Color(0.75f, 0.25f, 0.2f, 1f);
+        [SerializeField] private Vector2 resetButtonSize = new Vector2(220f, 56f);
+        [SerializeField] private float resetButtonBottomOffset = 16f;
+
+        [Header("Reset Confirmation (English)")]
+        [SerializeField] private string confirmTitleText = "Reset Stat Points";
+        [SerializeField] private string confirmMessageFormat = "Reset all stat points to base values?\nThis action costs {0} gold.";
+        [SerializeField] private string confirmMessageFree = "Reset all stat points to base values?\nThis action is free this time.";
+        [SerializeField] private string confirmYesText = "Confirm";
+        [SerializeField] private string confirmNoText = "Cancel";
+        [SerializeField] private Color confirmPanelColor = new Color(0.13f, 0.13f, 0.16f, 0.97f);
+        [SerializeField] private Color confirmYesColor = new Color(0.2f, 0.5f, 0.25f, 1f);
+        [SerializeField] private Color confirmNoColor = new Color(0.55f, 0.2f, 0.2f, 1f);
+        [SerializeField] private Vector2 confirmPanelSize = new Vector2(620f, 360f);
+
+        private GameObject confirmDialog;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallSceneHook()
         {
@@ -187,6 +208,9 @@ namespace EternalClash.UI
         {
             UnwireButtons();
 
+            if (resetStatsButton != null)
+                resetStatsButton.onClick.RemoveListener(OnClick_ResetStats);
+
             if (Instance == this)
                 Instance = null;
         }
@@ -275,6 +299,13 @@ namespace EternalClash.UI
             // --- So Level trong tat ca panel "Level" ---
             foreach (Transform level in FindAllInScene(scene, "Level"))
             {
+                // Bo qua hang "Level" cua profile panel (ThongTin/Level): hang nay co
+                // con truc tiep "Level_Number" va duoc TownProfilePanelController quan ly
+                // (ghi SaveData.level vao Level_Number/Number). Neu khong bo qua,
+                // stats.Level bi ghi de vao o chu nhan "Level" o cot ben trai.
+                if (level.Find("Level_Number") != null)
+                    continue;
+
                 TMP_Text t = FirstDirectChildText(level);
                 if (t != null)
                     levelTexts.Add(t);
@@ -361,6 +392,8 @@ namespace EternalClash.UI
 
             if (values == 0)
                 Debug.LogWarning("[TownStat] Khong tim thay o so nao trong panel 'Sta'.");
+
+            SetupResetStatsButton();
         }
 
         /// <summary>
@@ -672,6 +705,316 @@ namespace EternalClash.UI
             if (luckButton != null) luckButton.interactable = hasPoints;
 
             ApplyPotionStats();
+            RefreshResetCost();
+        }
+
+        // ==================== Reset Stats ====================
+
+        private void SetupResetStatsButton()
+        {
+            if (resetStatsButton == null)
+                resetStatsButton = CreateRuntimeResetButton();
+
+            if (resetStatsButton == null)
+                return;
+
+            resetStatsButton.onClick.RemoveListener(OnClick_ResetStats);
+            resetStatsButton.onClick.AddListener(OnClick_ResetStats);
+
+            if (resetCostText == null)
+                resetCostText = resetStatsButton.GetComponentInChildren<TMP_Text>(true);
+
+            RefreshResetCost();
+        }
+
+        /// <summary>
+        /// Tim dung panel "Trang_Bi" chinh (co con "Sta" theo cau truc
+        /// Canvas/Man_Hinh_Khac/Trang_Bi/Sta), chon rect lon nhat de tranh nham
+        /// cac object trung ten nho khac.
+        /// </summary>
+        private Transform FindTrangBiPanel()
+        {
+            Scene scene = gameObject.scene;
+            Transform best = null;
+            float bestArea = -1f;
+
+            foreach (Transform candidate in FindAllInScene(scene, "Trang_Bi"))
+            {
+                if (FindDescendant(candidate, "Sta") == null)
+                    continue;
+
+                var rect = (RectTransform)candidate;
+                float area = rect.rect.width * rect.rect.height;
+                if (area > bestArea)
+                {
+                    bestArea = area;
+                    best = candidate;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Tao nut tai runtime khi khong ai gan trong Inspector. Nut nam duoi cuoi
+        /// panel "Trang_Bi" (Canvas/Man_Hinh_Khac/Trang_Bi).
+        /// </summary>
+        private Button CreateRuntimeResetButton()
+        {
+            Transform trangBi = FindTrangBiPanel();
+            if (trangBi == null)
+                return null;
+
+            Transform close = trangBi.Find("X");
+            if (close == null)
+                close = FindDescendant(trangBi, "X");
+            if (close == null)
+                return null;
+
+            // Gan nut lam con cua nut "X": cung context canvas voi X nen bao gio
+            // bi le chinh giua man hinh, bi che boi thanh duoi hay sai camera.
+            GameObject go = new GameObject("ResetStatsButton", typeof(RectTransform),
+                typeof(Image), typeof(Button));
+            go.layer = close.gameObject.layer;
+            go.transform.SetParent(close, false);
+
+            RectTransform rect = (RectTransform)go.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 0.5f);
+            rect.pivot = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = new Vector2(((RectTransform)close).rect.width + resetButtonBottomOffset, 0f);
+            rect.sizeDelta = resetButtonSize;
+
+            // Canvas rieng voi overrideSorting: Down_Panel la sibling sau
+            // Man_Hinh_Khac nen ve de len panel; canvas con nay dam bao nut
+            // luon duoc ve tren cung.
+            var overlay = go.AddComponent<Canvas>();
+            overlay.overrideSorting = true;
+            overlay.sortingOrder = 500;
+            overlay.worldCamera = trangBi.GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+            go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            go.GetComponent<Image>().color = resetButtonColor;
+
+            GameObject label = new GameObject("Label", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            label.transform.SetParent(go.transform, false);
+            RectTransform labelRect = (RectTransform)label.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+            var tmp = label.GetComponent<TMPro.TextMeshProUGUI>();
+            tmp.text = resetButtonText;
+            tmp.fontSize = 20;
+            tmp.enableWordWrapping = true;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+
+            return go.GetComponent<Button>();
+        }
+
+        /// <summary>
+        /// Panel "Trang_Bi" co rect cao gan nhu toan man hinh nhung phan thuc te
+        /// hien thi bi thanh Down_Panel (HP, thanh mau) che phia duoi. Do lech tu
+        /// day rect len dinh cua Down_Panel de nut khong bi che.
+        /// </summary>
+        private static float ComputeVisibleBottomOffset(RectTransform panelRect, float margin)
+        {
+            Transform downPanel = null;
+            Scene scene = SceneManager.GetActiveScene();
+            foreach (Transform t in Resources.FindObjectsOfTypeAll<Transform>())
+            {
+                if (t.gameObject.scene != scene || !string.Equals(t.name, "Down_Panel", StringComparison.Ordinal))
+                    continue;
+                downPanel = t;
+                break;
+            }
+
+            if (downPanel == null)
+                return margin;
+
+            var dpRect = (RectTransform)downPanel;
+            var corners = new Vector3[4];
+            dpRect.GetWorldCorners(corners);
+            Vector2 topCenterScreen = RectTransformUtility.WorldToScreenPoint(null, corners[1]);
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    panelRect, topCenterScreen, null, out Vector2 local))
+                return local.y + margin;
+
+            return margin;
+        }
+
+        private void OnClick_ResetStats()
+        {
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+            ShowResetConfirmation();
+        }
+
+        /// <summary>
+        /// Hop xac nhan (tieng Anh) truoc khi tuyen thao tac tuyen diem khong hoan tac.
+        /// </summary>
+        private void ShowResetConfirmation()
+        {
+            int cost = PlayerStatSystem.Instance != null ? PlayerStatSystem.Instance.GetResetCost() : 0;
+
+            if (confirmDialog == null)
+                confirmDialog = CreateConfirmDialog();
+
+            if (confirmDialog == null)
+                return;
+
+            Transform message = confirmDialog.transform.Find("Panel/Message");
+            var text = message != null ? message.GetComponent<TMPro.TextMeshProUGUI>() : null;
+            if (text != null)
+                text.text = cost > 0 ? string.Format(confirmMessageFormat, cost) : confirmMessageFree;
+
+            var buttons = confirmDialog.GetComponentsInChildren<Button>(true);
+            foreach (var b in buttons)
+            {
+                b.onClick.RemoveAllListeners();
+                if (b.name == "ConfirmButton")
+                    b.onClick.AddListener(ConfirmResetStats);
+                else if (b.name == "CancelButton")
+                    b.onClick.AddListener(HideResetConfirmation);
+            }
+
+            confirmDialog.SetActive(true);
+            confirmDialog.transform.SetAsLastSibling();
+        }
+
+        private void ConfirmResetStats()
+        {
+            HideResetConfirmation();
+            PlayerStatSystem.Instance?.ResetStats();
+            RefreshResetCost();
+        }
+
+        private void HideResetConfirmation()
+        {
+            if (confirmDialog != null)
+                confirmDialog.SetActive(false);
+        }
+
+        private void RefreshResetCost()
+        {
+            if (resetCostText == null)
+                return;
+
+            int cost = PlayerStatSystem.Instance != null ? PlayerStatSystem.Instance.GetResetCost() : 0;
+            string costLabel = cost == 0 ? "Free" : $"{cost} Gold";
+
+            // Neu o chi phi la chinh label cua nut (truong hop tu tao runtime) thi
+            // gop ten nut va chi phi cung mot dong; neu la o rieng thi chi ghi gia.
+            bool labelIsOnButton = resetStatsButton != null &&
+                                   resetCostText.transform.IsChildOf(resetStatsButton.transform);
+            resetCostText.text = labelIsOnButton
+                ? $"{resetButtonText}\n{costLabel}"
+                : costLabel;
+
+            if (resetStatsButton != null)
+                resetStatsButton.interactable = PlayerStatSystem.Instance != null &&
+                                                PlayerStatSystem.Instance.CanResetStats();
+        }
+
+        private GameObject CreateConfirmDialog()
+        {
+            // Gan vao panel "Trang_Bi" de dialog tu dong an khi dong panel.
+            Transform trangBi = FindTrangBiPanel();
+            if (trangBi == null)
+                return null;
+
+            GameObject root = new GameObject("ResetConfirmDialog", typeof(RectTransform),
+                typeof(Image), typeof(Button));
+            root.layer = trangBi.gameObject.layer;
+            root.transform.SetParent(trangBi, false);
+
+            RectTransform rect = (RectTransform)root.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+
+            // Nut cha la nen mo: bam ra ngoai cung dong hop.
+            root.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+            root.GetComponent<Button>().onClick.AddListener(HideResetConfirmation);
+
+            GameObject panel = new GameObject("Panel", typeof(RectTransform), typeof(Image));
+            panel.transform.SetParent(root.transform, false);
+            RectTransform panelRect = (RectTransform)panel.transform;
+            panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = confirmPanelSize;
+            panel.GetComponent<Image>().color = confirmPanelColor;
+
+            GameObject title = CreateConfirmText(panel.transform, "Title", confirmTitleText, 30,
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(32f, -56f), new Vector2(-32f, -8f), Color.white);
+            title.GetComponent<TMPro.TextMeshProUGUI>().fontStyle = FontStyles.Bold;
+
+            CreateConfirmText(panel.transform, "Message", confirmMessageFree, 24,
+                new Vector2(0f, 0.28f), new Vector2(1f, 0.78f), new Vector2(32f, 0f), new Vector2(-32f, 0f), Color.white);
+
+            GameObject yes = CreateConfirmButton(panel.transform, "ConfirmButton", confirmYesText, confirmYesColor);
+            GameObject no = CreateConfirmButton(panel.transform, "CancelButton", confirmNoText, confirmNoColor);
+
+            RectTransform yesRect = (RectTransform)yes.transform;
+            yesRect.anchorMin = yesRect.anchorMax = new Vector2(0.5f, 0f);
+            yesRect.pivot = new Vector2(1f, 0f);
+            yesRect.anchoredPosition = new Vector2(-24f, 28f);
+            yesRect.sizeDelta = new Vector2(220f, 60f);
+
+            RectTransform noRect = (RectTransform)no.transform;
+            noRect.anchorMin = noRect.anchorMax = new Vector2(0.5f, 0f);
+            noRect.pivot = new Vector2(0f, 0f);
+            noRect.anchoredPosition = new Vector2(24f, 28f);
+            noRect.sizeDelta = new Vector2(220f, 60f);
+
+            root.SetActive(false);
+
+            // Canvas rieng de dialog luon ve tren cung, khong bi Down_Panel dap.
+            var dOverlay = root.AddComponent<Canvas>();
+            dOverlay.overrideSorting = true;
+            dOverlay.sortingOrder = 600;
+            dOverlay.worldCamera = trangBi.GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+            root.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            return root;
+        }
+
+        private static GameObject CreateConfirmText(Transform parent, string name, string content, int fontSize,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, Color color)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            go.transform.SetParent(parent, false);
+            RectTransform rect = (RectTransform)go.transform;
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
+            var tmp = go.GetComponent<TMPro.TextMeshProUGUI>();
+            tmp.text = content;
+            tmp.fontSize = fontSize;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = color;
+            tmp.enableWordWrapping = true;
+            return go;
+        }
+
+        private static GameObject CreateConfirmButton(Transform parent, string name, string label, Color color)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Image>().color = color;
+
+            GameObject text = new GameObject("Label", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            text.transform.SetParent(go.transform, false);
+            RectTransform textRect = (RectTransform)text.transform;
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = textRect.offsetMax = Vector2.zero;
+            var tmp = text.GetComponent<TMPro.TextMeshProUGUI>();
+            tmp.text = label;
+            tmp.fontSize = 20;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+
+            return go;
         }
 
         /// <summary>

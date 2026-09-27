@@ -90,8 +90,14 @@ namespace EternalClash.Village
         public int BasePlayerMaxHealth =>
             registeredBaseMaxHealth > 0 ? registeredBaseMaxHealth : FALLBACK_PLAYER_MAX_HEALTH;
 
-        /// <summary>Tong Max HP = mau goc + bonus tu VIT.</summary>
-        public int TotalMaxHealth => BasePlayerMaxHealth + BonusMaxHealth;
+        /// <summary>Tong Max HP = mau goc + bonus tu VIT + bonus giap.</summary>
+        public int TotalMaxHealth => BasePlayerMaxHealth + BonusMaxHealth + ArmorTierMaxHealthBonus;
+
+        /// <summary>
+        /// Bonus Max HP hien tai tu bac giap (idempotent: gan lai theo tier, khong
+        /// cong don) - goi ApplyArmorTierBonus(bat ky bao nhieu lan) cung ra cung mot ket qua.
+        /// </summary>
+        public int ArmorTierMaxHealthBonus { get; private set; }
 
         /// <summary>
         /// HealthSystem cua Player bao lai mau goc that su tren prefab khi no khoi tao.
@@ -157,6 +163,10 @@ namespace EternalClash.Village
                 Level = 1;
                 RequiredExp = CalculateRequiredExp(Level);
             }
+
+            // Dam bao cac gia tri dan xuat (PotionHealAmount, CritChance...) dung
+            // ngay tu khi bat dau, truoc khi LoadFromSave chay.
+            RecalculateDerivedStats();
         }
 
         /// <summary>
@@ -255,7 +265,7 @@ namespace EternalClash.Village
             var health = player != null ? player.GetComponent<HealthSystem>() : null;
 
             if (health != null)
-                health.ApplyBonusMaxHealth(BonusMaxHealth);
+                health.ApplyBonusMaxHealth(BonusMaxHealth + ArmorTierMaxHealthBonus);
         }
 
         public void AllocateLuck()
@@ -315,11 +325,13 @@ namespace EternalClash.Village
 
         public void ApplyArmorTierBonus(int tier)
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            var health = player?.GetComponent<HealthSystem>();
-            if (health != null) health.IncreaseMaxHealth(tier * 20);
-            SyncToSave();
+            // Gan lai (replace) thay vi cong don: goi lai khi load save, doi giap
+            // hay refresh shop khong lam max HP tang vo han. Dung ApplyBonusMaxHealth
+            // (dat lai tu base) de dong bo ca VIT bonus va bonus giap trong mot lan goi.
+            ArmorTierMaxHealthBonus = Mathf.Max(0, tier) * 20;
+            ApplyMaxHealthToLivePlayer();
             OnStatsChanged?.Invoke();
+            SyncToSave();
         }
 
         public void AddIntelligence(int amount)

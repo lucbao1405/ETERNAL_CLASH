@@ -38,6 +38,12 @@ namespace EternalClash.Tutorial
         private const string BattleSceneName = "Battle";
 
         public static TutorialManager Instance { get; private set; }
+
+        /// <summary>Tutorial chua mo khoa vao tran: RefreshBattleGate phai tu trong
+        /// trong trang thai lock cua tutorial, khong duoc ghi de interactable.</summary>
+        public static bool IsBattleLockedByTutorial =>
+            SaveManager.Instance != null &&
+            (TutorialStep)(SaveManager.Instance.Data?.tutorialStep ?? 0) < TutorialStep.BattleUnlocked;
         public TutorialStep CurrentStep => (TutorialStep)(SaveManager.Instance?.Data?.tutorialStep ?? 0);
         public string PlayerName => SaveManager.Instance?.Data?.playerName ?? string.Empty;
 

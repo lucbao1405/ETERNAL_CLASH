@@ -46,6 +46,10 @@ namespace EternalClash.Wave
                  "de quai khong ra cung luc va de len nhau.")]
         [Min(0f)] [SerializeField] private float minSpawnGap = 0.8f;
 
+        [Header("Spawn Position")]
+        [Tooltip("Khoang cach du ra ngoai ria phai man hinh khi spawn quai, de quai khong lo hinh ngay tai diem spawn.")]
+        [SerializeField] private float spawnEdgePad = 1.5f;
+
         private float nextSpawnAllowed;
 
         private readonly HashSet<GameObject> aliveEnemies = new HashSet<GameObject>();
@@ -286,8 +290,10 @@ namespace EternalClash.Wave
             if (prefab == null)
                 return;
 
-            // Diem spawn duy nhat = vi tri cua chinh GameObject dang gan WaveManager nay.
+            // Diem spawn duy nhat = vi tri cua chinh GameObject dang gan WaveManager nay,
+            // nhung day X ra ngoai ria phai man hinh de quai trôi vao thay vi lo hinh.
             Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(transform.position);
+            spawnPosition.x = CombatLaneY.GetOffScreenRightX(spawnEdgePad);
             GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
             ApplyStageScaling(enemy);
 

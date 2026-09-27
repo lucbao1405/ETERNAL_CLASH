@@ -4,6 +4,10 @@ using System.Collections.Generic;
 public class StageEncounterSystem : MonoBehaviour
 {
     [SerializeField] private Transform enemyContainer;
+    [Tooltip("Khoang cach du ra ngoai ria phai man hinh khi spawn quai, de quai khong lo hinh ngay tai diem spawn.")]
+    [SerializeField] private float spawnEdgePad = 1.5f;
+    [Tooltip("Do lech X giua cac quai trong cung dot de khong spawn trung vi tri.")]
+    [SerializeField] private float spawnStagger = 1.2f;
 
     [System.Serializable]
     public class Encounter
@@ -44,7 +48,9 @@ public class StageEncounterSystem : MonoBehaviour
 
             int index = Random.Range(0, encounter.enemyPrefabs.Count);
             GameObject enemy = Instantiate(encounter.enemyPrefabs[index], enemyContainer);
-            enemy.transform.position = CombatLaneY.AlignToPlayerY(enemy.transform.position);
+            Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(enemy.transform.position);
+            spawnPosition.x = CombatLaneY.GetOffScreenRightX(spawnEdgePad) + i * spawnStagger;
+            enemy.transform.position = spawnPosition;
         }
     }
 
