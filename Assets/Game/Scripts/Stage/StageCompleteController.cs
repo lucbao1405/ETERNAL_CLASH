@@ -160,6 +160,7 @@ namespace EternalClash.Stage
         {
             if (isProcessing) return;
 
+            isProcessing = true;
             lastClearedStage = SaveManager.Instance != null && SaveManager.Instance.Data != null
                 ? Mathf.Max(1, SaveManager.Instance.Data.stageLevel) : 1;
             ProceedToVictoryFlow();
@@ -379,7 +380,14 @@ namespace EternalClash.Stage
             while (elapsed < MaxChestDriftSeconds)
             {
                 if (worldChest == null)
+                {
+                    // Ruong bi huy giua drift: khong de routine cu ton tai, flow
+                    // thang van phai chay tiep thay vi keo vo han.
+                    chestDriftRoutine = null;
+                    chestDriftDone = true;
+                    OpenVictoryFlow();
                     yield break;
+                }
 
                 Vector3 pos = worldChest.transform.position;
                 // Truot voi toc do dat (giong EnemyMover), nhung khong cham hon

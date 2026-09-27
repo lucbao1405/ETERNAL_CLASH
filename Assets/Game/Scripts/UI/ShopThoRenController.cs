@@ -82,7 +82,8 @@ namespace EternalClash.UI
 
         private void OnDestroy()
         {
-            upgradeButton?.onClick.RemoveListener(UpgradeSelected);
+            if (upgradeButton != null)
+                upgradeButton.onClick.RemoveListener(UpgradeSelected);
             if (subscribedSaveManager != null)
                 subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
         }
@@ -166,7 +167,8 @@ namespace EternalClash.UI
             Debug.Log("Selected upgrade item: " + itemData.itemName);
             RefreshItemDetail();
             RefreshRequirementSlots(itemData);
-            thongTinVatPham?.gameObject.SetActive(true);
+            if (thongTinVatPham != null)
+                thongTinVatPham.gameObject.SetActive(true);
             UpdateUpgradeButton();
         }
 
@@ -331,6 +333,12 @@ namespace EternalClash.UI
 
         private void AutoWireDetails()
         {
+            if (thongTinVatPham == null)
+            {
+                thongTinVatPham = FindChildRecursive(transform, "ThongTinVatPham");
+                thongTinVatPham = thongTinVatPham != null
+                    ? thongTinVatPham : FindChildRecursive(transform, "ThongTin");
+            }
             if (thongTinVatPham != null)
             {
                 itemDetailsText ??= thongTinVatPham.Find("ContentArea/Content/TTVP_Text")?.GetComponent<TMP_Text>();

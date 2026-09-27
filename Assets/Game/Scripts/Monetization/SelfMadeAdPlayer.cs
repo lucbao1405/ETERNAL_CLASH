@@ -137,6 +137,14 @@ namespace EternalClash.Monetization
                 // bi xoa/sua nham trong luc test.
                 EnsurePanelStructure(panel.transform);
                 panel.EnsureWired();
+
+                // Ban panel trong scene co the nam tren canvas sortingOrder thap
+                // (thap hon BossHealthBarUI = 100) -> thanh mau boss de len quang cao.
+                // Force canvas chua panel len tren moi UI khac trong luc ad dang phat.
+                Canvas panelCanvas = panel.GetComponentInParent<Canvas>(true);
+                if (panelCanvas != null)
+                    panelCanvas.sortingOrder = 5000;
+
                 panel.transform.SetAsLastSibling();
                 panel.gameObject.SetActive(true);
 

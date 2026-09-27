@@ -1,6 +1,7 @@
 using EternalClash.Wave;
 using Spine.Unity;
 using TMPro;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -23,8 +24,16 @@ namespace EternalClash.UI
         [Tooltip("Toc do player chay tren thanh (do lech qua muc dich / giay), de moi lan ha quai khong nhay toc.")]
         [SerializeField] private float runSpeed = 0.25f;
 
+        [Header("Mau chu (chinh truc tiep trong Inspector)")]
+        [Tooltip("Mau dong chu STAGE.")]
+        [SerializeField] private Color titleColor = new Color(1f, 0.92f, 0.6f, 1f);
+
+        [Tooltip("Mau dong chu WAVE x/y - k/n quai.")]
+        [SerializeField] private Color waveColor = new Color(0.85f, 0.95f, 1f, 1f);
+
         private CanvasGroup group;
         private TMP_Text titleText;
+        private TMP_Text waveText;
         private Slider progressSlider;
         private SkeletonGraphic playerSkeleton;
         private WaveManager waveManager;
@@ -41,8 +50,30 @@ namespace EternalClash.UI
             group.interactable = false;
 
             titleText ??= transform.Find("Title")?.GetComponent<TMP_Text>();
+            waveText ??= transform.Find("WaveText")?.GetComponent<TMP_Text>();
             progressSlider ??= transform.Find("Progress")?.GetComponent<Slider>();
+
+            if (titleText != null)
+                titleText.color = titleColor;
+            if (waveText != null)
+                waveText.color = waveColor;
             playerSkeleton ??= GetComponentInChildren<SkeletonGraphic>(true);
+
+            // Fallback: scene cu co the de slider "Progress" o panel khac
+            // (khong phai la con truc tiep cua BattleProgressUI) - tim trong toan canvas.
+            if (progressSlider == null)
+            {
+                Transform canvas = GetComponentInParent<Canvas>()?.transform;
+                progressSlider = canvas != null
+                    ? canvas.GetComponentsInChildren<Slider>(true)
+                        .FirstOrDefault(s => s.name == "Progress")
+                    : null;
+            }
+
+            // Skeleton nhan vat tren thanh: con cua Handle/Fill cua slider.
+            if (playerSkeleton == null && progressSlider != null)
+                playerSkeleton = progressSlider.GetComponentInChildren<SkeletonGraphic>(true);
+
             if (progressSlider != null)
                 progressSlider.interactable = false;
 
@@ -113,7 +144,10 @@ namespace EternalClash.UI
 
             int stage = StageManager.Instance != null ? StageManager.Instance.CurrentStageLevel : 1;
             int wave = Mathf.Clamp(waveManager.CurrentWaveNumber, 1, waveManager.TotalWaves);
-            titleText.text = $"STAGE {stage}   -   WAVE {wave}/{waveManager.TotalWaves}";
+            if (titleText != null)
+                titleText.text = $"STAGE {stage}";
+            if (waveText != null)
+                waveText.text = $"WAVE {wave}/{waveManager.TotalWaves}   -   {waveManager.CurrentWaveKilled}/{waveManager.CurrentWaveEnemyCount} Enemy";
 
             float target = StageFraction(waveManager.CurrentWaveNumber, waveManager.TotalWaves,
                 waveManager.CurrentWaveKilled, waveManager.CurrentWaveEnemyCount);

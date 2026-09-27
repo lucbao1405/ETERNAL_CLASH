@@ -46,46 +46,106 @@ namespace EternalClash.UI
         [SerializeField] private TMP_Text injuredNoticeText;
         private GameObject equipmentGuide;
 
+        // Delegate duoc giu trong field de OnDestroy huy dung delegate da sub,
+        // tranh leak handler khi GoldSystem/PlayerConditionSystem (DontDestroyOnLoad)
+        // ton tai dai hon UI cua scene Town.
+        private bool subscribed;
+        private PlayerConditionSystem subscribedCondition;
+        private System.Action<int> onGoldChanged;
+        private System.Action<int, int> onMaterialsChanged;
+        private System.Action<int> onAffinityChanged;
+        private System.Action<EternalClash.Core.PlayerCondition> onConditionChanged;
+        private System.Action<int, int> onRecoveredHpChanged;
+
         private void Start()
         {
             ShowMainHall();
             RefreshAllUI();
             ShowEquipmentGuideIfNeeded();
 
-            if (PlayerStatSystem.Instance != null)
+            onGoldChanged = _ => RefreshAllUI();
+            onMaterialsChanged = (_, _) => RefreshAllUI();
+            onAffinityChanged = _ => RefreshAllUI();
+            onConditionChanged = _ => RefreshBattleGate();
+            onRecoveredHpChanged = (_, _) => RefreshBattleGate();
+
+            TrySubscribeSystems();
+        }
+
+        private void Update()
+        {
+            // Cac system khong Awake cung luc voi UI; retry den khi sub du thi dung.
+            if (!subscribed)
+                TrySubscribeSystems();
+        }
+
+        private void TrySubscribeSystems()
+        {
+            if (subscribed) return;
+
+            if (PlayerStatSystem.Instance != null && !statsSubscribed)
+            {
                 PlayerStatSystem.Instance.OnStatsChanged += RefreshAllUI;
-
-            if (GoldSystem.Instance != null)
-            {
-                GoldSystem.Instance.OnGoldChanged += _ => RefreshAllUI();
-                GoldSystem.Instance.OnMaterialsChanged += (_, _) => RefreshAllUI();
+                statsSubscribed = true;
             }
+            else if (PlayerStatSystem.Instance == null)
+                return;
 
-            if (AffinityManager.Instance != null)
-                AffinityManager.Instance.OnAffinityPointsChanged += _ => RefreshAllUI();
-
-            var condition = PlayerConditionSystem.Instance;
-            if (condition != null)
+            if (GoldSystem.Instance != null && !goldSubscribed)
             {
-                condition.OnConditionChanged += _ => RefreshBattleGate();
-                condition.OnRecoveredHpChanged += (_, _) => RefreshBattleGate();
-                condition.OnRecoveryCompleted += RefreshBattleGate;
-                condition.BeginRecoveryIfNeeded();
+                GoldSystem.Instance.OnGoldChanged += onGoldChanged;
+                GoldSystem.Instance.OnMaterialsChanged += onMaterialsChanged;
+                goldSubscribed = true;
+            }
+            else if (GoldSystem.Instance == null)
+                return;
+
+            if (AffinityManager.Instance != null && !affinitySubscribed)
+            {
+                AffinityManager.Instance.OnAffinityPointsChanged += onAffinityChanged;
+                affinitySubscribed = true;
+            }
+            else if (AffinityManager.Instance == null)
+                return;
+
+            if (PlayerConditionSystem.Instance != null && subscribedCondition == null)
+            {
+                subscribedCondition = PlayerConditionSystem.Instance;
+                subscribedCondition.OnConditionChanged += onConditionChanged;
+                subscribedCondition.OnRecoveredHpChanged += onRecoveredHpChanged;
+                subscribedCondition.OnRecoveryCompleted += RefreshBattleGate;
+                subscribedCondition.BeginRecoveryIfNeeded();
                 RefreshBattleGate();
             }
+            else if (PlayerConditionSystem.Instance == null)
+                return;
+
+            subscribed = true;
         }
+
+        private bool statsSubscribed;
+        private bool goldSubscribed;
+        private bool affinitySubscribed;
 
         private void OnDestroy()
         {
-            if (PlayerStatSystem.Instance != null)
+            if (PlayerStatSystem.Instance != null && statsSubscribed)
                 PlayerStatSystem.Instance.OnStatsChanged -= RefreshAllUI;
 
-            var condition = PlayerConditionSystem.Instance;
-            if (condition != null)
+            if (GoldSystem.Instance != null && goldSubscribed)
             {
-                condition.OnConditionChanged -= _ => RefreshBattleGate();
-                condition.OnRecoveredHpChanged -= (_, _) => RefreshBattleGate();
-                condition.OnRecoveryCompleted -= RefreshBattleGate;
+                GoldSystem.Instance.OnGoldChanged -= onGoldChanged;
+                GoldSystem.Instance.OnMaterialsChanged -= onMaterialsChanged;
+            }
+
+            if (AffinityManager.Instance != null && affinitySubscribed)
+                AffinityManager.Instance.OnAffinityPointsChanged -= onAffinityChanged;
+
+            if (subscribedCondition != null)
+            {
+                subscribedCondition.OnConditionChanged -= onConditionChanged;
+                subscribedCondition.OnRecoveredHpChanged -= onRecoveredHpChanged;
+                subscribedCondition.OnRecoveryCompleted -= RefreshBattleGate;
             }
         }
 
@@ -233,8 +293,12 @@ namespace EternalClash.UI
 
             if (startBattleButton != null)
             {
-                bool canBattle = condition == null || condition.CanStartBattle();
-                startBattleButton.interactable = canBattle;
+                // Tutorial dang khoa nua thi khong ghi de lock cua tutorial.
+                if (!Tutorial.TutorialManager.IsBattleLockedByTutorial)
+                {
+                    bool canBattle = condition == null || condition.CanStartBattle();
+                    startBattleButton.interactable = canBattle;
+                }
             }
 
             if (battleButtonLabel != null)
@@ -289,7 +353,8 @@ namespace EternalClash.UI
             rect.anchorMax = Vector2.one;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             Text text = label.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Unity 2022.2+ doi ten font built-in: Arial.ttf con lai se throw.
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = 22;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;

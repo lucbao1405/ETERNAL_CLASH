@@ -7,22 +7,20 @@ using EternalClash.Core.Save;
 namespace EternalClash.UI
 {
     /// <summary>
-    /// Dong bo thong tin mo rong trong panel ho so (Canvas/Man_Hinh_Khac/Avt):
-    ///   ThongTin/Hang_Stage/Value                         -> SaveData.stageLevel (stage cao nhat da vuot qua)
-    ///   ThongTin/Hang_Thuoc/{Healing,Cooldown,Defense}/Value -> SaveData.abilities.{healing,cooldown,defense}Level
-    ///   ThongTin/Hang_Ela/Value                           -> SaveData.elaAffinity
-    ///   Badge_VIP/Text                                    -> isVipActive "VIP" / hasRemovedAds "NO ADS", an khi khong co
-    /// Tim doi tuong theo ten giong TownStatPanelController nen KHONG can gan gi trong Inspector.
+/// Dong bo thong tin trong panel ho so (Canvas/Man_Hinh_Khac/Avt):
+///   ThongTin/Hang_Stage/Stage_Number/Number -> SaveData.stageLevel (stage cao nhat da vuot qua)
+///   ThongTin/Hang_Ela/ela_Number/Number     -> SaveData.elaAffinity
+///   ThongTin/Level/Level_Number/Number      -> SaveData.level (cap nhan vat)
+///   Badge_VIP/Text                          -> isVipActive "VIP" / hasRemovedAds "NO ADS", an khi khong co
+/// Tim doi tuong theo ten giong TownStatPanelController nen KHONG can gan gi trong Inspector.
     /// </summary>
     public sealed class TownProfilePanelController : MonoBehaviour
     {
         private const string TownSceneName = "Town";
 
         private TMP_Text stageText;
-        private TMP_Text healText;
-        private TMP_Text cooldownText;
-        private TMP_Text defenseText;
         private TMP_Text elaText;
+        private TMP_Text levelText;
         private GameObject vipBadge;
         private TMP_Text vipText;
         private SaveManager subscribedSaveManager;
@@ -103,15 +101,11 @@ namespace EternalClash.UI
             if (stageText != null)
                 stageText.text = Mathf.Max(1, data != null ? data.stageLevel : 1).ToString();
 
-            if (healText != null)
-                healText.text = "Lv " + (data != null ? data.abilities.healingLevel : 0);
-            if (cooldownText != null)
-                cooldownText.text = "Lv " + (data != null ? data.abilities.cooldownLevel : 0);
-            if (defenseText != null)
-                defenseText.text = "Lv " + (data != null ? data.abilities.defenseLevel : 0);
-
             if (elaText != null)
                 elaText.text = (data != null ? data.elaAffinity : 0).ToString();
+
+            if (levelText != null)
+                levelText.text = Mathf.Max(1, data != null ? data.level : 1).ToString();
 
             if (vipBadge != null)
             {
@@ -138,16 +132,9 @@ namespace EternalClash.UI
             if (info == null)
                 return;
 
-            stageText = ChildText(FindDescendant(info, "Hang_Stage"), "Value");
-            elaText = ChildText(FindDescendant(info, "Hang_Ela"), "Value");
-
-            Transform potions = FindDescendant(info, "Hang_Thuoc");
-            if (potions != null)
-            {
-                healText = ChildText(FindDescendant(potions, "Healing"), "Value");
-                cooldownText = ChildText(FindDescendant(potions, "Cooldown"), "Value");
-                defenseText = ChildText(FindDescendant(potions, "Defense"), "Value");
-            }
+            stageText = ChildText(FindDescendant(info, "Hang_Stage"), "Stage_Number", "Number");
+            elaText = ChildText(FindDescendant(info, "Hang_Ela"), "ela_Number", "Number");
+            levelText = ChildText(FindDescendant(info, "Level"), "Level_Number", "Number");
 
             Transform badge = FindDescendant(panel, "Badge_VIP");
             if (badge != null)
@@ -157,12 +144,18 @@ namespace EternalClash.UI
             }
         }
 
-        private static TMP_Text ChildText(Transform row, string childName)
+        private static TMP_Text ChildText(Transform row, string group, string valueName)
         {
             if (row == null)
                 return null;
-            Transform value = row.Find(childName);
-            return value != null ? value.GetComponent<TMP_Text>() : null;
+
+            Transform value = FindDescendant(row, valueName);
+            if (value != null)
+                return value.GetComponent<TMP_Text>();
+
+            // Fallback: nut trung gian (VD "Stage_Number") chua Text "Number".
+            Transform container = FindDescendant(row, group);
+            return container != null ? container.GetComponentInChildren<TMP_Text>(true) : null;
         }
 
         private static Transform FindSceneTransform(string name)

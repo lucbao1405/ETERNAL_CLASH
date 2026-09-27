@@ -119,11 +119,19 @@ namespace EternalClash.UI
                 return false;
 
             InventorySaveData inventory = GetInventory();
-            ItemStackSaveData stack = inventory.items.First(value =>
-                value != null && string.Equals(value.itemId, itemId, StringComparison.OrdinalIgnoreCase));
-            stack.amount -= amount;
-            if (stack.amount <= 0)
-                inventory.items.Remove(stack);
+            int remaining = amount;
+            for (int i = inventory.items.Count - 1; i >= 0 && remaining > 0; i--)
+            {
+                ItemStackSaveData stack = inventory.items[i];
+                if (stack == null || !string.Equals(stack.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int taken = Mathf.Min(stack.amount, remaining);
+                stack.amount -= taken;
+                remaining -= taken;
+                if (stack.amount <= 0)
+                    inventory.items.RemoveAt(i);
+            }
 
             SaveCoordinator.RequestSave();
             Refresh();
@@ -139,9 +147,34 @@ namespace EternalClash.UI
             if (inventory?.items == null)
                 return false;
 
-            ItemStackSaveData stack = inventory.items.FirstOrDefault(value =>
-                value != null && string.Equals(value.itemId, itemId, StringComparison.OrdinalIgnoreCase));
-            return stack != null && stack.amount >= amount;
+            int total = 0;
+            foreach (ItemStackSaveData stack in inventory.items)
+                if (stack != null && string.Equals(stack.itemId, itemId, StringComparison.OrdinalIgnoreCase))
+                    total += stack.amount;
+            return total >= amount;
+        }
+
+        private static void ConsolidateStacks(List<ItemStackSaveData> items)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null || items[i].amount <= 0)
+                    continue;
+                for (int j = items.Count - 1; j > i; j--)
+                {
+                    if (items[j] == null || items[j].amount <= 0)
+                    {
+                        items.RemoveAt(j);
+                        continue;
+                    }
+                    if (string.Equals(items[j].itemId, items[i].itemId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        items[i].amount += items[j].amount;
+                        items.RemoveAt(j);
+                    }
+                }
+            }
+            items.RemoveAll(stack => stack == null || stack.amount <= 0);
         }
 
         public void Refresh()
@@ -153,17 +186,34 @@ namespace EternalClash.UI
             if (inventory?.items == null)
                 return;
 
+            // Duplicates of the same itemId (legacy saves, older writers) would
+            // otherwise render as separate slots with split counts.
+            ConsolidateStacks(inventory.items);
+
+            Dictionary<string, int> totals = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (ItemStackSaveData stack in inventory.items)
+            {
+                if (stack == null || stack.amount <= 0)
+                    continue;
+                if (totals.TryGetValue(stack.itemId, out int total))
+                    totals[stack.itemId] = total + stack.amount;
+                else
+                    totals[stack.itemId] = stack.amount;
+            }
+
             int slotIndex = 0;
             foreach (ItemStackSaveData stack in inventory.items)
             {
                 if (slotIndex >= slots.Count || stack == null || stack.amount <= 0 ||
-                    !TryGetBagItem(stack.itemId, out ItemData item))
+                    !TryGetBagItem(stack.itemId, out ItemData item) ||
+                    !totals.TryGetValue(stack.itemId, out int total))
                     continue;
 
+                totals.Remove(stack.itemId);
                 if (giftClickHandler != null && !IsGiftable(item))
                     continue;
 
-                slots[slotIndex++].Show(item, stack.amount);
+                slots[slotIndex++].Show(item, total);
             }
         }
 

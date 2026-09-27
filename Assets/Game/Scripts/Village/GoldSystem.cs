@@ -68,6 +68,7 @@ namespace EternalClash.Village
 
         public bool SpendGold(int amount)
         {
+            if (amount <= 0) return false;
             if (Gold < amount) return false;
             Gold -= amount;
             OnGoldChanged?.Invoke(Gold);
@@ -149,6 +150,9 @@ namespace EternalClash.Village
 
         public void AddMaterials(int ore, int leather)
         {
+            if (ore <= 0 && leather <= 0) return;
+            ore = Mathf.Max(0, ore);
+            leather = Mathf.Max(0, leather);
             OreMaterial += ore;
             LeatherMaterial += leather;
             OnMaterialsChanged?.Invoke(OreMaterial, LeatherMaterial);
@@ -158,6 +162,8 @@ namespace EternalClash.Village
 
         public bool SpendMaterials(int ore, int leather)
         {
+            if (ore <= 0 && leather <= 0) return false;
+            if (ore < 0 || leather < 0) return false;
             if (OreMaterial < ore || LeatherMaterial < leather) return false;
             OreMaterial -= ore;
             LeatherMaterial -= leather;

@@ -32,9 +32,9 @@ namespace EternalClash.UI
                     return;
             }
 
-            UpdateCooldown(shieldManagerTime(), shieldOverlay, shieldText);
-            UpdateCooldown(skillManager.GetPotionCooldown(), potionOverlay, potionText);
-            UpdateCooldown(skillManager.GetChargeCooldown(), chargeOverlay, chargeText);
+            UpdateCooldown(skillManager.GetShieldCooldown(), skillManager.GetShieldCooldownMax(), shieldOverlay, shieldText);
+            UpdateCooldown(skillManager.GetPotionCooldown(), skillManager.GetPotionCooldownMax(), potionOverlay, potionText);
+            UpdateCooldown(skillManager.GetChargeCooldown(), skillManager.GetChargeCooldownMax(), chargeOverlay, chargeText);
         }
 
         private void BindRuntimePlayer()
@@ -48,17 +48,17 @@ namespace EternalClash.UI
                 skillManager.EnsureSkills();
         }
 
-        private float shieldManagerTime()
+        private void UpdateCooldown(float time, float maxTime, Image overlay, TMP_Text text)
         {
-            return skillManager.GetShieldCooldown();
-        }
-
-        private void UpdateCooldown(float time, Image overlay, TMP_Text text)
-        {
-            bool cooldown = time > 0;
+            bool cooldown = time > 0f;
 
             if (overlay != null)
-                overlay.fillAmount = cooldown ? 1 : 0;
+            {
+                // Overlay gan dan theo thoi gian con lai: 1 -> 0 khi het cooldown.
+                overlay.fillAmount = cooldown && maxTime > 0f
+                    ? Mathf.Clamp01(time / maxTime)
+                    : 0f;
+            }
 
             if (text != null)
                 text.text = cooldown ? time.ToString("0.0") : "";

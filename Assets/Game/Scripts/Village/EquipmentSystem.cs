@@ -287,7 +287,21 @@ namespace EternalClash.Village
                 return false;
 
             saved.isNew = false;
+
+            // Giu lai trang bi dang mac (neu co) de tra ve tui, tranh mat do.
+            ItemData previous = GetEquippedItem(item.equipmentSlot == EquipmentSlot.Weapon ? ItemSlot.Weapon
+                : item.equipmentSlot == EquipmentSlot.Armor ? ItemSlot.Armor : ItemSlot.Accessory);
+
+            // Xoa item khoi tui vi no da duoc mac, khong con nam trong tui nua.
+            inventory.RemoveAt(index);
+
             EquipItem(item, false);
+
+            if (previous != null)
+                AddToInventory(previous);
+
+            SyncEquipmentSave();
+            SaveCoordinator.RequestSave();
             return true;
         }
 

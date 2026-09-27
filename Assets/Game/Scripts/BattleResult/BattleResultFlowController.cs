@@ -209,7 +209,10 @@ namespace EternalClash.BattleResult
                 yield return null;
 
             if (success)
+            {
+                GrantDoubleChestReward(rewardType, amount);
                 RefreshWinPopupAfterDouble();
+            }
         }
 
         private void GrantDoubleChestReward(RewardType rewardType, int amount)
@@ -265,6 +268,15 @@ namespace EternalClash.BattleResult
                     GoldSystem.Instance?.AddGold(entry.quantity);
                 else if (string.Equals(itemId, "Gem", StringComparison.OrdinalIgnoreCase))
                     GoldSystem.Instance?.AddGem(entry.quantity);
+                else if (entry.item.equipmentSlot != EquipmentSlot.None ||
+                    string.Equals(entry.item.itemType, "Equipment", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Trang bi phai vao kho trang bi, khong phai tui material.
+                    for (int i = 0; i < entry.quantity; i++)
+                        EquipmentSystem.Instance?.AddToInventory(entry.item);
+                    EquipmentSystem.Instance?.SyncEquipmentSave();
+                    SaveCoordinator.RequestSave();
+                }
                 else
                     AddNormalItemReward(entry.item, entry.quantity);
             }

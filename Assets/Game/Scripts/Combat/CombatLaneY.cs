@@ -25,6 +25,24 @@ public static class CombatLaneY
     }
 
     /// <summary>
+    /// X ngoài ria phải màn hình để spawn quai: quai trôi vào theo world scroll
+    /// thay vì hiện hình ngay tại chỗ giữa màn hình. Dùng camera; nếu không có
+    /// camera thì lùi xa Player một khoảng an toàn.
+    /// </summary>
+    public static float GetOffScreenRightX(float extraMargin)
+    {
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            float halfWidth = cam.orthographicSize * cam.aspect;
+            return cam.transform.position.x + halfWidth + extraMargin;
+        }
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        return player != null ? player.transform.position.x + 18f + extraMargin : extraMargin;
+    }
+
+    /// <summary>
     /// Y cua duong mat dat = chan Player. False neu chua co Player hoac hinh Player
     /// chua duoc ve (Spine chi tao mesh sau frame dau tien).
     /// </summary>
@@ -69,6 +87,11 @@ public static class CombatLaneY
             if (renderer is ParticleSystemRenderer || renderer is TrailRenderer || renderer is LineRenderer)
                 continue;
             if (renderer.GetComponent<TMPro.TMP_Text>() != null)
+                continue;
+            // Bo qua bong dem (CharacterShadow/LootShadow tao con ten "Shadow" nam
+            // DUOI chan nhan vat): neu tinh vao thi "chan" bi do thap hon that,
+            // dan den keo nhan vat/quai DUNG CAO HON mat dat chung.
+            if (renderer.transform.name == "Shadow")
                 continue;
 
             Bounds bounds = renderer.bounds;

@@ -555,11 +555,11 @@ namespace EternalClash.UI
             if (go.transform.parent != rootCanvas.transform)
                 go.transform.SetParent(rootCanvas.transform, false);
 
-            Debug.Log($"[ItemInfoBubble] Dung bubble trong scene: size={bubbleRoot.sizeDelta}, scale={bubbleRoot.localScale}.");
-
             bubbleRoot = go.GetComponent<RectTransform>();
             if (bubbleRoot == null)
                 return;
+
+            Debug.Log($"[ItemInfoBubble] Dung bubble trong scene: size={bubbleRoot.sizeDelta}, scale={bubbleRoot.localScale}.");
 
             bubbleGroup = bubbleRoot.GetComponent<CanvasGroup>();
             if (bubbleGroup == null)
