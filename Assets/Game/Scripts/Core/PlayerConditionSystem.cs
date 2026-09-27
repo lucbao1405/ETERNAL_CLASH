@@ -259,7 +259,9 @@ namespace EternalClash.Core
         public bool CanStartBattle()
         {
             if (Condition == PlayerCondition.Normal) return true;
-            if (maxHp <= 0) return true;
+            // Save chua load (maxHp <= 0) thi khong duoc cho vao tran de tranh
+            // bypass nguong 60% HP khi load loi.
+            if (maxHp <= 0) return false;
 
             return currentHp >= MinBattleHp;
         }

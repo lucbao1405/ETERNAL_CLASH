@@ -69,8 +69,26 @@ namespace EternalClash.UI
         {
             itemIcon ??= FindChildImage(transform, "ItemPic") ?? FindChildImage(transform, "Icon") ?? GetComponent<Image>();
             quantityText ??= FindChildText(transform, "Soluong") ?? FindChildText(transform, "Quantity");
+            HideDuplicateQuantityLabels();
             itemDetail ??= GetComponent<ItemTooltipController>();
             itemDetail ??= gameObject.AddComponent<ItemTooltipController>();
+        }
+
+        /// <summary>
+        /// Scene co the con sot ban clone "Soluong (1)" chu cung text mac dinh ("11"),
+        /// che khuat so luong that. Chu viet vao label dau tien, cac ban clone trung
+        /// ten bi an di de khong hien so luong cu.
+        /// </summary>
+        private void HideDuplicateQuantityLabels()
+        {
+            if (quantityText == null)
+                return;
+            string primary = Normalize(quantityText.gameObject.name);
+            foreach (TMP_Text text in GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (text != null && text != quantityText && Normalize(text.gameObject.name) == primary)
+                    text.gameObject.SetActive(false);
+            }
         }
 
         private static Image FindChildImage(Transform root, string name)
@@ -84,8 +102,13 @@ namespace EternalClash.UI
         private static TMP_Text FindChildText(Transform root, string name)
         {
             foreach (TMP_Text text in root.GetComponentsInChildren<TMP_Text>(true))
-                if (Normalize(text.gameObject.name) == Normalize(name))
+            {
+                // "Soluong (1)", "Soluong (2)"... la ban duplicate trong scene van
+                // phai Khop, khong thi Show() ghi so luong vao text khong ton tai.
+                string normalized = Normalize(text.gameObject.name);
+                if (normalized == Normalize(name) || normalized.StartsWith(Normalize(name)))
                     return text;
+            }
             return null;
         }
 

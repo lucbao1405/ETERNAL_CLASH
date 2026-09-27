@@ -31,34 +31,48 @@ namespace EternalClash.EditorTools
         private static void CheckMovement()
         {
             const float approach = 1.2f;
-            const float retreat = 6f;
+            const float pace = 2.5f;    // toc do player = toc do scroll nen
             const float drift = 0.8f;
             const float scroll = -2.5f; // scroll chay ve ben trai nhu trong tran dau
             const float side = 1f;      // boss ben phai player
 
             // Ban + troi: bu scroll roi tru drift -> roi ve phia player 0.8/giay.
             Check(BossController.ComputeOwnVelocityX(BossController.State.Shoot, side, scroll,
-                false, approach, retreat, drift) - 1.7f == 0f, "shoot drifts toward player (net own 1.7)");
+                -scroll, false, false, approach, pace, drift) - 1.7f == 0f, "shoot drifts toward player (net own 1.7)");
 
             // Player bi knockback: DUNG nhip troi - chi bu scroll, dung yen tren man hinh.
             float paused = BossController.ComputeOwnVelocityX(BossController.State.Shoot, side, scroll,
-                true, approach, retreat, drift);
+                -scroll, true, false, approach, pace, drift);
             Check(paused - 2.5f == 0f, "knockback pauses drift (holds screen position)");
             Check(scroll + paused == 0f, "knockback pause nets zero movement");
 
-            // Chay lui: bu ca scroll de thoat duoc ca luc player charge x4.
+            // Player charge x4 (scroll -10, scroll thuong -2.5): boss chi bu scroll
+            // thuong -> bi phan xN day ve gan player thay vi dung yen man hinh.
+            const float chargeScroll = -10f;
+            float chargeComp = -2.5f - chargeScroll; // 7.5
+            float charging = BossController.ComputeOwnVelocityX(BossController.State.Shoot, side,
+                chargeScroll, chargeComp, false, false, approach, pace, drift);
+            Check(Mathf.Abs(chargeScroll + charging + 3.3f) < 0.001f, "charge carries boss toward player at base pace");
+
+            // Chay lui binh thuong: net dung toc do player, khong nhanh hon.
             float back = BossController.ComputeOwnVelocityX(BossController.State.Retreat, side, scroll,
-                false, approach, retreat, drift);
-            Check(back - 8.5f == 0f, "retreat compensates scroll (own 8.5)");
-            Check(scroll + back - retreat == 0f, "retreat nets full retreat speed");
+                -scroll, false, false, approach, pace, drift);
+            Check(back - 5f == 0f, "retreat compensates scroll (own 5)");
+            Check(Mathf.Abs(scroll + back - pace) < 0.001f, "retreat nets player pace");
+
+            // Chay lui khi player charge x4: KHONG bu boost -> boss bi cuon ve gan
+            // player, charge duoi kip va danh trung de lap vong knockback + chay.
+            float chased = BossController.ComputeOwnVelocityX(BossController.State.Retreat, side,
+                chargeScroll, chargeComp, false, true, approach, pace, drift);
+            Check(Mathf.Abs(chargeScroll + chased + 7.5f) < 0.001f, "charge drags retreating boss toward player");
 
             // Di vao: tu buoc toi ke ca khi scroll dung.
             Check(BossController.ComputeOwnVelocityX(BossController.State.Enter, side, 0f,
-                false, approach, retreat, drift) - (-approach) == 0f, "enter approaches without scroll");
+                0f, false, false, approach, pace, drift) - (-approach) == 0f, "enter approaches without scroll");
 
             // Khieu khich: dung cho, chi bu scroll.
             Check(BossController.ComputeOwnVelocityX(BossController.State.Taunt, side, scroll,
-                false, approach, retreat, drift) - (-scroll) == 0f, "taunt holds screen position");
+                -scroll, false, false, approach, pace, drift) - (-scroll) == 0f, "taunt holds screen position");
         }
 
         private static void CheckRetreatGating()

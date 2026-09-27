@@ -52,11 +52,20 @@ namespace EternalClash.World
 
             ResolveLayerReferences();
         }
+    public bool IsScrolling => scrolling;
 
-        public bool IsScrolling => scrolling;
-        public bool IsKnockbackActive => knockbackActive;
-        public float KnockbackMultiplier => knockbackMultiplier;
+    public bool IsKnockbackActive => knockbackActive;
 
+    public float KnockbackMultiplier => knockbackMultiplier;
+
+    /// <summary>Mult currently applied (ramps toward targetMultiplier).</summary>
+    public float CurrentMultiplier => currentMultiplier;
+
+    /// <summary>Player is charging: world speed is boosted well above x1.</summary>
+    public bool IsChargeBoosted => currentMultiplier > 1.05f;
+
+    /// <summary>World velocity WITHOUT the charge/knockback boost (normal pace).</summary>
+    public Vector3 GetBaseWorldVelocity() => new Vector3(scrollDirection * groundSpeed, 0f, 0f);
         private float ForegroundMultiplier => currentMultiplier + knockbackMultiplier;
 
         public float WorldVelocityX => scrollDirection * GetGroundVelocity();

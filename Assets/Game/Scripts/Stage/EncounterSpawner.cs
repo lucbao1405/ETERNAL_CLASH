@@ -3,6 +3,8 @@ using UnityEngine;
 public class EncounterSpawner : MonoBehaviour
 {
     [SerializeField] private Transform enemyContainer;
+    [Tooltip("Khoang cach du ra ngoai ria phai man hinh khi spawn quai, de quai khong lo hinh ngay tai diem trigger.")]
+    [SerializeField] private float spawnEdgePad = 1.5f;
     public static EncounterSpawner Instance { get; private set; }
 
     [System.Serializable]
@@ -58,6 +60,7 @@ public class EncounterSpawner : MonoBehaviour
         if (encounter.enemyPrefab == null) return;
 
         Vector3 spawnPosition = CombatLaneY.AlignToPlayerY(transform.position);
+        spawnPosition.x = CombatLaneY.GetOffScreenRightX(spawnEdgePad);
         Instantiate(
             encounter.enemyPrefab,
             spawnPosition,

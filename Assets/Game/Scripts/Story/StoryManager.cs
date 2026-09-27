@@ -236,9 +236,10 @@ namespace EternalClash.Story
             dialogueManager.OpenDialogue("- E", null, new[]
             {
                 $"[Received: {Chapter1Content.LETTER_TITLE}]",
-                "---",
-                Chapter1Content.LETTER_BODY,
-                "---",
+                Chapter1Content.LETTER_PAGE_1,
+                Chapter1Content.LETTER_PAGE_2,
+                Chapter1Content.LETTER_PAGE_3,
+                Chapter1Content.LETTER_PAGE_4,
                 $"[Gift found: {Chapter1Content.GIFT_DESCRIPTION}]"
             });
         }
