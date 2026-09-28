@@ -1,0 +1,317 @@
+using System.Collections;
+using UnityEngine;
+using Spine.Unity;
+using EternalClash.Character;
+using EternalClash.Combat;
+using EternalClash.Dialogue;
+using EternalClash.Player;
+using EternalClash.Story;
+using EternalClash.Wave;
+using EternalClash.World;
+
+namespace EternalClash.Stage
+{
+    /// <summary>
+    /// End-of-map meeting: after the last wave is cleared the world keeps
+    /// scrolling, the field NPC stands waiting further down the road, the hero
+    /// runs up to them, the dialogue plays, and only then the victory flow
+    /// (chest -> win popup) continues back to the village.
+    /// </summary>
+    public class FieldMeetingController : MonoBehaviour
+    {
+        public static FieldMeetingController Instance { get; private set; }
+
+        private const float NpcAheadDistance = 8f;   // world units ahead of the hero
+        private const float MeetDistance = 2.3f;     // stop the run once this close
+        private const float MaxRunSeconds = 6f;      // safety cap for the approach
+        private const float NoNpcRunSeconds = 2.4f;  // story stages without a body
+        private const float NpcGroundSpeed = 2.5f;   // matches WorldScroller.groundSpeed
+
+        private StageCompleteController owner;
+        private int stageIndex;
+        private bool running;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void InstallSceneHook()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            EnsureInBattle();
+        }
+
+        private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
+            UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            EnsureInBattle();
+        }
+
+        private static void EnsureInBattle()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (!scene.IsValid() ||
+                !string.Equals(scene.name, "Battle", System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (FindObjectOfType<FieldMeetingController>() != null)
+                return;
+
+            new GameObject("FieldMeetingController (Runtime)")
+                .AddComponent<FieldMeetingController>();
+        }
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
+        public static void Begin(int stage, StageCompleteController stageOwner)
+        {
+            if (Instance == null)
+                EnsureInBattle();
+            if (Instance == null)
+            {
+                stageOwner.ProceedToVictoryFlow(); // fallback: no meeting possible
+                return;
+            }
+
+            Instance.StartMeeting(stage, stageOwner);
+        }
+
+        private void StartMeeting(int stage, StageCompleteController stageOwner)
+        {
+            if (running) return;
+
+            owner = stageOwner;
+            stageIndex = stage;
+            running = true;
+
+            Debug.Log($"[FieldMeeting] Stage {stage} meeting begins — hero keeps running down the road.");
+            PartialStopCombat();
+            StartCoroutine(MeetingRoutine());
+        }
+
+        /// <summary>
+        /// Stops everything hostile but keeps the world scrolling and the hero
+        /// running so they can physically reach the NPC down the road.
+        /// </summary>
+        private static void PartialStopCombat()
+        {
+            var waveManager = FindObjectOfType<WaveManager>();
+            if (waveManager != null) waveManager.enabled = false;
+
+            var encounterSpawner = FindObjectOfType<EncounterSpawner>();
+            if (encounterSpawner != null) encounterSpawner.enabled = false;
+
+            // KHONG tat WorldLoopSpawner: trong scene Battle no la bo di chuyen
+            // map duy nhat (khong co WorldLoopController). Tat no o day lam map
+            // dung yen ngay khi buoi gap bat dau — hero chay tai cho, NPC truot
+            // tren nen dong. Map phai tiep tuc troi cho toi khi NPC dung lai
+            // (MeetingRoutine se StopScroll sau do).
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                var combat = player.GetComponent<CombatController>();
+                if (combat != null) combat.enabled = false;
+            }
+        }
+
+        private IEnumerator MeetingRoutine()
+        {
+            GameObject hero = GameObject.FindGameObjectWithTag("Player");
+            if (hero == null)
+            {
+                FinishMeeting();
+                yield break;
+            }
+
+            GameObject npc = ActivateMeetingNpc(hero);
+
+            // Ruong (ChestSpawn) truot CUNG NPC khi co gap cuoi duong: ruong truoc
+            // (gan player hon), NPC sau, hai ben di buoc nhu nhau. Khong co NPC
+            // thi ruong troi rieng trong ProceedToVictoryFlow nhu cac man thuong.
+            GameObject chest = npc != null && owner != null
+                ? owner.SpawnWorldChest()
+                : null;
+
+            if (npc != null)
+            {
+                // The hero is screen-locked (AutoRunner snaps X back home), the
+                // world scrolls past. So the waiting NPC rides the road in with
+                // the CURRENT world velocity (van toc truot thuc te — khong bi
+                // lac chan khi player vua charge/shield lam doi speed) until
+                // the hero "reaches" them.
+                var world = FindObjectOfType<WorldScroller>();
+                float stopGap = owner != null ? owner.ChestStopDistance : 1f;
+                float elapsed = 0f;
+                while (elapsed < MaxRunSeconds)
+                {
+                    elapsed += Time.deltaTime;
+                    float gap = npc.transform.position.x - hero.transform.position.x;
+                    if (gap <= MeetDistance)
+                        break;
+
+                    float stepX = world != null
+                        ? world.GetWorldVelocity().x * Time.deltaTime
+                        : -NpcGroundSpeed * Time.deltaTime;
+                    npc.transform.position += new Vector3(stepX, 0f, 0f);
+                    if (chest != null)
+                    {
+                        Vector3 chestPos = chest.transform.position;
+                        // Ruong dung lai truoc mat hero som hon NPC (gap nho hon).
+                        chestPos.x = Mathf.Max(chestPos.x + stepX,
+                            hero.transform.position.x + stopGap);
+                        chest.transform.position = chestPos;
+                    }
+                    yield return null;
+                }
+            }
+            else
+            {
+                // Story stage / stage 7 / missing spine: a short walk down the
+                // empty road, then the dialogue carries the moment.
+                yield return new WaitForSeconds(NoNpcRunSeconds);
+            }
+
+            // Ruong da troi toi ben canh hero cung NPC - ProceedToVictoryFlow
+            // sau hoi thoai khong troi ruong lan nua.
+            if (chest != null)
+                owner?.MarkChestArrived();
+
+            // Hero dung lai (stand) truoc NPC, bat dau hoi thoai. Chi sau khi
+            // hoi thoai dong, ProceedToVictoryFlow moi mo animation victory.
+            var scroller = FindObjectOfType<WorldScroller>();
+            if (scroller != null)
+            {
+                scroller.StopScroll();
+                scroller.SetSpeedMultiplier(0f);
+            }
+
+            if (hero != null)
+            {
+                var runner = hero.GetComponent<AutoRunner>();
+                if (runner != null) runner.StopRunning();
+            }
+
+            yield return new WaitForSeconds(0.4f);
+
+            if (owner != null)
+                owner.PlayMeetingDialogue(stageIndex);
+            // owner continues the victory flow when the dialogue closes.
+        }
+
+        /// <summary>
+        /// Activates the pre-placed field NPC for this stage ahead of the hero,
+        /// scaled to the hero's height and facing them. Returns null when this
+        /// stage has no body on the road.
+        /// </summary>
+        private GameObject ActivateMeetingNpc(GameObject hero)
+        {
+            // Phai dung cung so man voi StoryManager.HasNPCEncounter:
+            // 1=Garen, 2=Elara, 3=Ela. Sai so man thi NPC khong bao gio xuat
+            // hien (chi co hoi thoai khong than).
+            string npcGoName = stageIndex switch
+            {
+                1 => "FieldNPC_Garen",
+                2 => "FieldNPC_Elara",
+                3 => "FieldNPC_Ela",
+                _ => null
+            };
+
+            if (npcGoName == null)
+                return null;
+
+            Transform container = GameObject.Find("FieldNPCs")?.transform;
+            Transform npc = container != null ? container.Find(npcGoName) : null;
+            if (npc == null)
+            {
+                Debug.LogWarning($"[FieldMeeting] '{npcGoName}' not found in Battle scene; dialogue-only meeting.");
+                return null;
+            }
+
+            Vector3 position = CombatLaneY.AlignToPlayerY(
+                hero.transform.position + Vector3.right * NpcAheadDistance);
+            npc.gameObject.SetActive(true);
+            npc.position = position;
+
+            MatchHeroHeightAndFaceHero(npc, hero);
+
+            // All field NPC spines (thoren, phuthuylonton, con vo) have a
+            // "stand" idle — play it so they don't freeze in the bind pose.
+            // Ca deu duoc ve quay mat ve phia trai (ve phia nhan vat chay den)
+            // san trong atlas, ke ca Ela — khong lat skeleton nao ca.
+            SkeletonAnimation skeleton = npc.GetComponent<SkeletonAnimation>();
+            if (skeleton != null && skeleton.skeleton != null &&
+                skeleton.skeleton.Data.FindAnimation("stand") != null)
+            {
+                skeleton.AnimationState.SetAnimation(0, "stand", true);
+            }
+
+            // Trai tim cua Ela chi thuoc phan nhay "lieu nhan gain" —
+            // trang thai stand phai sach, khong co trai tim nao.
+            if (stageIndex == 3 && skeleton != null && skeleton.skeleton != null)
+                ElaNPCController.SetHeartsVisible(skeleton.skeleton, false);
+
+            // Field NPC khong co tag Player/Enemy nen CharacterShadowBootstrapper
+            // bo qua; them bong giong nhan vat de NPC khong troi khoi mat dat.
+            if (npc.GetComponent<CharacterShadow>() == null)
+                npc.gameObject.AddComponent<CharacterShadow>();
+
+            return npc.gameObject;
+        }
+
+        /// <summary>
+        /// Scales the NPC so they stand eye-to-eye with the hero. Cac spine NPC
+        /// deu duoc ve quay mat vao duong (trai, ve phia nhan vat chay den)
+        /// giong nhau - ke ca Ela - nen khong lat khung hinh NPC nao.
+        /// </summary>
+        private void MatchHeroHeightAndFaceHero(Transform npc, GameObject hero)
+        {
+            SkeletonAnimation npcSkeleton = npc.GetComponent<SkeletonAnimation>();
+            if (npcSkeleton == null || npcSkeleton.skeletonDataAsset == null)
+                return;
+
+            Spine.SkeletonData npcData = npcSkeleton.skeletonDataAsset.GetSkeletonData(true);
+            if (npcData == null || npcData.Height <= 0f)
+                return;
+
+            float heroWorldHeight = 2f; // sane fallback if the hero has no spine
+            SkeletonAnimation heroSkeleton = hero.GetComponentInChildren<SkeletonAnimation>();
+            if (heroSkeleton != null && heroSkeleton.skeletonDataAsset != null)
+            {
+                Spine.SkeletonData heroData = heroSkeleton.skeletonDataAsset.GetSkeletonData(true);
+                if (heroData != null && heroData.Height > 0f)
+                    heroWorldHeight = heroData.Height * Mathf.Abs(heroSkeleton.transform.localScale.y);
+            }
+
+            float scale = (heroWorldHeight * 1.05f) / npcData.Height;
+            // Scale duong cho moi NPC — huong mat da quay ve trai san trong atlas.
+            npc.localScale = new Vector3(Mathf.Abs(scale), Mathf.Abs(scale), 1f);
+        }
+
+        /// <summary>Called by StageCompleteController when the dialogue closes.</summary>
+        public void NotifyDialogueClosed()
+        {
+            FinishMeeting();
+        }
+
+        private void FinishMeeting()
+        {
+            running = false;
+            if (owner != null)
+                owner.ProceedToVictoryFlow();
+            owner = null;
+        }
+    }
+}

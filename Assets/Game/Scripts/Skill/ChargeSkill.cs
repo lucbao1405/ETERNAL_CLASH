@@ -1,0 +1,189 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using EternalClash.World;
+using EternalClash.Combat;
+using EternalClash.Enemy;
+using EternalClash.Village;
+using EternalClash.Player;
+
+namespace EternalClash.Skill
+{
+    public class ChargeSkill : SkillBase
+    {
+        public float chargeMultiplier = 4.0f;
+        [Header("Charge Timing")]
+        [SerializeField] private float chargeDuration = 1f;
+
+        [Tooltip("He so sat thuong NHAN VAO trong luc luot. 0.3 = chi an 30%. " +
+                 "De 0 la bat tu hoan toan, de 1 la an du don.")]
+        [SerializeField, Range(0f, 1f)] private float chargeDamageTakenMultiplier = 0.3f;
+
+        public int baseDamage = 20;
+        public float knockbackForce = 3.0f;
+        public float stunDuration = 1.0f;
+
+        private WorldScroller worldScroller;
+        private bool charging;
+        private HashSet<GameObject> hitEnemies = new HashSet<GameObject>();
+
+        private DamageReceiver playerDamageReceiver;
+        private KnockbackReceiver playerKnockbackReceiver;
+        private PlayerChargeController playerChargeController;
+
+        private Collider2D chargeHitbox;
+
+        public bool IsCharging => charging;
+
+        protected override void Awake()
+        {
+            skillName = "Charge";
+            cooldown = 3.0f;
+            base.Awake();
+            worldScroller = FindObjectOfType<WorldScroller>();
+
+            if (worldScroller == null)
+                Debug.LogWarning("[ChargeSkill] WorldScroller not found yet, will search dynamically");
+
+            // Locate the dedicated forward charge hitbox (a trigger BoxCollider2D
+            // with a large X size, added via the prefab). Keep it off by default.
+            // Search from root transform to find ChargeHitbox sibling.
+            // Uu tien collider co component PlayerChargeHitbox (hitbox chuyen dung).
+            // Neu khong, chi nhan collider o object CON: collider that lon tren
+            // ROOT chinh la hitbox than cua player - tat no di thi dan quai se
+            // ngam vao chan player (GetBodyColliderCenter bo qua collider disabled).
+            var root = transform.root;
+            foreach (var c in root.GetComponentsInChildren<BoxCollider2D>())
+            {
+                if (c.isTrigger && c.size.x > 2f && c.GetComponent<PlayerChargeHitbox>() != null)
+                {
+                    chargeHitbox = c;
+                    break;
+                }
+            }
+            if (chargeHitbox == null)
+            {
+                foreach (var c in root.GetComponentsInChildren<BoxCollider2D>())
+                {
+                    if (c.isTrigger && c.size.x > 2f && c.transform != root)
+                    {
+                        chargeHitbox = c;
+                        break;
+                    }
+                }
+            }
+            if (chargeHitbox != null)
+            {
+                chargeHitbox.enabled = false;
+                Debug.Log("[CHARGE] Found chargeHitbox: " + chargeHitbox.name);
+            }
+            else
+            {
+                Debug.LogWarning("[CHARGE] No chargeHitbox found! Need BoxCollider2D with isTrigger=true and size.x>2f");
+            }
+
+            playerDamageReceiver = GetComponent<DamageReceiver>();
+            playerKnockbackReceiver = GetComponent<KnockbackReceiver>();
+            playerChargeController = GetComponent<PlayerChargeController>()
+                                     ?? GetComponentInParent<PlayerChargeController>();
+        }
+
+        protected override void Execute()
+        {
+            Debug.Log("[CHARGE START] ChargeSkill.Execute START");
+
+            if (!charging)
+                StartCoroutine(ChargeRoutine());
+        }
+
+        private IEnumerator ChargeRoutine()
+        {
+            charging = true;
+            hitEnemies.Clear();
+
+            playerChargeController?.StartCharge();
+
+            if (chargeHitbox != null)
+            {
+                chargeHitbox.enabled = true;
+                Debug.Log("[CHARGE] ChargeHitbox enabled: " + chargeHitbox.name);
+            }
+            else
+            {
+                Debug.LogWarning("[CHARGE] chargeHitbox is NULL - no collider found!");
+            }
+
+            var chargeHitboxObj = transform.root.GetComponentInChildren<PlayerChargeHitbox>();
+            chargeHitboxObj?.ClearHitEnemies();
+
+            // Luot KHONG con bat tu: chi giam sat thuong nhan vao. Truoc day dat 0
+            // nen lao vao giua dam quai khong mat mot mau nao.
+            if (playerDamageReceiver != null)
+                playerDamageReceiver.SetDamageMultiplier(chargeDamageTakenMultiplier);
+            if (playerKnockbackReceiver != null)
+                playerKnockbackReceiver.enabled = false;
+
+            if (worldScroller == null)
+                worldScroller = FindObjectOfType<WorldScroller>();
+
+            if (worldScroller != null)
+            {
+                worldScroller.CancelKnockback();
+                worldScroller.SetSpeedMultiplier(chargeMultiplier);
+                Debug.Log("[CHARGE] WorldScroller speed multiplied x" + chargeMultiplier);
+            }
+
+            FreezeEnemiesInPlayerRange();
+
+            yield return new WaitForSeconds(GetChargeDuration());
+
+            if (worldScroller != null)
+                worldScroller.ResetSpeed();
+
+            if (chargeHitbox != null)
+            {
+                chargeHitbox.enabled = false;
+                Debug.Log("[CHARGE] ChargeHitbox disabled");
+            }
+
+            if (playerDamageReceiver != null)
+                playerDamageReceiver.ResetDamageMultiplier();
+            if (playerKnockbackReceiver != null)
+                playerKnockbackReceiver.enabled = true;
+
+            playerChargeController?.EndCharge();
+
+            charging = false;
+            Debug.Log("[CHARGE END] Charge routine finished");
+        }
+
+        public float GetChargeDuration()
+        {
+            if (playerChargeController != null)
+                return playerChargeController.ChargeDuration;
+
+            return chargeDuration;
+        }
+
+        private void FreezeEnemiesInPlayerRange()
+        {
+            var playerPosition = transform.root.position;
+            foreach (var enemy in FindObjectsOfType<EnemyStatusController>())
+            {
+                if (enemy == null)
+                    continue;
+
+                var enemyMover = enemy.GetComponent<EnemyMover>();
+                if (enemyMover == null)
+                    continue;
+
+                float attackRange = enemyMover.IsArcher ? enemyMover.ArcherStopDistance : 1.2f;
+                if (Vector2.Distance(enemy.transform.position, playerPosition) <= attackRange)
+                {
+                    enemy.ApplyStun(1.0f);
+                    enemyMover.PauseMovement(1.0f);
+                }
+            }
+        }
+    }
+}

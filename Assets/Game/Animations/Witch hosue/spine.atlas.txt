@@ -1,0 +1,76 @@
+
+spine.png
+size: 4639,1951
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+den 1
+  rotate: false
+  xy: 2409, 841
+  size: 1109, 1108
+  orig: 1550, 1540
+  offset: 220, 218
+  index: -1
+den 2
+  rotate: true
+  xy: 3520, 849
+  size: 1100, 1117
+  orig: 1550, 1540
+  offset: 225, 211
+  index: -1
+hoa phai
+  rotate: true
+  xy: 3463, 56
+  size: 783, 148
+  orig: 783, 148
+  offset: 0, 0
+  index: -1
+hoa trai
+  rotate: true
+  xy: 4446, 359
+  size: 488, 136
+  orig: 488, 136
+  offset: 0, 0
+  index: -1
+nam 2
+  rotate: false
+  xy: 3613, 232
+  size: 440, 615
+  orig: 440, 615
+  offset: 0, 0
+  index: -1
+nam 3
+  rotate: false
+  xy: 4055, 308
+  size: 389, 539
+  orig: 389, 539
+  offset: 0, 0
+  index: -1
+nam 4
+  rotate: false
+  xy: 2991, 29
+  size: 470, 810
+  orig: 470, 810
+  offset: 0, 0
+  index: -1
+nam 5
+  rotate: false
+  xy: 2409, 29
+  size: 580, 810
+  orig: 580, 810
+  offset: 0, 0
+  index: -1
+nam1
+  rotate: true
+  xy: 4055, 10
+  size: 296, 409
+  orig: 296, 409
+  offset: 0, 0
+  index: -1
+nha
+  rotate: false
+  xy: 2, 2
+  size: 2405, 1947
+  orig: 2405, 1947
+  offset: 0, 0
+  index: -1

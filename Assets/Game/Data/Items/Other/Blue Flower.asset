@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76283486c5a0d754f8881de1ee8fe007, type: 3}
+  m_Name: Blue Flower
+  m_EditorClassIdentifier: 
+  itemId: blue_flower
+  itemName: Blue Flower
+  itemType: Gift
+  equipmentSlot: 0
+  rarity: 0
+  stars: 0
+  weaponTier: 0
+  armorTier: 0
+  strBonus: 0
+  intBonus: 0
+  vitBonus: 0
+  luckBonus: 0
+  level: 1
+  upgradeLevel: 0
+  description: A rare blue flower. A bond gift to deepen friendship with the villagers.
+  icon: {fileID: 21300000, guid: 4169c8c87b3cbf24ea44f33e05b1941d, type: 3}
+  quantity: 0
+  iconSpriteName: 

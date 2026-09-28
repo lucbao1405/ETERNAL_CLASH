@@ -1,0 +1,97 @@
+
+spine.png
+size: 3154,2046
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+canh tay 2
+  rotate: true
+  xy: 2333, 229
+  size: 345, 527
+  orig: 345, 527
+  offset: 0, 0
+  index: -1
+chan 1
+  rotate: false
+  xy: 2876, 552
+  size: 233, 326
+  orig: 233, 326
+  offset: 0, 0
+  index: -1
+chan 2
+  rotate: false
+  xy: 2876, 880
+  size: 217, 375
+  orig: 217, 375
+  offset: 0, 0
+  index: -1
+co tay 1
+  rotate: false
+  xy: 2333, 29
+  size: 310, 198
+  orig: 310, 198
+  offset: 0, 0
+  index: -1
+co tay 2
+  rotate: true
+  xy: 2876, 1584
+  size: 460, 276
+  orig: 460, 276
+  offset: 0, 0
+  index: -1
+dai
+  rotate: false
+  xy: 2, 51
+  size: 1468, 681
+  orig: 1468, 681
+  offset: 0, 0
+  index: -1
+giay 1
+  rotate: false
+  xy: 2862, 282
+  size: 258, 268
+  orig: 258, 268
+  offset: 0, 0
+  index: -1
+giay 2
+  rotate: false
+  xy: 2876, 1257
+  size: 269, 325
+  orig: 269, 325
+  offset: 0, 0
+  index: -1
+head
+  rotate: false
+  xy: 2, 734
+  size: 1784, 1310
+  orig: 1784, 1310
+  offset: 0, 0
+  index: -1
+khuyu trai
+  rotate: false
+  xy: 2645, 2
+  size: 255, 225
+  orig: 255, 225
+  offset: 0, 0
+  index: -1
+sung
+  rotate: false
+  xy: 1472, 57
+  size: 859, 517
+  orig: 859, 517
+  offset: 0, 0
+  index: -1
+tay 2
+  rotate: false
+  xy: 2902, 39
+  size: 227, 241
+  orig: 227, 241
+  offset: 0, 0
+  index: -1
+than
+  rotate: true
+  xy: 1788, 576
+  size: 1468, 1086
+  orig: 1468, 1086
+  offset: 0, 0
+  index: -1
