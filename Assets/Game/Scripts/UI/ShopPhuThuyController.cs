@@ -172,6 +172,15 @@ namespace EternalClash.UI
             ShowPage(-1);
         }
 
+        public void SelectMaterial(int index)
+        {
+            if (index < 0 || index >= Materials.Length || index == selectedMaterial)
+                return;
+            EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
+            selectedMaterial = index;
+            Refresh();
+        }
+
         private void ShowPage(int delta)
         {
             EternalClash.Audio.GameAudio.Play(EternalClash.Audio.SoundId.UIClick);
@@ -321,7 +330,10 @@ namespace EternalClash.UI
             }
 
             for (int index = 0; index < BadgeLabels.Length; index++)
+            {
                 badgeValues[index] = FindDeepText(transform.Find("Badge_" + BadgeLabels[index])?.gameObject, "Value");
+                BindBadge(transform.Find("Badge_" + BadgeLabels[index]), index);
+            }
 
             Transform panel = transform.Find("NguyenLieu");
             Transform inner = panel != null ? panel.Find("Inside") : null;
@@ -354,6 +366,22 @@ namespace EternalClash.UI
             button.onClick.AddListener(action);
         }
 
+        private void BindBadge(Transform badge, int index)
+        {
+            if (badge == null)
+                return;
+            Button button = badge.GetComponent<Button>();
+            if (button == null)
+            {
+                Image hitArea = badge.gameObject.AddComponent<Image>();
+                hitArea.color = new Color(1f, 1f, 1f, 0.01f);
+                button = badge.gameObject.AddComponent<Button>();
+                button.targetGraphic = hitArea;
+            }
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => SelectMaterial(index));
+        }
+
         private void BuildBadges()
         {
             Sprite frameText = transform.Find("Name")?.GetComponent<Image>()?.sprite;
@@ -375,6 +403,15 @@ namespace EternalClash.UI
                 value.fontStyle = FontStyles.Bold;
                 value.rectTransform.anchoredPosition = new Vector2(0f, -14f);
                 value.rectTransform.sizeDelta = new Vector2(230f, 52f);
+
+                Image hitArea = badge.gameObject.AddComponent<Image>();
+                hitArea.sprite = frameText;
+                hitArea.type = frameText != null ? Image.Type.Sliced : Image.Type.Simple;
+                hitArea.color = new Color(1f, 1f, 1f, 0.01f);
+                Button badgeButton = badge.gameObject.AddComponent<Button>();
+                badgeButton.targetGraphic = hitArea;
+                int capturedIndex = index;
+                badgeButton.onClick.AddListener(() => SelectMaterial(capturedIndex));
             }
         }
 
@@ -524,6 +561,14 @@ namespace EternalClash.UI
             for (int index = 0; index < dots.Length; index++)
                 if (dots[index] != null)
                     dots[index].color = index == selectedMaterial ? new Color(1f, 0.84f, 0.37f) : new Color(0.42f, 0.36f, 0.27f);
+            for (int index = 0; index < BadgeLabels.Length; index++)
+            {
+                Image background = transform.Find("Badge_" + BadgeLabels[index])?.GetComponent<Image>();
+                if (background != null)
+                    background.color = index == selectedMaterial
+                        ? new Color(1f, 0.92f, 0.70f)
+                        : Color.white;
+            }
             if (previewText != null)
                 previewText.text = FormatPreview(material.ability, witch, currentExp, expToNext);
             if (infuseButton != null)
