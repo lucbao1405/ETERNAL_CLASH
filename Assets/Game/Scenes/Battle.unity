@@ -1399,7 +1399,7 @@ GameObject:
   - component: {fileID: 130371157}
   - component: {fileID: 130371159}
   - component: {fileID: 130371158}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Hp_Ghost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2821,7 +2821,7 @@ GameObject:
   - component: {fileID: 256776640}
   - component: {fileID: 256776642}
   - component: {fileID: 256776641}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HP_Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4271,7 +4271,7 @@ GameObject:
   - component: {fileID: 427514151}
   - component: {fileID: 427514153}
   - component: {fileID: 427514152}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7920,7 +7920,7 @@ GameObject:
   - component: {fileID: 767367174}
   - component: {fileID: 767367176}
   - component: {fileID: 767367175}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11904,7 +11904,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1073913054}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Holder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13363,7 +13363,7 @@ GameObject:
   - component: {fileID: 1321014226}
   - component: {fileID: 1321014228}
   - component: {fileID: 1321014227}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Hp_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19410,13 +19410,13 @@ GameObject:
   - component: {fileID: 1952272304}
   - component: {fileID: 1952272303}
   - component: {fileID: 1952272302}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BossHealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1952272302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20521,7 +20521,7 @@ SceneRoots:
   - {fileID: 1737346670}
   - {fileID: 208907459}
   - {fileID: 1643967791}
+  - {fileID: 1952272305}
   - {fileID: 1049976039}
   - {fileID: 778474207}
   - {fileID: 1573777290}
-  - {fileID: 1952272305}

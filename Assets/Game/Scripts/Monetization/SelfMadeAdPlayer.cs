@@ -124,6 +124,10 @@ namespace EternalClash.Monetization
                 // Chong mo hai ad cung luc - dong ban cu va bao khong thuong.
                 CloseWithoutReward(true);
 
+                // An thanh mau boss trong luc ad phat: dam bao khong UI nao de len
+                // video ke ca khi sortingOrder bi canvas khac ghi de.
+                EternalClash.UI.BossHealthBarUI.SetSuppressed(true);
+
                 onResult = result;
                 completed = false;
                 skipUnlocked = false;
@@ -143,7 +147,17 @@ namespace EternalClash.Monetization
                 // Force canvas chua panel len tren moi UI khac trong luc ad dang phat.
                 Canvas panelCanvas = panel.GetComponentInParent<Canvas>(true);
                 if (panelCanvas != null)
+                {
+                    // sortingOrder chi co tac dung tren canvas GOC: neu panel nam trong
+                    // canvas con (nested), canvas con khong doi duoc thu tu so voi
+                    // BossHealthBarUI (sortingOrder 100) o canvas khac.
+                    panelCanvas.overrideSorting = true;
                     panelCanvas.sortingOrder = 5000;
+
+                    Canvas rootCanvas = panelCanvas.rootCanvas;
+                    if (rootCanvas != null && rootCanvas != panelCanvas)
+                        rootCanvas.sortingOrder = 5000;
+                }
 
                 panel.transform.SetAsLastSibling();
                 panel.gameObject.SetActive(true);
@@ -547,6 +561,9 @@ namespace EternalClash.Monetization
                 }
 
                 TearDownVideoPlayer();
+
+                // Mo an thanh mau boss sau khi ad ket thuc.
+                EternalClash.UI.BossHealthBarUI.SetSuppressed(false);
 
                 if (panel != null)
                 {

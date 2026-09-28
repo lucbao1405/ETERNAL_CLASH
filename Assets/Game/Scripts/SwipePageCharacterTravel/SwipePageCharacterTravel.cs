@@ -7,6 +7,7 @@ using Spine.Unity;
 
 public class SwipePageCharacterTravel : MonoBehaviour,
     IBeginDragHandler,
+    IDragHandler,
     IEndDragHandler
 {
     [Header("Scroll")]
@@ -52,8 +53,20 @@ public class SwipePageCharacterTravel : MonoBehaviour,
     // True khi van dang anim di chuyen sang trang khac (swipe chua hoan tat).
     public bool IsTraveling => pageCoroutine != null || characterCoroutine != null;
 
+    // Man hinh Town khong cho keo/giu tay di theo nua; chi vuot de nhan vat
+    // chuyen qua lai giua cac Page (1, 2, 3, 4). Tat drag cua ScrollRect de
+    // content khong bun theo ngón tay, chi con OnEndDrag quy dinh chuyen trang.
+    private void OnEnable()
+    {
+        if (scrollRect != null)
+            scrollRect.enabled = false;
+    }
+
     private void Start()
     {
+        if (scrollRect != null)
+            scrollRect.enabled = false;
+
         characterRect = character.rectTransform;
 
         originalCharacterScaleX =
@@ -96,6 +109,13 @@ public class SwipePageCharacterTravel : MonoBehaviour,
         }
 
         scrollRect.StopMovement();
+    }
+
+    // Bat buoc co IDragHandler de EventSystem chon object nay lam drag target
+    // (ScrollRect da bi tat nen khong con nhan drag nua). Noi dung khong can
+    // di theo tay, nen than ham de trong.
+    public void OnDrag(PointerEventData eventData)
+    {
     }
 
     public void OnEndDrag(PointerEventData eventData)

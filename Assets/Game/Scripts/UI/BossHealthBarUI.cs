@@ -16,9 +16,25 @@ namespace EternalClash.UI
     {
         private static BossHealthBarUI instance;
         private static Sprite circleSprite;
+        private static bool suppressed;
+
+        /// <summary>
+        /// An/hien lai thanh mau khi co lop phu dac biet (video quang cao) -
+        /// khong dung sortingOrder de tranh tranh chap voi bat ky canvas nao.
+        /// </summary>
+        public static void SetSuppressed(bool value)
+        {
+            suppressed = value;
+            if (instance != null)
+                instance.gameObject.SetActive(!value && instance.boundHealth != null);
+        }
 
         private const float GhostHoldDuration = 0.5f;
         private const float GhostDrainSpeed = 1.6f;
+
+        // Am hon moi popup UI (MainCanvas, Victory/Lose, ad offer...) nhung van
+        // tren the gioi game vi la Screen Space Overlay.
+        private const int BarSortingOrder = -50;
 
         private EnemyHealthSystem boundHealth;
         private Image fillImage;
@@ -63,7 +79,7 @@ namespace EternalClash.UI
             var root = new GameObject("BossHealthBar", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             Canvas canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
+            canvas.sortingOrder = BarSortingOrder;
 
             CanvasScaler scaler = root.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -132,6 +148,16 @@ namespace EternalClash.UI
         private void HookupExisting()
         {
             RectTransform root = (RectTransform)transform;
+
+            // Ep canvas cua ban trong scene xuong duoi moi popup (ban trong scene
+            // co the bi dat sortingOrder cao hon hoac la canvas con khac).
+            Canvas ownCanvas = GetComponent<Canvas>();
+            if (ownCanvas != null)
+            {
+                ownCanvas.overrideSorting = true;
+                ownCanvas.sortingOrder = BarSortingOrder;
+            }
+
             Transform bar = root.Find("Holder/Bar");
             if (bar != null)
             {
@@ -164,7 +190,7 @@ namespace EternalClash.UI
 
             boundHealth.OnHealthChanged += UpdateHealth;
             UpdateHealth(boundHealth.CurrentHealth, boundHealth.MaxHealth);
-            gameObject.SetActive(true);
+            gameObject.SetActive(!suppressed);
         }
 
         private void Unbind()

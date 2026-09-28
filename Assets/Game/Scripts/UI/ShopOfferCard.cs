@@ -41,13 +41,8 @@ namespace EternalClash.UI
                 return;
             }
 
-            bool paid = currencyId == "coin" ? gold.SpendGold(price) : gold.SpendGem(price);
-            if (!paid)
-            {
-                Debug.Log($"[ShopOfferCard] Khong du {currencyId} de mua {amount} {itemId} (can {price}).");
-                return;
-            }
-
+            // TODO: tam thoi tren mobile chua mua duoc bang tien - cho phep nhan
+            // vat pham mien phi khi bam mua. Khoi phuc lai viec tru tien sau.
             if (itemId == "coin") gold.AddGold(amount);
             else if (itemId == "diamon") gold.AddGem(amount);
             else Debug.Log($"[ShopOfferCard] Da mua {amount} {itemId}.");
