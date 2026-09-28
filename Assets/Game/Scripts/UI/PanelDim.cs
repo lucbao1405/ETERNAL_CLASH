@@ -115,6 +115,11 @@ public static class PanelDim
         overlay.alpha = visible ? 1f : 0f;
         overlay.interactable = false;
         overlay.blocksRaycasts = visible;
+
+        // Nen toi phai nam DUOI moi panel (sibling dau tien) de khong ve đe
+        // len popup dang mo; no van chan tap qua blocksRaycasts.
+        if (visible)
+            overlay.transform.SetAsFirstSibling();
     }
 
     /// <summary>
