@@ -2458,7 +2458,7 @@ GameObject:
   - component: {fileID: 241624899}
   - component: {fileID: 241624901}
   - component: {fileID: 241624900}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Still
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5411,7 +5411,7 @@ GameObject:
   - component: {fileID: 587540077}
   - component: {fileID: 587540079}
   - component: {fileID: 587540078}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: AdScreen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5847,7 +5847,7 @@ GameObject:
   - component: {fileID: 616425374}
   - component: {fileID: 616425376}
   - component: {fileID: 616425375}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: CountdownLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5903,7 +5903,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -9025,8 +9025,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   runSpeed: 0.25
-  titleColor: {r: 1, g: 0.92, b: 0.6, a: 1}
-  waveColor: {r: 0.85, g: 0.95, b: 1, a: 1}
+  titleColor: {r: 1, g: 0.6483216, b: 0, a: 1}
+  waveColor: {r: 1, g: 0.80277956, b: 0.13396227, a: 1}
 --- !u!225 &813375339
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -13869,7 +13869,7 @@ GameObject:
   - component: {fileID: 1405472879}
   - component: {fileID: 1405472878}
   - component: {fileID: 1405472877}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: CloseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15644,7 +15644,7 @@ GameObject:
   - component: {fileID: 1581179723}
   - component: {fileID: 1581179724}
   - component: {fileID: 1581179725}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Video
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17593,7 +17593,7 @@ GameObject:
   - component: {fileID: 1758440610}
   - component: {fileID: 1758440609}
   - component: {fileID: 1758440608}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Selfmade_Ad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19416,7 +19416,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1952272302
 MonoBehaviour:
   m_ObjectHideFlags: 0

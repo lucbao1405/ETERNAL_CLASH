@@ -28,7 +28,7 @@ TagManager:
   - PlayerDetect
   - UIWorld
   - Item
-  - 
+  - Ads
   - 
   - 
   - 
@@ -87,4 +87,7 @@ TagManager:
     locked: 0
   - name: UI
     uniqueID: 456390319
+    locked: 0
+  - name: Ads
+    uniqueID: 1180131967
     locked: 0
