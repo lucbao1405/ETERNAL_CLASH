@@ -15,6 +15,10 @@ namespace EternalClash.Skill
         [Header("Charge Timing")]
         [SerializeField] private float chargeDuration = 1f;
 
+        [Tooltip("He so sat thuong NHAN VAO trong luc luot. 0.3 = chi an 30%. " +
+                 "De 0 la bat tu hoan toan, de 1 la an du don.")]
+        [SerializeField, Range(0f, 1f)] private float chargeDamageTakenMultiplier = 0.3f;
+
         public int baseDamage = 20;
         public float knockbackForce = 3.0f;
         public float stunDuration = 1.0f;
@@ -112,8 +116,10 @@ namespace EternalClash.Skill
             var chargeHitboxObj = transform.root.GetComponentInChildren<PlayerChargeHitbox>();
             chargeHitboxObj?.ClearHitEnemies();
 
+            // Luot KHONG con bat tu: chi giam sat thuong nhan vao. Truoc day dat 0
+            // nen lao vao giua dam quai khong mat mot mau nao.
             if (playerDamageReceiver != null)
-                playerDamageReceiver.SetDamageMultiplier(0f);
+                playerDamageReceiver.SetDamageMultiplier(chargeDamageTakenMultiplier);
             if (playerKnockbackReceiver != null)
                 playerKnockbackReceiver.enabled = false;
 
