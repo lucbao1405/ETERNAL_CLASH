@@ -49,10 +49,17 @@ namespace EternalClash.Village
         /// </summary>
         public int SessionGoldEarned { get; private set; }
 
+        /// <summary>Vang co ban mac dinh nhan duoc moi khi bat dau mot van.</summary>
+        public const int BaseRunGold = 100;
+
         /// <summary>Dat lai bo dem dau tran. StageManager goi khi bat dau man.</summary>
         public void ResetSessionCounters()
         {
             SessionGoldEarned = 0;
+
+            // Van mac dinh duoc 100 vang ngay tu dau, cong don voi vang quai rot ra.
+            if (BaseRunGold > 0)
+                AddGold(BaseRunGold);
         }
 
         public void AddGold(int amount)

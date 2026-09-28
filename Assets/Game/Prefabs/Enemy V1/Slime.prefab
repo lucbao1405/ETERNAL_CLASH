@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -1.375, y: 0}
-  m_SizeDelta: {x: -1.25, y: 2}
+  m_AnchoredPosition: {x: 0.9175, y: 0.0000008940697}
+  m_SizeDelta: {x: 3.335, y: 3.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3498233098088598163
 CanvasRenderer:
@@ -293,8 +293,12 @@ MonoBehaviour:
   archerStopDistance: 4.5
   isArcher: 0
   playerStopDistance: 0.75
+  chargeFlowStopDistance: 0.2
   queueSpacing: 0.8
   queueSettleSpeed: 3
+  deathKnockbackSpeed: 9
+  deathKnockbackDecel: 20
+  deathHopHeight: 0.6
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -312,6 +316,8 @@ MonoBehaviour:
   delayedFillImage: {fileID: 0}
   delayBeforeDeplete: 0.5
   depleteSpeed: 1.5
+  fillColor: {r: 1, g: 0, b: 0, a: 1}
+  lostHealthColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &6307903538845569426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -345,8 +351,11 @@ MonoBehaviour:
   attackRange: 1.2
   knockbackForce: 5
   hitMoment: 0.5
+  windUpTime: 0.6
+  windUpStartRange: 2.4
   projectilePrefab: {fileID: 0}
   projectileSpeed: 5
+  projectileSpawnOffset: {x: 0, y: 0.8}
 --- !u!114 &-4430521099706183268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -549,8 +558,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -1.375, y: 0}
-  m_SizeDelta: {x: -1.25, y: 2}
+  m_AnchoredPosition: {x: 0.9175, y: 0.0000008940697}
+  m_SizeDelta: {x: 3.335, y: 3.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6975652102798469770
 CanvasRenderer:
@@ -748,8 +757,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 3.6, y: 45.2}
-  m_SizeDelta: {x: 30.28, y: 38.36}
+  m_AnchoredPosition: {x: 1.2, y: 46.7}
+  m_SizeDelta: {x: 31.19, y: 3.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8784255215652225057
 Canvas:
@@ -831,8 +840,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -1.375, y: 0}
-  m_SizeDelta: {x: -1.25, y: 2}
+  m_AnchoredPosition: {x: 0.92, y: 0.0000008940697}
+  m_SizeDelta: {x: 3.33, y: 3.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2103501064167169049
 CanvasRenderer:
