@@ -242,8 +242,12 @@ MonoBehaviour:
   archerStopDistance: 0.8
   isArcher: 1
   playerStopDistance: 0.75
+  chargeFlowStopDistance: 0.2
   queueSpacing: 0.8
   queueSettleSpeed: 3
+  deathKnockbackSpeed: 9
+  deathKnockbackDecel: 20
+  deathHopHeight: 0.6
 --- !u!114 &-2736930427471613890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -295,6 +299,7 @@ MonoBehaviour:
   knockbackForce: 5
   hitMoment: 0.5
   windUpTime: 0.6
+  windUpStartRange: 2.4
   projectilePrefab: {fileID: 1190294507443897956, guid: b035958e50e59704f8a47e0cf6dd8b0e, type: 3}
   projectileSpeed: 5
   projectileSpawnOffset: {x: 0, y: 0.5}
@@ -668,7 +673,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -2.534, y: -0.442}
+  m_AnchoredPosition: {x: -2.5342, y: -0.4415}
   m_SizeDelta: {x: 13.869, y: 2.107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2103501064167169049
@@ -692,7 +697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.16981131, g: 0.12527588, b: 0.12527588, a: 0.7058824}
+  m_Color: {r: 0.5396226, g: 0.5080598, b: 0.5080598, a: 0.6039216}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

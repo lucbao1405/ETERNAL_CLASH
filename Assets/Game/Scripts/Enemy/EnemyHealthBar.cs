@@ -9,11 +9,16 @@ namespace EternalClash.Enemy
         [SerializeField] private EnemyHealthSystem healthSystem;
         [SerializeField] private Image fillImage;
         [SerializeField] private Image delayedFillImage;
-        [SerializeField] private float delayBeforeDeplete = 0.4f;
+        [SerializeField] private float delayBeforeDeplete = 0.3f;
         [SerializeField] private float depleteSpeed = 1.5f;
+
+        [Header("Juice")]
+        [SerializeField] private Color fillColor = Color.red;
+        [SerializeField] private Color lostHealthColor = Color.yellow;
 
         private TextMeshProUGUI hpText;
         private float targetFillAmount = 1f;
+        private float displayedFillAmount = 1f;
         private float delayTimer;
 
         private void Awake()
@@ -27,17 +32,23 @@ namespace EternalClash.Enemy
 
         private void Start()
         {
+            if (fillImage != null)
+                fillImage.color = fillColor;
+            if (delayedFillImage != null)
+                delayedFillImage.color = lostHealthColor;
+
             if (healthSystem != null)
             {
                 healthSystem.OnHealthChanged += UpdateHealthBar;
                 UpdateHealthBar(healthSystem.CurrentHealth, healthSystem.MaxHealth);
+
+                // Khoi tao ruot hien thi dung gia tri ban dau, khong chay hieu ung.
+                displayedFillAmount = targetFillAmount;
+                if (fillImage != null)
+                    fillImage.fillAmount = displayedFillAmount;
+                if (delayedFillImage != null)
+                    delayedFillImage.fillAmount = displayedFillAmount;
             }
-
-            if (fillImage != null)
-                fillImage.fillAmount = targetFillAmount;
-
-            if (delayedFillImage != null)
-                delayedFillImage.fillAmount = targetFillAmount;
         }
 
         private void OnDestroy()
@@ -48,19 +59,28 @@ namespace EternalClash.Enemy
 
         private void Update()
         {
-            if (delayedFillImage == null)
-                return;
-
-            if (delayedFillImage.fillAmount <= targetFillAmount)
-                return;
-
-            if (delayTimer > 0f)
+            // Vien vang (delayed fill) de lai 0.3 giay roi moi tut theo.
+            if (delayedFillImage != null)
             {
-                delayTimer -= Time.deltaTime;
-                return;
+                if (delayedFillImage.fillAmount <= targetFillAmount)
+                {
+                    delayedFillImage.fillAmount = targetFillAmount;
+                }
+                else
+                {
+                    if (delayTimer > 0f)
+                    {
+                        delayTimer -= Time.deltaTime;
+                    }
+                    else
+                    {
+                        delayedFillImage.fillAmount = Mathf.MoveTowards(
+                            delayedFillImage.fillAmount,
+                            targetFillAmount,
+                            depleteSpeed * Time.deltaTime);
+                    }
+                }
             }
-
-            delayedFillImage.fillAmount = Mathf.MoveTowards(delayedFillImage.fillAmount, targetFillAmount, depleteSpeed * Time.deltaTime);
         }
 
         private void ResolveReferences()
