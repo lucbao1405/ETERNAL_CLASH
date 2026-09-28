@@ -69,6 +69,11 @@ public class SaveData
     public bool isVipActive = false;
     public bool starterPackPurchased = false;
 
+    // Kim cuong qua quang cao: gioi han so lan xem trong ngay (reset theo
+    // ngay dia phau, tinh tu gemAdDate dang "yyyy-MM-dd").
+    public int gemAdsWatchedToday = 0;
+    public string gemAdDate = "";
+
     // Player Condition (Injured recovery system)
     public int playerCondition = 0; // 0 = Normal, 1 = Injured
     public int currentHp = 0;

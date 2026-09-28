@@ -43,6 +43,8 @@ namespace EternalClash.UI
 
                 buyButton.onClick.RemoveAllListeners();
                 buyButton.onClick.AddListener(card.Buy);
+                // Card quang cao (kim cuong xem QC): cap nhat nhan so luot con lai.
+                card.RefreshLabel();
             }
         }
 

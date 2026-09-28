@@ -27,6 +27,9 @@ namespace EternalClash.UI
         [Header("Item Details")]
         [SerializeField] private Transform thongTinVatPham;
         [SerializeField] private TMP_Text itemDetailsText;
+        [SerializeField, Tooltip("Khung ItemPick (giu nguyen), icon vat pham se nam ben trong nhu con cua no.")]
+        private Transform itemPickFrame;
+        private Image itemPickIcon;
 
         [Header("Upgrade")]
         [SerializeField] private Button upgradeButton;
@@ -93,7 +96,10 @@ namespace EternalClash.UI
             SubscribeToSaveChanges();
             EnsureCraftingSystem();
             AutoWireLegacySlots();
+            // Panel moi mo luon bat dau trang thai trong: khong tu chon vat pham
+            // cu, chi hien chi tiet + vat pham can sau khi nguoi choi bam slot.
             selectedItem = null;
+            HideSelection();
             // Equipment services may initialize after this component's Awake.
             // Rebind the legacy slots here so their icons and click targets are
             // valid every time the panel opens.
@@ -106,12 +112,6 @@ namespace EternalClash.UI
             RefreshSlots(listKiem);
             RefreshSlots(listKhien);
             RefreshSlots(listSetAoGiap);
-            if (selectedItem == null)
-            {
-                ItemData equippedWeapon = ResolveBaseItem(ItemSlot.Weapon);
-                if (equippedWeapon != null)
-                    SelectItem(equippedWeapon);
-            }
             UpdateUpgradeButtonState();
             EnsurePanelInteractable();
         }
@@ -128,6 +128,34 @@ namespace EternalClash.UI
             if (subscribedSaveManager != null)
                 subscribedSaveManager.SaveChanged -= OnSaveDataChanged;
             subscribedSaveManager = null;
+
+            // Xoa selection khi panel bi an de lan mo lai luon trong, khong con
+            // vet vat pham cu. AutoWireDetails dam bao tham chieu da day khi
+            // panel dang hien (Awake/OnEnable da chay).
+            selectedItem = null;
+            HideSelection();
+        }
+
+        /// <summary>Ve trang thai trong: an panel chi tiet, xoa slot vat pham can.</summary>
+        private void HideSelection()
+        {
+            AutoWireDetails();
+            if (itemDetailsText != null)
+                itemDetailsText.text = string.Empty;
+            if (thongTinVatPham != null)
+                thongTinVatPham.gameObject.SetActive(false);
+            if (itemPickIcon != null)
+            {
+                itemPickIcon.sprite = null;
+                itemPickIcon.enabled = false;
+            }
+            // Khung ItemPick luon duoc giu hien thi, chi xoa icon ben trong.
+            ClearRequirementSlots();
+            if (upgradeButton != null)
+            {
+                upgradeButton.interactable = false;
+                upgradeButton.colors = disabledButtonColors;
+            }
         }
 
         private void SubscribeToSaveChanges()
@@ -167,9 +195,48 @@ namespace EternalClash.UI
             Debug.Log("Selected upgrade item: " + itemData.itemName);
             RefreshItemDetail();
             RefreshRequirementSlots(itemData);
+            ShowItemPick(itemData);
             if (thongTinVatPham != null)
                 thongTinVatPham.gameObject.SetActive(true);
             UpdateUpgradeButton();
+        }
+
+        /// <summary>Hien icon vat pham duoc chon ben trong khung ItemPick
+        /// (khong thay sprite cua khung, chi thao tac tren Image con).</summary>
+        private void ShowItemPick(ItemData item)
+        {
+            EnsureItemPickIcon();
+            if (itemPickIcon != null)
+            {
+                itemPickIcon.sprite = item.icon;
+                itemPickIcon.enabled = item.icon != null;
+                itemPickIcon.preserveAspect = true;
+            }
+        }
+
+        /// <summary>Tim khung ItemPick va dam bao co Image con "Icon" ben trong
+        /// de dat icon, sprite khung khong bi ghi de.</summary>
+        private void EnsureItemPickIcon()
+        {
+            if (itemPickFrame == null)
+                itemPickFrame = FindChildRecursive(transform, "ItemPick");
+            if (itemPickFrame == null)
+                return;
+
+            Transform iconChild = itemPickFrame.Find("Icon");
+            if (iconChild == null)
+            {
+                GameObject iconObject = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                iconObject.transform.SetParent(itemPickFrame, false);
+                RectTransform rect = iconObject.GetComponent<RectTransform>();
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = new Vector2(8f, 8f);
+                rect.offsetMax = new Vector2(-8f, -8f);
+                iconChild = iconObject.transform;
+            }
+
+            itemPickIcon = iconChild.GetComponent<Image>();
         }
 
         public void UpgradeSelected()
@@ -275,6 +342,8 @@ namespace EternalClash.UI
         public void RefreshItemDetail()
         {
             UpdateItemDetails(selectedItem);
+            if (selectedItem != null)
+                ShowItemPick(selectedItem);
         }
 
         public void UpdateUpgradeButton()
@@ -387,12 +456,6 @@ namespace EternalClash.UI
             slots[0].SetItemData(equipped);
             for (int index = 1; index < slots.Length; index++)
                 slots[index].SetItemData(null);
-        }
-
-        private static ItemData ResolveBaseItem(ItemSlot slot)
-        {
-            // Empty save slots intentionally return null; the UI must stay empty.
-            return EquipmentSystem.Instance?.GetEquippedItem(slot);
         }
 
         private static ItemData CreateTierVariant(ItemData source, int tier)

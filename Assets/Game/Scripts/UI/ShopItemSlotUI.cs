@@ -43,6 +43,20 @@ namespace EternalClash.UI
         }
 
         /// <summary>
+        /// Nhan card kim cuong qua quang cao: "Xem QC (da xem/3)" hoac "Het luot".
+        /// </summary>
+        public void SetAdOffer(int watchedToday, int remainingToday)
+        {
+            priceText ??= transform.Find("BuyButton/PriceText")?.GetComponent<TMP_Text>();
+            if (priceText == null)
+                return;
+
+            priceText.text = remainingToday > 0
+                ? $"Watch Ad ({watchedToday}/{watchedToday + remainingToday})"
+                : "No more today";
+        }
+
+        /// <summary>
         /// Doc lai (so luong, gia) tu label tren card, bo cac dau phan cach
         /// ("10.000" -> 10000). Gia USD co '$' se tu choi de nham card IAP.
         /// </summary>
