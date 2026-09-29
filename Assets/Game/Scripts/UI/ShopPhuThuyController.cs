@@ -337,8 +337,11 @@ namespace EternalClash.UI
 
             Transform panel = transform.Find("NguyenLieu");
             Transform inner = panel != null ? panel.Find("Inside") : null;
-            Transform iconFrame = inner != null ? inner.Find("OAnh") : null;
+            Transform iconFrame = panel != null ? panel.Find("OAnh") : null;
+            iconFrame ??= inner != null ? inner.Find("OAnh") : null;
+            iconFrame ??= FindDeepChild(panel, "OAnh");
             Transform iconNode = iconFrame != null ? iconFrame.Find("Anh") : null;
+            iconNode ??= FindDeepChild(iconFrame, "Anh");
             materialIcon = iconNode != null ? iconNode.GetComponent<Image>() : null;
             materialQuantityText = FindDeepText(iconFrame != null ? iconFrame.gameObject : null, "Soluong");
             materialNameText = FindDeepText(inner != null ? inner.gameObject : null, "Ten");
@@ -373,10 +376,8 @@ namespace EternalClash.UI
             Button button = badge.GetComponent<Button>();
             if (button == null)
             {
-                Image hitArea = badge.gameObject.AddComponent<Image>();
-                hitArea.color = new Color(1f, 1f, 1f, 0.01f);
                 button = badge.gameObject.AddComponent<Button>();
-                button.targetGraphic = hitArea;
+                button.targetGraphic = badge.GetComponent<Image>();
             }
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => SelectMaterial(index));
@@ -404,12 +405,8 @@ namespace EternalClash.UI
                 value.rectTransform.anchoredPosition = new Vector2(0f, -14f);
                 value.rectTransform.sizeDelta = new Vector2(230f, 52f);
 
-                Image hitArea = badge.gameObject.AddComponent<Image>();
-                hitArea.sprite = frameText;
-                hitArea.type = frameText != null ? Image.Type.Sliced : Image.Type.Simple;
-                hitArea.color = new Color(1f, 1f, 1f, 0.01f);
                 Button badgeButton = badge.gameObject.AddComponent<Button>();
-                badgeButton.targetGraphic = hitArea;
+                badgeButton.targetGraphic = background;
                 int capturedIndex = index;
                 badgeButton.onClick.AddListener(() => SelectMaterial(capturedIndex));
             }
