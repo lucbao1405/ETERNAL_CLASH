@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.343, y: 0.339, z: 0}
-  m_LocalScale: {x: 0.17038783, y: 0.15696032, z: 1}
+  m_LocalScale: {x: 0.15, y: 0.15, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -162,6 +162,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemType: 3
+  itemIdOverride: 
   amount: 1
   magnetRange: 4
   moveSpeed: 8
+  magnetDelay: 0
+  externallyDriven: 0

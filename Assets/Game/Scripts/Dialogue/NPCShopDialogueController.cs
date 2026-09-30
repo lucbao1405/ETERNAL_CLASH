@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Spine.Unity;
+using EternalClash.Core.Save;
 
 [RequireComponent(typeof(Button))]
 [DisallowMultipleComponent]
@@ -85,6 +86,14 @@ public sealed class NPCShopDialogueController : MonoBehaviour
             return;
         }
 
+        // Hoi thoai chi chay lan dau gap NPC. Ela (dialogueId chua "ela") luon
+        // hien lai; cac NPC khac da gap thi mo thang shop.
+        if (!IsRepeatableDialogue && HasSeenDialogue)
+        {
+            OpenShop();
+            return;
+        }
+
         shopPanelAnimator?.CloseImmediate();
         activeConversation = this;
         waitingForDialogue = true;
@@ -99,6 +108,7 @@ public sealed class NPCShopDialogueController : MonoBehaviour
         waitingForDialogue = false;
         if (activeConversation == this)
             activeConversation = null;
+        MarkDialogueSeen();
         OpenShop();
     }
 
@@ -112,6 +122,28 @@ public sealed class NPCShopDialogueController : MonoBehaviour
     }
 
     public string DialogueId => dialogueId;
+
+    // Hoi thoai cua Ela luon lap lai; dialogueId chua "ela" danh dau dieu do.
+    private bool IsRepeatableDialogue =>
+        !string.IsNullOrEmpty(dialogueId) &&
+        dialogueId.IndexOf("ela", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+    private bool HasSeenDialogue =>
+        SaveManager.Instance?.Data?.seenNpcDialogues != null &&
+        SaveManager.Instance.Data.seenNpcDialogues.Contains(dialogueId);
+
+    private void MarkDialogueSeen()
+    {
+        if (IsRepeatableDialogue || string.IsNullOrEmpty(dialogueId))
+            return;
+
+        var data = SaveManager.Instance?.Data;
+        if (data?.seenNpcDialogues == null || data.seenNpcDialogues.Contains(dialogueId))
+            return;
+
+        data.seenNpcDialogues.Add(dialogueId);
+        SaveCoordinator.RequestSave();
+    }
 
     private void ResolveReferences()
     {

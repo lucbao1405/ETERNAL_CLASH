@@ -275,6 +275,15 @@ namespace EternalClash.Animation
             PlayLoop(AnimVictory);
         }
 
+        /// <summary>Hoi sinh sau offer quang cao: cho phep animation chet da phat
+        /// truoc do (trong luc cho offer) quay lai trang thai chien dau binh thuong.</summary>
+        public void NotifyRevive()
+        {
+            dead = false;
+            state = VisualState.None;
+            PlayLoop(AnimIdle);
+        }
+
         public void PlayIdle() => PlayLoop(AnimIdle);
         public void PlayRun() => PlayLoop(AnimRun);
 

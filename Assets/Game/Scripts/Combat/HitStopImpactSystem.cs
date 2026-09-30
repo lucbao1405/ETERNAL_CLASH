@@ -70,6 +70,11 @@ namespace EternalClash.Combat
             if (routine == null && Time.timeScale <= 0f)
                 return;
 
+            // Offer hoi sinh (hoac mot he thong khac) dang so huu cai freeze
+            // timeScale = 0: hit stop khong duoc set/tra timeScale lam hong freeze.
+            if (EternalClash.Monetization.ReviveOffer.OfferFreezeActive)
+                return;
+
             if (routine != null)
             {
                 // Dang dung: chi keo dai them neu don moi nang hon don dang tinh.
@@ -94,6 +99,11 @@ namespace EternalClash.Combat
 
             routine = null;
             currentPause = 0f;
+            // Mot he thong khac (vd offer hoi sinh) da nhan quyen freeze
+            // timeScale = 0: khong tra lai savedTimeScale de tranh mo khoa tran
+            // sau lung offer. Co OfferFreezeActive se duoc he thong do tu tra.
+            if (EternalClash.Monetization.ReviveOffer.OfferFreezeActive)
+                yield break;
             // Ai do vua set timeScale trong slit giay dung (pause/ slowmo) thi khong de len.
             if (Mathf.Approximately(Time.timeScale, 0f))
                 Time.timeScale = savedTimeScale;

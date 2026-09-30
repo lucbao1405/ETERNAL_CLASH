@@ -47,11 +47,13 @@ namespace EternalClash.UI
                 itemIcon.gameObject.SetActive(icon != null);
             }
 
-            public void SetAmount(int amount)
+            public void SetAmount(int have, int required)
             {
                 if (requiredAmountText != null)
                 {
-                    requiredAmountText.text = "x" + amount;
+                    requiredAmountText.text = have + "/" + required;
+                    bool enough = have >= required;
+                    requiredAmountText.color = enough ? Color.white : Color.red;
                     requiredAmountText.gameObject.SetActive(true);
                 }
             }
@@ -492,7 +494,9 @@ namespace EternalClash.UI
 
             if (goldAmountText != null)
             {
-                goldAmountText.text = "x" + gold;
+                int goldHave = saveData?.currency?.gold ?? 0;
+                goldAmountText.text = goldHave + "/" + gold;
+                goldAmountText.color = goldHave >= gold ? Color.white : Color.red;
             }
 
             int slotIndex = 0;
@@ -504,10 +508,11 @@ namespace EternalClash.UI
 
                 string materialItemId = BlacksmithCraftingSystem.GetMaterialItemId(requirement.materialType);
                 ItemData material = ItemCatalog.Find(materialItemId);
-                Debug.Log("[RefreshRequirementSlots] Material " + slotIndex + ": " + materialItemId + " x" + requiredAmount +
+                int have = BlacksmithCraftingSystem.GetMaterialAmount(saveData?.inventory?.items, materialItemId);
+                Debug.Log("[RefreshRequirementSlots] Material " + slotIndex + ": " + materialItemId + " " + have + "/" + requiredAmount +
                     (material != null ? " (has icon)" : " (NO ICON!)"));
                 materialSlots[slotIndex].SetIcon(material?.icon);
-                materialSlots[slotIndex].SetAmount(requiredAmount);
+                materialSlots[slotIndex].SetAmount(have, requiredAmount);
                 materialSlots[slotIndex].SetActive(true);
                 slotIndex++;
             }

@@ -80,6 +80,12 @@ public static class PanelDim
         warned = false;
     }
 
+    /// <summary>Có modal panel nào đang mở (nền đang bị tối) hay không.</summary>
+    public static bool AnyPanelOpen
+    {
+        get { PurgeDeadOwners(); return owners.Count > 0; }
+    }
+
     /// <summary>Marks a panel as open; shows the dim if this is the first open panel.</summary>
     public static void Acquire(object owner)
     {

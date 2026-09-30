@@ -10,6 +10,14 @@ namespace EternalClash.Character
         [SerializeField] private int maxHealth = 100;
         private int currentHealth;
 
+        // Player phai chet duong delay nay (giay) thi offer xem quang cao hoi sinh moi bat.
+        [SerializeField, Tooltip("So giay cho sau khi chet truoc khi bat offer hoi sinh")]
+        private float reviveOfferDelay = 2f;
+
+        // Vi tri player dung luc chet: animation chet co root motion vung ra sau,
+        // trong luc cho offer phai giu xac dung yen tai cho de khong vang khoi man hinh.
+        private Vector3 deathPosition;
+
         /// <summary>
         /// Max HP goc tren prefab, chua cong bonus. Giu rieng de khi ap bonus moi
         /// co the tinh lai tu dau thay vi cong don len gia tri da co bonus.
@@ -159,10 +167,89 @@ namespace EternalClash.Character
             if (RevivePending)
                 return;
 
-            if (EternalClash.Monetization.ReviveOffer.TryOffer(this))
+            if (EternalClash.Monetization.ReviveOffer.CanOffer(this))
+            {
+                MarkRevivePending(); // chan flow chet trong luc cho delay
+                deathPosition = transform.position;
+                PlayDeathVisualAndWaitWorld();
+                StartCoroutine(DelayedReviveOffer());
                 return;
+            }
 
             ConfirmDeath();
+        }
+
+        /// <summary>Vua chet dang cho offer: phat animation chet ngay va giup
+        /// xac player dung yen tren man hinh (dung scroll the gioi, dung quai,
+        /// huys knockback) thay vi bi keo/vang khoi khung nhin trong 2 giay cho.</summary>
+        private void PlayDeathVisualAndWaitWorld()
+        {
+            var combatStateMachine = GetComponent<EternalClash.Combat.PlayerCombatStateMachine>();
+            if (combatStateMachine != null)
+                combatStateMachine.Die();
+
+            // Tat input va don danh trong luc cho offer: neu khong, xac van tu
+            // dong don va giet quai -> sinh them hit-stop (chan freeze cua offer),
+            // quai chet thi xuyen thang sang flow victory trong khi player dang chet.
+            var input = GetComponent<EternalClash.Player.InputController>();
+            if (input != null)
+                input.enabled = false;
+
+            var basicAttack = GetComponent<EternalClash.Combat.BasicAttackSystem>();
+            if (basicAttack != null)
+                basicAttack.enabled = false;
+
+            // PlayerAnimationController cung nghe OnDeath (chi fire khi ConfirmDeath
+            // o luong thua) nen trong luc cho offer phai bao animation chet truc tiep.
+            var anim = GetComponentInChildren<EternalClash.Animation.PlayerAnimationController>();
+            if (anim != null)
+                anim.NotifyDeath();
+
+            var worldScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            if (worldScroller != null)
+            {
+                worldScroller.CancelKnockback();
+                worldScroller.StopScroll();
+            }
+
+            foreach (EnemyMover mover in FindObjectsOfType<EnemyMover>())
+                mover.StopMovement();
+        }
+
+        /// <summary>Cho player chet du ~2 giay roi moi bat offer xem quang cao hoi sinh.
+        /// Trong luc cho, giu xac player dung yen tai vi tri chet (animation chet co
+        /// root motion vung ra sau, neu khong kep thi xac bi day vang khoi man hinh).</summary>
+        private System.Collections.IEnumerator DelayedReviveOffer()
+        {
+            float waited = 0f;
+            while (waited < reviveOfferDelay)
+            {
+                transform.position = deathPosition;
+                yield return null;
+                waited += Time.deltaTime;
+            }
+
+            // Player bi huy khi doi scene trong luc cho delay.
+            if (this == null)
+                yield break;
+
+            // Tran da ket thuc trong luc cho (thang/qua screen) thi khong con offer,
+            // chot cai chet de flow thua chay binh thuong.
+            StageManager stage = StageManager.Instance;
+            if (stage != null && stage.CurrentState != StageManager.StageState.Running)
+            {
+                ConfirmDeath();
+                yield break;
+            }
+
+            // Da duoc hoi mau luc cho (hien danh edge-case) thi huy pending, khong offer.
+            if (currentHealth > 0)
+            {
+                RevivePending = false;
+                yield break;
+            }
+
+            EternalClash.Monetization.ReviveOffer.OpenOffer(this);
         }
 
         internal void MarkRevivePending()
@@ -178,6 +265,33 @@ namespace EternalClash.Character
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
             PushThreatsAwayOnRevive();
+            ResumeWorldAfterRevive();
+        }
+
+        /// <summary>Hoi sinh: chay lai scroll the gioi, tra animation ve trang thai
+        /// chien dau va cho phep di chuyen lai (quai tu resume sau PauseMovement).</summary>
+        private void ResumeWorldAfterRevive()
+        {
+            // Bat lai input va don danh da tat luc chet (cho offer hoi sinh).
+            var input = GetComponent<EternalClash.Player.InputController>();
+            if (input != null)
+                input.enabled = true;
+
+            var basicAttack = GetComponent<EternalClash.Combat.BasicAttackSystem>();
+            if (basicAttack != null)
+                basicAttack.enabled = true;
+
+            var worldScroller = FindObjectOfType<EternalClash.World.WorldScroller>();
+            if (worldScroller != null)
+                worldScroller.ResumeScroll();
+
+            var anim = GetComponentInChildren<EternalClash.Animation.PlayerAnimationController>();
+            if (anim != null)
+                anim.NotifyRevive();
+
+            var combatStateMachine = GetComponent<EternalClash.Combat.PlayerCombatStateMachine>();
+            if (combatStateMachine != null)
+                combatStateMachine.ReturnToCombatIdle();
         }
 
         /// <summary>

@@ -177,10 +177,53 @@ public class StageManager : MonoBehaviour
         save.Save();
     }
 
+    private bool victoryPostponedForRevive;
+
+    /// <summary>Player co dang cho offer hoi sinh (chet, RevivePending) khong.</summary>
+    private static bool IsReviveOfferBlocking()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        var health = player != null ? player.GetComponent<EternalClash.Character.HealthSystem>() : null;
+        return health != null && health.RevivePending;
+    }
+
+    /// <summary>Cho offer hoi sinh resolve (dung unscaled time vi tran bi dong bang
+    /// luc offer mo) roi chay lai victory. Neu tu choi thi flow thua da chuyen
+    /// Defeat nen CompleteStage khong con co hieu luc.</summary>
+    private System.Collections.IEnumerator WaitReviveOfferThenComplete()
+    {
+        float wait = 0f;
+        while (wait < 10f)
+        {
+            yield return null;
+            wait += Time.unscaledDeltaTime;
+            if (!IsReviveOfferBlocking())
+                break;
+        }
+
+        if (CurrentState == StageState.Running)
+            CompleteStage();
+    }
+
     public void CompleteStage()
     {
         if (CurrentState != StageState.Running) return;
 
+        // Offer hoi sinh dang mo (player chet, cho xem ad): hoan victory lai.
+        // Neu nguoi choi hoi sinh thi thang binh thuong (quai da het), neu tu choi
+        // thi FailStage chuyen sang Defeat va CompleteStage tu bi loai qua guard tren.
+        if (IsReviveOfferBlocking())
+        {
+            if (!victoryPostponedForRevive)
+            {
+                victoryPostponedForRevive = true;
+                Debug.Log("[STAGE] Victory doi offer hoi sinh ket thuc truoc khi chay.");
+                StartCoroutine(WaitReviveOfferThenComplete());
+            }
+            return;
+        }
+
+        victoryPostponedForRevive = false;
         StopBattleTimer();
         SetBattleInProgress(false);
         CurrentState = StageState.Victory;

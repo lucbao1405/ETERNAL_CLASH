@@ -32,11 +32,13 @@ namespace EternalClash.UI
         private const float GhostHoldDuration = 0.5f;
         private const float GhostDrainSpeed = 1.6f;
 
-        // Am hon moi popup UI (MainCanvas, Victory/Lose, ad offer...) nhung van
-        // tren the gioi game vi la Screen Space Overlay.
-        private const int BarSortingOrder = -50;
+        // Cao hon HUD thuong (MainCanvas, order 0) de panel khong đè len thanh mau,
+        // nhung thap hon popup (StageResult 100, OfferOverlay 500, Toast 1000,
+        // ad panel 5000). Truong hop quang cao dac biet van du SetSuppressed() an di.
+        private const int BarSortingOrder = 50;
 
         private EnemyHealthSystem boundHealth;
+        private Canvas ownCanvas;
         private Image fillImage;
         private Image ghostFill;
         private TMP_Text hpText;
@@ -87,6 +89,7 @@ namespace EternalClash.UI
             scaler.matchWidthOrHeight = 1f;
 
             instance = root.AddComponent<BossHealthBarUI>();
+            instance.ownCanvas = canvas;
             instance.BuildUI(root.transform as RectTransform);
         }
 
@@ -154,6 +157,7 @@ namespace EternalClash.UI
             Canvas ownCanvas = GetComponent<Canvas>();
             if (ownCanvas != null)
             {
+                this.ownCanvas = ownCanvas;
                 ownCanvas.overrideSorting = true;
                 ownCanvas.sortingOrder = BarSortingOrder;
             }
@@ -209,7 +213,13 @@ namespace EternalClash.UI
                 return;
             }
 
-            if (ghostFill == null || fillImage == null || !fillInitialized)
+            // Co modal panel mo (Pause, Win/Lose, thiet bi...) hoac video quang cao:
+            // tu thu nho lai de khong đè len panel, hien lai khi dong panel.
+            bool visible = !suppressed && !PanelDim.AnyPanelOpen;
+            if (ownCanvas != null && ownCanvas.enabled != visible)
+                ownCanvas.enabled = visible;
+
+            if (!visible || ghostFill == null || fillImage == null || !fillInitialized)
                 return;
 
             // Lop vang "mau vua mat" giong thanh mau Player: tut ngay, giu 0.5s roi rut.

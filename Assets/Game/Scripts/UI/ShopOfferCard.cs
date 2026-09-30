@@ -54,8 +54,20 @@ namespace EternalClash.UI
                 return;
             }
 
-            // TODO: tam thoi tren mobile chua mua duoc bang tien - cho phep nhan
-            // vat pham mien phi khi bam mua. Khoi phuc lai viec tru tien sau.
+            if (price > 0)
+            {
+                bool paid = string.Equals(currencyId, "diamon", System.StringComparison.OrdinalIgnoreCase)
+                    ? gold.SpendGem(price)
+                    : gold.SpendGold(price);
+                if (!paid)
+                {
+                    ToastMessage.Show(string.Equals(currencyId, "diamon", System.StringComparison.OrdinalIgnoreCase)
+                        ? "Not enough diamonds!"
+                        : "Not enough gold!");
+                    return;
+                }
+            }
+
             if (itemId == "coin") gold.AddGold(amount);
             else if (itemId == "diamon") gold.AddGem(amount);
             else Debug.Log($"[ShopOfferCard] Da mua {amount} {itemId}.");

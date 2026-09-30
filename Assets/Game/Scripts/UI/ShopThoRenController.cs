@@ -548,13 +548,16 @@ namespace EternalClash.UI
                     continue;
 
                 string materialItemId = BlacksmithCraftingSystem.GetMaterialItemId(requirement.materialType);
-                SetRequirementSlot(slotIndex++, materialItemId, amount);
+                int have = BlacksmithCraftingSystem.GetMaterialAmount(
+                    SaveManager.Instance?.Data?.inventory?.items, materialItemId);
+                SetRequirementSlot(slotIndex++, materialItemId, have, amount);
             }
 
             if (recipe.goldCost > 0 && slotIndex < requirementIcons.Length)
             {
                 int goldCost = BlacksmithCraftingSystem.GetGoldCost(recipe, upgradeLevel);
-                SetRequirementSlot(slotIndex, "coin", goldCost);
+                int goldHave = SaveManager.Instance?.Data?.currency?.gold ?? 0;
+                SetRequirementSlot(slotIndex, "coin", goldHave, goldCost);
             }
         }
 
@@ -576,7 +579,7 @@ namespace EternalClash.UI
             }
         }
 
-        private void SetRequirementSlot(int index, string itemId, int amount)
+        private void SetRequirementSlot(int index, string itemId, int have, int required)
         {
             if (index < 0 || index >= requirementIcons.Length)
                 return;
@@ -594,10 +597,11 @@ namespace EternalClash.UI
             }
             if (index < requirementAmountTexts.Length && requirementAmountTexts[index] != null)
             {
-                requirementAmountTexts[index].text = "x" + amount;
+                requirementAmountTexts[index].text = have + "/" + required;
+                requirementAmountTexts[index].color = have >= required ? Color.white : Color.red;
                 requirementAmountTexts[index].gameObject.SetActive(true);
             }
-            Debug.Log("[SetRequirementSlot] Slot " + (index+1) + ": " + itemId + " x" + amount);
+            Debug.Log("[SetRequirementSlot] Slot " + (index+1) + ": " + itemId + " " + have + "/" + required);
         }
 
         private Transform ResolveRequirementSlotsRoot()

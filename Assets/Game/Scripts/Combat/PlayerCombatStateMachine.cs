@@ -78,8 +78,10 @@ namespace EternalClash.Combat
 
         public void ReturnToCombatIdle()
         {
-            if (CurrentState != PlayerCombatState.Dead)
-                ChangeState(PlayerCombatState.CombatIdle);
+            // Sau hoi sinh, CurrentState dang la Dead nen phai cho phep thoat
+            // khoi Dead o day; neu khong skill se bi khoa mai sau khi revive.
+            CurrentState = PlayerCombatState.CombatIdle;
+            Debug.Log("[PLAYER STATE] " + CurrentState);
         }
 
         public void Die()

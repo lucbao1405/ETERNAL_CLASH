@@ -55,6 +55,11 @@ public class SaveData
     public int tutorialStep;
     public string playerName = string.Empty;
 
+    // Hoi thoai lan dau voi cac NPC trong town (blacksmith, witch...). NPC da
+    // hoi thoai mot lan thi cac lan sau mo thang shop, khong lap lai loi chao.
+    // Ela khong nam trong danh sach nay — hoi thoai cua Ela luon hien.
+    public List<string> seenNpcDialogues = new List<string>();
+
     // Affinity & Bonds
     public int affinityPoints = 0;
     public List<string> unlockedLetters = new List<string>();
